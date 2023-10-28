@@ -1,0 +1,34 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "attendify",
+      "cwd": "attendify",
+      "request": "launch",
+      "type": "dart"
+    },
+
+    {
+      "name": "android-arm64",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "64d7d1a"
+    },
+
+    {
+      "name": "android-arm",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "c1ab06a8"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "All Devices",
+      "configurations": ["android-arm64", "android-arm"]
+    }
+  ]
+}
