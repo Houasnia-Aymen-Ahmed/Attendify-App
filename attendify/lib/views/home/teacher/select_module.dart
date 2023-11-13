@@ -4,12 +4,19 @@ import 'package:attendify/services/auth.dart';
 import 'package:attendify/services/databases.dart';
 import 'package:attendify/shared/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class SelectModule extends StatefulWidget {
   final Teacher teacher;
-  final List<Module> modules;
-  const SelectModule({super.key, required this.teacher, required this.modules});
+  final List<Module>? modules;
+  final DatabaseService databaseService;
+  final AuthService authService;
+  const SelectModule({
+    super.key,
+    required this.teacher,
+    required this.modules,
+    required this.databaseService,
+    required this.authService,
+  });
 
   @override
   State<SelectModule> createState() => _SelectModuleState();
@@ -19,12 +26,16 @@ class _SelectModuleState extends State<SelectModule> {
   List<String> addedModules = [];
   List<String> selectedModules = [];
   late List<Module> selectedModulesModel;
-  String? selectedGrade, selectedSpeciality;
+  String? gradeVal, specialityVal;
   bool hasSelected = false, isSaved = false, isDisabled = true;
-  final DatabaseService _databaseService = DatabaseService();
 
   void addModule(
-      String uid, String name, String grade, String speciality, bool isActive) {
+    String uid,
+    String name,
+    String grade,
+    String speciality,
+    bool isActive,
+  ) {
     setState(() {
       selectedModulesModel.add(
         Module(
@@ -38,40 +49,11 @@ class _SelectModuleState extends State<SelectModule> {
     });
   }
 
-  Future<void> showCloseConfirmationDialog(BuildContext context) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Exit'),
-          content: const Text(
-              'You have unsaved changes. Do you want to exit without saving?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Back'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Exit Anyway'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   void initState() {
     super.initState();
     isSaved = false;
-    selectedModulesModel = widget.modules;
+    selectedModulesModel = widget.modules ?? [];
     selectedModules.clear();
     selectedModules.addAll(selectedModulesModel.map((module) => module.uid));
     /* selectedModules =
@@ -82,21 +64,21 @@ class _SelectModuleState extends State<SelectModule> {
   @override
   Widget build(BuildContext context) {
     List<String>? modules = [];
-    if (modulesMap.containsKey(selectedGrade) &&
-        modulesMap[selectedGrade]?.containsKey(selectedSpeciality) == true) {
-      modules = modulesMap[selectedGrade]![selectedSpeciality];
+    if (modulesMap.containsKey(gradeVal) &&
+        modulesMap[gradeVal]?.containsKey(specialityVal) == true) {
+      modules = modulesMap[gradeVal]![specialityVal];
       if (modules?[0] == "") {
         modules = null;
       }
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Attendify"),
+        title: const Text("Select modules"),
         backgroundColor: Colors.blue[200],
         actions: [
           IconButton(
             onPressed: () {
-              AuthService().logout(context);
+              widget.authService.logout(context);
             },
             icon: const Icon(Icons.logout_rounded),
           )
@@ -107,7 +89,8 @@ class _SelectModuleState extends State<SelectModule> {
           children: [
             userAccountDrawerHeader(
                 username: widget.teacher.userName,
-                email: AuthService().currentUsr?.email),
+                email: widget.authService.currentUsr?.email ??
+                    "user@hns-re2sd.dz"),
             ListTile(
               title: Text(widget.teacher.userName),
             )
@@ -117,15 +100,47 @@ class _SelectModuleState extends State<SelectModule> {
       body: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: dropDownBtn(
+                  hint: "Select a grade",
+                  type: "grade",
+                  gradeVal: gradeVal,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      isDisabled = false;
+                      gradeVal = newValue!;
+                    });
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: dropDownBtn(
+                  hint: "Select a speciality",
+                  type: "speciality",
+                  gradeVal: gradeVal,
+                  specialityVal: specialityVal,
+                  onChanged: isDisabled
+                      ? null
+                      : (String? newValue) {
+                          setState(() {
+                            specialityVal = newValue!;
+                          });
+                        },
+                ),
+              ),
+
+              /* Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: DropdownButton<String>(
                   padding: const EdgeInsets.all(8.0),
                   elevation: 16,
                   dropdownColor: Colors.blue[100],
                   borderRadius: BorderRadius.circular(20),
-                  value: selectedGrade,
+                  value: gradeVal,
                   hint: Text(
                     "Choose your grade",
                     textAlign: TextAlign.center,
@@ -145,7 +160,7 @@ class _SelectModuleState extends State<SelectModule> {
                   onChanged: (String? newValue) {
                     setState(() {
                       isDisabled = false;
-                      selectedGrade = newValue!;
+                      gradeVal = newValue!;
                     });
                   },
                   items: modulesMap.keys.map((String value) {
@@ -170,7 +185,7 @@ class _SelectModuleState extends State<SelectModule> {
                   elevation: 16,
                   dropdownColor: Colors.blue[100],
                   borderRadius: BorderRadius.circular(20),
-                  value: selectedSpeciality,
+                  value: specialityVal,
                   hint: Text(
                     "Choose your speciality",
                     textAlign: TextAlign.center,
@@ -191,12 +206,11 @@ class _SelectModuleState extends State<SelectModule> {
                       ? null
                       : (String? newValue) {
                           setState(() {
-                            selectedSpeciality = newValue!;
+                            specialityVal = newValue!;
                           });
                         },
-                  items: modulesMap[selectedGrade ?? "5th"]!
-                      .keys
-                      .map((String value) {
+                  items:
+                      modulesMap[gradeVal ?? "5th"]!.keys.map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(
@@ -210,45 +224,50 @@ class _SelectModuleState extends State<SelectModule> {
                     );
                   }).toList(),
                 ),
-              ),
+              ), */
             ],
           ),
-          if (hasSelected)
-            Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 16.0),
-                      child: Text(
-                        "Unselect all",
-                        style: TextStyle(fontSize: 17.5),
+          Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: Text(
+                      "Unselect new selected modules",
+                      style: TextStyle(
+                        fontSize: 17.5,
+                        color: hasSelected ? Colors.black : Colors.grey,
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
-                      child: IconButton(
-                        onPressed: () => setState(
-                          () {
-                            addedModules.clear();
-                            selectedModules.addAll(selectedModulesModel
-                                .map((module) => module.uid));
-                            hasSelected = false;
-                          },
-                        ),
-                        icon: const Icon(Icons.unpublished_rounded),
-                      ),
-                    )
-                    /**/
-                  ],
-                ),
-                const Divider(
-                  height: 20,
-                  color: Colors.blueGrey,
-                )
-              ],
-            ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16.0),
+                    child: IconButton(
+                      onPressed: hasSelected
+                          ? () => setState(
+                                () {
+                                  addedModules.clear();
+                                  selectedModules.addAll(selectedModulesModel
+                                      .map((module) => module.uid));
+                                  hasSelected = false;
+                                },
+                              )
+                          : null,
+                      icon: const Icon(Icons.unpublished_rounded),
+                    ),
+                  )
+                ],
+              ),
+              const Divider(
+                height: 20,
+                indent: 16,
+                endIndent: 16,
+                color: Colors.blueGrey,
+              )
+            ],
+          ),
           Expanded(
             child: modules == null
                 ? const Center(child: Text("No module availabe"))
@@ -258,11 +277,11 @@ class _SelectModuleState extends State<SelectModule> {
                           (module) => CheckboxListTile(
                             title: Text(module),
                             value: selectedModules.contains(
-                                "${selectedGrade}_${selectedSpeciality}_module_${modules?.indexOf(module)}"),
+                                "${gradeVal}_${specialityVal}_module_${modules?.indexOf(module)}"),
                             onChanged: (newValue) {
                               setState(() {
                                 String moduleName =
-                                    "${selectedGrade}_${selectedSpeciality}_module_${modules?.indexOf(module)}";
+                                    "${gradeVal}_${specialityVal}_module_${modules?.indexOf(module)}";
                                 if (newValue!) {
                                   addedModules.add(moduleName);
                                   selectedModules.add(moduleName);
@@ -297,7 +316,7 @@ class _SelectModuleState extends State<SelectModule> {
                               String moduleName =
                                   modulesMap[grade]![speciality]![moduleIndex];
                               //print(addedModules.toString());
-                              await _databaseService.updateModuleData(
+                              await widget.databaseService.updateModuleData(
                                 uid: module,
                                 name: moduleName,
                                 isActive: false,
@@ -315,35 +334,17 @@ class _SelectModuleState extends State<SelectModule> {
                                 false,
                               );
                             }
-                            await _databaseService.updateTeacherSpecificData(
+                            await widget.databaseService
+                                .updateTeacherSpecificData(
                               modules: addedModules,
                             );
 
                             if (mounted) {
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text(
-                                      'Success',
-                                      style: TextStyle(
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                    content: const Text(
-                                        "Modules saved successfully"),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        child: const Text('OK'),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
+                              showDialogBox(
+                                context,
+                                "Success",
+                                "Modules saved successfully",
+                                false,
                               );
                             }
                             setState(() {
@@ -351,28 +352,11 @@ class _SelectModuleState extends State<SelectModule> {
                             });
                           } catch (e) {
                             if (mounted) {
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text(
-                                      'Error',
-                                      style: TextStyle(
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    content: Text("Error saving modules: $e"),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        child: const Text('OK'),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
+                              showDialogBox(
+                                context,
+                                "Error",
+                                "Error saving modules: $e",
+                                true,
                               );
                             }
                           }

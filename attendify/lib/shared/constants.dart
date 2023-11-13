@@ -38,16 +38,10 @@ final elevatedBtnStyle = ElevatedButton.styleFrom(
   fixedSize: const Size(100, 50),
 );
 
-final textDisabled = Text(
-  "Your friend's Message",
-  style: txt().copyWith(fontSize: 25.0, color: Colors.grey),
-  textAlign: TextAlign.center,
-);
-
-userAccountDrawerHeader({String? username, String? email}) {
+userAccountDrawerHeader({required String username, required String email}) {
   return UserAccountsDrawerHeader(
     accountName: Text(
-      username ?? "Houasnia Ahmed Aymen",
+      username,
       style: GoogleFonts.roboto(
         fontSize: 20,
         fontWeight: FontWeight.w500,
@@ -55,7 +49,7 @@ userAccountDrawerHeader({String? username, String? email}) {
       ),
     ),
     accountEmail: Text(
-      email ?? "aymenaymen2056@gmail.com",
+      email,
       style: GoogleFonts.roboto(
         fontSize: 18,
         fontWeight: FontWeight.w400,
@@ -64,19 +58,20 @@ userAccountDrawerHeader({String? username, String? email}) {
       ),
     ),
     decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [
-          Colors.blue[900]!,
-          Colors.blue[100]!,
-        ]),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black,
-            blurRadius: 0.5,
-            blurStyle: BlurStyle.normal,
-            offset: Offset(0, 3),
-          )
-        ]),
+      gradient: LinearGradient(colors: [
+        Colors.blue[900]!,
+        Colors.blue[100]!,
+      ]),
+      borderRadius: BorderRadius.circular(15),
+      boxShadow: const [
+        BoxShadow(
+          color: Colors.black,
+          blurRadius: 0.5,
+          blurStyle: BlurStyle.normal,
+          offset: Offset(0, 3),
+        )
+      ],
+    ),
     arrowColor: Colors.black,
   );
 }
@@ -87,28 +82,79 @@ var dropDownTextStyle = GoogleFonts.poppins(
   fontWeight: FontWeight.w500,
 );
 
-String capitalizeFirst(String? input) {
-  if (input == null) {
-    return "text";
-  }
-
+String capitalizeFirst(String input) {
   if (input.length <= 1) {
     return input;
   }
   return input[0].toUpperCase() + input.substring(1);
 }
 
-List<String> modules = [
-  "Advanced AI (Deep Learning)",
-  "Virualization & Industrial Control on the Cloud",
-  "Mobile Applications & HMI under Android",
-  "Home Automation for Renewable Energy",
-  "N-tier Development",
-  "Smart Grids",
-  "Industrial Metrology",
-  "Workshop: Entrepreneurship & Startup Establishment",
-  "Academic Ethics",
-];
+List<ListTile> drawerList(dynamic user) {
+  return [
+    ListTile(
+      title: Text(
+        capitalizeFirst(user?.grade ?? "Grade"),
+      ),
+      subtitle: const Text("Grade"),
+    ),
+    ListTile(
+      title: Text(
+        capitalizeFirst(user?.speciality ?? "Speciality"),
+      ),
+      subtitle: const Text("Speciality"),
+    ),
+  ];
+}
+
+DropdownButton<String> dropDownBtn({
+  required hint,
+  required type,
+  bool isDisabled = false,
+  String? gradeVal,
+  String? specialityVal,
+  void Function(String?)? onChanged,
+}) {
+  dynamic items = type == "grade"
+      ? modulesMap.keys.toList()
+      : modulesMap[gradeVal]?.keys.toList() ?? ["iriia"];
+  return DropdownButton<String>(
+    padding: const EdgeInsets.all(8.0),
+    elevation: 16,
+    dropdownColor: Colors.blue[100],
+    borderRadius: BorderRadius.circular(20),
+    value: type == "grade" ? gradeVal : specialityVal,
+    hint: Text(
+      hint,
+      textAlign: TextAlign.center,
+      style: GoogleFonts.poppins(
+        fontSize: 16,
+        color: isDisabled ? Colors.blueGrey : Colors.blue[900],
+      ),
+    ),
+    style: const TextStyle(
+      color: Colors.black,
+      backgroundColor: Colors.transparent,
+    ),
+    underline: Container(
+      height: 2,
+      color: isDisabled ? Colors.blueGrey : Colors.blue[900],
+    ),
+    onChanged: onChanged,
+    items: items.map<DropdownMenuItem<String>>((String value) {
+      return DropdownMenuItem<String>(
+        value: value,
+        child: Text(
+          capitalizeFirst(value),
+          textAlign: TextAlign.center,
+          style: GoogleFonts.poppins(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }).toList(),
+  );
+}
 
 const modulesMap = {
   "5th": {
@@ -259,6 +305,71 @@ const Map<String, List<String>> specialities = {
   '4th': ['er', 'ge', 'gh', 'iriia', 'micro'],
   '5th': ['er', 'ge', 'gh', 'iriia', 'micro'],
 };
+
+void showDialogBox(
+  BuildContext context,
+  String title,
+  String content,
+  bool isError,
+) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) => AlertDialog(
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isError ? Colors.red : Colors.green,
+        ),
+      ),
+      content: Text(
+        content,
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: const Text('OK'),
+          onPressed: () {
+            if (isError) {
+              Navigator.of(context).pop();
+            } else {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> showCloseConfirmationDialog(BuildContext context) async {
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Confirm Exit'),
+        content: const Text(
+            'You have unsaved changes. Do you want to exit without saving?'),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Back'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: const Text('Exit Anyway'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
 void showOverlay(BuildContext context, OverlayEntry? overlayEntry,
     ValueNotifier<bool> isRoomActive) {

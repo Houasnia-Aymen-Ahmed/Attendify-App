@@ -50,18 +50,28 @@ class DatabaseService {
         'uid': uid,
       });
     }
-    /* if (userType == 'teacher') {
-      await teacherColl.add({
-        'userRef': userDoc,
-        'modules': [],
-      });
-    } else if (userType == 'student') {
-      await studentColl.add({
-        'userRef': userDoc,
-        'grade': '',
-        'speciality': '',
-      });
-    } */
+  }
+
+  Future updateUserSpecificData({
+    String? username,
+    String? userType,
+    String? token,
+    String? uid,
+  }) async {
+    String usrUid = uid ?? _auth.currentUsr!.uid;
+    Map<String, dynamic> map = {
+      "username": username,
+      "userType": userType,
+      "token": token,
+      "uid": uid,
+    };
+    for (var entry in map.entries) {
+      if (entry.value != null) {
+        await userColl.doc(usrUid).update({
+          entry.key.toString(): entry.value,
+        });
+      }
+    }
   }
 
   Future<void> updateTeacherData({
@@ -80,6 +90,35 @@ class DatabaseService {
         'modules': modules,
       },
     );
+  }
+
+  Future<void> updateTeacherSpecificData({
+    String? username,
+    String? userType,
+    String? token,
+    String? uid,
+    List<String>? modules,
+  }) async {
+    String usrUid = uid ?? _auth.currentUsr!.uid;
+    Map<String, dynamic> map = {
+      "username": username,
+      "userType": userType,
+      "token": token,
+      "uid": uid,
+    };
+    for (var entry in map.entries) {
+      if (entry.value != null) {
+        await teacherColl.doc(usrUid).update({
+          entry.key.toString(): entry.value,
+        });
+      }
+    }
+
+    if (modules != null) {
+      await teacherColl.doc(usrUid).update({
+        "modules": FieldValue.arrayUnion(modules),
+      });
+    }
   }
 
   Future<void> updateStudentData({
@@ -128,35 +167,6 @@ class DatabaseService {
     }
   }
 
-  Future<void> updateTeacherSpecificData({
-    String? username,
-    String? userType,
-    String? token,
-    String? uid,
-    List<String>? modules,
-  }) async {
-    String usrUid = uid ?? _auth.currentUsr!.uid;
-    Map<String, dynamic> map = {
-      "username": username,
-      "userType": userType,
-      "token": token,
-      "uid": uid,
-    };
-    for (var entry in map.entries) {
-      if (entry.value != null) {
-        await teacherColl.doc(usrUid).update({
-          entry.key.toString(): entry.value,
-        });
-      }
-    }
-
-    if (modules != null) {
-      await teacherColl.doc(usrUid).update({
-        "modules": FieldValue.arrayUnion(modules),
-      });
-    }
-  }
-
   Future updateModuleData({
     required String uid,
     required String name,
@@ -168,9 +178,6 @@ class DatabaseService {
     bool? checkExists,
   }) async {
     if (checkExists == null || !checkExists) {
-      //print("before try");
-
-      //print("in try");
       return await modulesColl.doc(uid).set({
         'uid': uid,
         'name': name,
@@ -181,10 +188,8 @@ class DatabaseService {
         'attendanceTable': attendanceTable,
       });
     } else {
-      //print("in try 2");
       DocumentSnapshot document = await modulesColl.doc(uid).get();
       if (!document.exists) {
-        //print("doc not exists");
         return await modulesColl.doc(uid).set({
           'uid': uid,
           'name': name,
@@ -193,30 +198,6 @@ class DatabaseService {
           'grade': grade,
           'students': students,
           'attendanceTable': attendanceTable,
-        });
-      } else {
-        //print("${document.data().toString()} exists");
-      }
-    }
-  }
-
-  Future updateUserSpecificData({
-    String? username,
-    String? userType,
-    String? token,
-    String? uid,
-  }) async {
-    String usrUid = uid ?? _auth.currentUsr!.uid;
-    Map<String, dynamic> map = {
-      "username": username,
-      "userType": userType,
-      "token": token,
-      "uid": uid,
-    };
-    for (var entry in map.entries) {
-      if (entry.value != null) {
-        await userColl.doc(usrUid).update({
-          entry.key.toString(): entry.value,
         });
       }
     }
@@ -390,7 +371,6 @@ class DatabaseService {
         students: Map<String, String>.from(doc["students"] ?? {}),
       ); */
 
-      // Fetch attendance data
       /* QuerySnapshot attendanceSnapshot =
           await snapshot.reference.collection('attendanceTable').get();
 
@@ -442,20 +422,17 @@ class DatabaseService {
   }
 
   Teacher _currentTeacherFromSnapshots(DocumentSnapshot snapshot) {
-    //print("inside snapshots");
     if (snapshot.exists) {
-      //print("snapshot exists");
       Map<String, dynamic> doc = snapshot.data() as Map<String, dynamic>;
       String userUid = doc["user"];
-      //print("uid + ${doc}");
-      //print("*************************************");
+
       List<String>? modules = (doc["modules"] as List<dynamic>?)
               ?.map(
                 (e) => e.toString(),
               )
               .toList() ??
           [""];
-      //print("$modules");
+
       return Teacher(
         userName: doc["username"] ?? 'username',
         userType: doc["userType"] ?? "usertype",
@@ -525,17 +502,16 @@ class DatabaseService {
         .map(_currentModuleFromSnapshots);
   }
 
-  Stream<List<Module>> getModuleDataStream(
-    String moduleID, {
-    String? grade,
-    String? speciality,
-  }) {
-    if (grade != null && speciality != null) {
-      return modulesColl
-          .where('grade', isEqualTo: grade)
-          .where('speciality', isEqualTo: speciality)
-          .snapshots()
-          .asyncMap((snapshot) async {
+  Stream<List<Module>> getModuleByGradeSpeciality(
+    String grade,
+    String speciality,
+  ) {
+    return modulesColl
+        .where('grade', isEqualTo: grade)
+        .where('speciality', isEqualTo: speciality)
+        .snapshots()
+        .asyncMap(
+      (snapshot) async {
         if (snapshot.docs.isNotEmpty) {
           List<Module> modules = [];
           for (var doc in snapshot.docs) {
@@ -556,14 +532,18 @@ class DatabaseService {
             ),
           ];
         }
-      });
-    } else {
-      return modulesColl.doc(moduleID).snapshots().asyncMap((snapshot) async {
+      },
+    );
+  }
+
+  Stream<List<Module>> getModuleDataStream(String moduleID) {
+    return modulesColl.doc(moduleID).snapshots().asyncMap(
+      (snapshot) async {
         return [
           _currentModuleFromSnapshots(snapshot),
         ];
-      });
-    }
+      },
+    );
   }
 
   Stream<List<Module>> getModulesOfTeacher(List<String> moduleUIDs) {

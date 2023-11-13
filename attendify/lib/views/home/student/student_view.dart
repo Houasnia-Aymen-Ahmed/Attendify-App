@@ -6,34 +6,32 @@ import 'package:attendify/views/home/body.dart';
 import 'package:attendify/views/home/drawer.dart';
 import 'package:flutter/material.dart';
 
-class Home extends StatefulWidget {
+class StudentView extends StatelessWidget {
   final Student student;
-  const Home({super.key, required this.student});
-
-  @override
-  State<Home> createState() => _HomeState();
-}
-
-class _HomeState extends State<Home> {
-  final DatabaseService _dataService = DatabaseService();
-  final AuthService _auth = AuthService();
-  String userUid = "";
-  @override
-  void initState() {
-    super.initState();
-    userUid = _auth.currentUsr!.uid;
-  }
+  final DatabaseService databaseService;
+  final AuthService authService;
+  const StudentView({
+    super.key,
+    required this.student,
+    required this.databaseService,
+    required this.authService,
+  });
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Student>(
-      stream: _dataService.getStudentDataStream(userUid),
+      stream: databaseService.getStudentDataStream(
+        authService.currentUsr!.uid,
+      ),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Text(
-              'An error occurred while loading data: ${snapshot.error}');
-        } else if (!snapshot.hasData) {
+            'An error occurred while loading data: ${snapshot.error}',
+          );
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
           return const Loading();
+        } else if (!snapshot.hasData) {
+          return const Text("No student data found");
         } else {
           final Student student = snapshot.data!;
           return Scaffold(
@@ -43,14 +41,23 @@ class _HomeState extends State<Home> {
               actions: [
                 IconButton(
                   onPressed: () {
-                    AuthService().logout(context);
+                    authService.logout(context);
                   },
                   icon: const Icon(Icons.logout_rounded),
                 )
               ],
             ),
-            drawer: BuildDrawer(student: student),
-            body: BuildBody(student: student),
+            drawer: BuildDrawer(
+              student: student,
+              authService: authService,
+              databaseService: databaseService,
+              userType: "student",
+            ),
+            body: BuildBody(
+              student: student,
+              databaseService: databaseService,
+              authService: authService,
+            ),
           );
         }
       },

@@ -2,18 +2,18 @@ import 'package:attendify/models/attendify_student.dart';
 import 'package:attendify/models/module_model.dart';
 import 'package:attendify/services/databases.dart';
 import 'package:attendify/shared/loading.dart';
-import 'package:attendify/views/home/presence_table.dart';
+import 'package:attendify/views/home/teacher/presence_table.dart';
 import 'package:flutter/material.dart';
 
-class ModuleView extends StatefulWidget {
+class ModuleViewFromTeacher extends StatefulWidget {
   final Module module;
-  const ModuleView({super.key, required this.module});
+  const ModuleViewFromTeacher({super.key, required this.module});
 
   @override
-  State<ModuleView> createState() => _ModuleViewState();
+  State<ModuleViewFromTeacher> createState() => _ModuleViewFromTeacherState();
 }
 
-class _ModuleViewState extends State<ModuleView> {
+class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
   final DatabaseService _databaseService = DatabaseService();
 
   @override

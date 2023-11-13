@@ -1,12 +1,29 @@
-import 'package:attendify/models/attendify_student.dart';
-import 'package:attendify/services/auth.dart';
-import 'package:attendify/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../models/attendify_student.dart';
+import '../../models/attendify_teacher.dart';
+import '../../models/module_model.dart';
+import '../../services/auth.dart';
+import '../../services/databases.dart';
+import '../../shared/constants.dart';
+
 class BuildDrawer extends StatelessWidget {
-  final Student student;
-  const BuildDrawer({super.key, required this.student});
+  final AuthService authService;
+  final DatabaseService databaseService;
+  final String userType;
+  final Student? student;
+  final Teacher? teacher;
+  final List<Module>? modules;
+  const BuildDrawer({
+    super.key,
+    required this.authService,
+    required this.databaseService,
+    required this.userType,
+    this.student,
+    this.teacher,
+    this.modules,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,21 +36,28 @@ class BuildDrawer extends StatelessWidget {
             child: ListView(
               children: [
                 userAccountDrawerHeader(
-                  username: student.userName,
-                  email: AuthService().currentUsr?.email,
+                  username: student?.userName ?? "UserName",
+                  email: authService.currentUsr?.email ?? "user@hns-re2sd.dz",
                 ),
-                ListTile(
-                  title: Text(capitalizeFirst(student.userName)),
-                  subtitle: const Text("username"),
-                ),
-                ListTile(
-                  title: Text(capitalizeFirst(student.grade)),
-                  subtitle: const Text("Grade"),
-                ),
-                ListTile(
-                  title: Text(capitalizeFirst(student.speciality)),
-                  subtitle: const Text("Speciality"),
-                ),
+                if (userType == "student")
+                  ...drawerList(student)
+                else
+                  ListTile(
+                    title: const Text("Add a module"),
+                    trailing: const Icon(Icons.arrow_forward_ios_rounded),
+                    onTap: () {                      
+                      Navigator.pushNamed(
+                        context,
+                        '/selectModule',
+                        arguments: {
+                          'modules': modules,
+                          'teacher': teacher,
+                          'databaseService': databaseService,
+                          'authService': authService,
+                        },
+                      );
+                    },
+                  ),
               ],
             ),
           ),

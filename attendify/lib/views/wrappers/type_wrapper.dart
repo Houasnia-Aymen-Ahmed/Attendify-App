@@ -89,30 +89,6 @@ class _TypeWrapperState extends State<TypeWrapper> {
                 )
               : const SizedBox(height: 25),
           const SizedBox(height: 25),
-          /* Padding(
-            padding: const EdgeInsets.only(bottom: 50),
-            child: FloatingActionButton.extended(
-              label: const Text(
-                "Next",
-                style: TextStyle(fontSize: 20),
-              ),
-              icon: const Icon(Icons.arrow_forward_ios_rounded),
-              backgroundColor: Colors.blue[900],
-              foregroundColor: Colors.white,
-              onPressed: (() {
-                if (dropdownValue != null) {
-                  dropdownValue == "student"
-                      ? Navigator.pushNamed(context, '/studentRegister')
-                      : Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const TeacherRegister(),
-                          ),
-                        );
-                }
-              }),
-            ),
-          ) */
         ],
       ),
     );

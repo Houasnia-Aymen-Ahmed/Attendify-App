@@ -5,20 +5,20 @@ import 'package:attendify/shared/loading.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class ModuleFromStudent extends StatefulWidget {
+class ModuleViewFromStudent extends StatefulWidget {
   final Module module;
   final Student student;
-  const ModuleFromStudent({
+  const ModuleViewFromStudent({
     super.key,
     required this.module,
     required this.student,
   });
 
   @override
-  State<ModuleFromStudent> createState() => _ModuleFromStudentState();
+  State<ModuleViewFromStudent> createState() => _ModuleViewFromStudentState();
 }
 
-class _ModuleFromStudentState extends State<ModuleFromStudent> {
+class _ModuleViewFromStudentState extends State<ModuleViewFromStudent> {
   final DatabaseService _databaseService = DatabaseService();
   String date = DateFormat('dd-MM-yyyy').format(DateTime.now());
   bool _isSelected = false;
