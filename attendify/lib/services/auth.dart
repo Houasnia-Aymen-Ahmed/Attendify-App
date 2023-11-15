@@ -1,7 +1,8 @@
-import 'package:attendify/models/user.dart';
-import 'package:attendify/services/databases.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../models/user.dart';
+import 'databases.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -28,8 +29,14 @@ class AuthService {
   }
 
   Future signUpWithEmailAndPassword(
-      String userName, String email, String password, String userType,
-      {List<String>? modules, String? grade, String? speciality}) async {
+    String userName,
+    String email,
+    String password,
+    String userType, {
+    List<String>? modules,
+    String? grade,
+    String? speciality,
+  }) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);

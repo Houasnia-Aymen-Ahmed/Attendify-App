@@ -1,9 +1,11 @@
-import 'package:attendify/models/attendify_student.dart';
-import 'package:attendify/models/module_model.dart';
-import 'package:attendify/services/databases.dart';
-import 'package:attendify/shared/loading.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import '../../../models/attendify_student.dart';
+import '../../../models/module_model.dart';
+import '../../../services/databases.dart';
+import '../../../shared/error_pages.dart';
+import '../../../shared/loading.dart';
 
 class ModuleViewFromStudent extends StatefulWidget {
   final Module module;
@@ -39,8 +41,9 @@ class _ModuleViewFromStudentState extends State<ModuleViewFromStudent> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Loading();
         } else if (!snapshot.hasData) {
-          return Text(
-            "in module_View:53\n Error: ${snapshot.error.toString()}",
+          return ErrorPages(
+            title: "Server Error",
+            message: snapshot.error.toString(),
           );
         } else {
           Module module = snapshot.data!;

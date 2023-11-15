@@ -1,9 +1,10 @@
-import 'package:attendify/models/attendify_teacher.dart';
-import 'package:attendify/models/module_model.dart';
-import 'package:attendify/services/auth.dart';
-import 'package:attendify/services/databases.dart';
-import 'package:attendify/shared/constants.dart';
 import 'package:flutter/material.dart';
+
+import '../../../models/attendify_teacher.dart';
+import '../../../models/module_model.dart';
+import '../../../services/auth.dart';
+import '../../../services/databases.dart';
+import '../../../shared/constants.dart';
 
 class SelectModule extends StatefulWidget {
   final Teacher teacher;
@@ -27,7 +28,10 @@ class _SelectModuleState extends State<SelectModule> {
   List<String> selectedModules = [];
   late List<Module> selectedModulesModel;
   String? gradeVal, specialityVal;
-  bool hasSelected = false, isSaved = false, isDisabled = true;
+  bool hasSelected = false,
+      isSaved = false,
+      isDisabled = true,
+      isSaving = false;
 
   void addModule(
     String uid,
@@ -56,9 +60,6 @@ class _SelectModuleState extends State<SelectModule> {
     selectedModulesModel = widget.modules ?? [];
     selectedModules.clear();
     selectedModules.addAll(selectedModulesModel.map((module) => module.uid));
-    /* selectedModules =
-        widget.teacher.modules?.map((module) => /* get data from moduleColl */  ).toList() ??
-            <String>[]; */
   }
 
   @override
@@ -125,106 +126,10 @@ class _SelectModuleState extends State<SelectModule> {
                   specialityVal: specialityVal,
                   onChanged: isDisabled
                       ? null
-                      : (String? newValue) {
-                          setState(() {
-                            specialityVal = newValue!;
-                          });
-                        },
+                      : (String? newValue) =>
+                          setState(() => specialityVal = newValue!),
                 ),
               ),
-
-              /* Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: DropdownButton<String>(
-                  padding: const EdgeInsets.all(8.0),
-                  elevation: 16,
-                  dropdownColor: Colors.blue[100],
-                  borderRadius: BorderRadius.circular(20),
-                  value: gradeVal,
-                  hint: Text(
-                    "Choose your grade",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Colors.blue[900],
-                    ),
-                  ),
-                  style: const TextStyle(
-                    color: Colors.black,
-                    backgroundColor: Colors.transparent,
-                  ),
-                  underline: Container(
-                    height: 2,
-                    color: Colors.blue[900],
-                  ),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      isDisabled = false;
-                      gradeVal = newValue!;
-                    });
-                  },
-                  items: modulesMap.keys.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        capitalizeFirst(value),
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: DropdownButton<String>(
-                  padding: const EdgeInsets.all(8.0),
-                  elevation: 16,
-                  dropdownColor: Colors.blue[100],
-                  borderRadius: BorderRadius.circular(20),
-                  value: specialityVal,
-                  hint: Text(
-                    "Choose your speciality",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: isDisabled ? Colors.blueGrey : Colors.blue[900],
-                    ),
-                  ),
-                  style: const TextStyle(
-                    color: Colors.black,
-                    backgroundColor: Colors.transparent,
-                  ),
-                  underline: Container(
-                    height: 2,
-                    color: isDisabled ? Colors.blueGrey : Colors.blue[900],
-                  ),
-                  onChanged: isDisabled
-                      ? null
-                      : (String? newValue) {
-                          setState(() {
-                            specialityVal = newValue!;
-                          });
-                        },
-                  items:
-                      modulesMap[gradeVal ?? "5th"]!.keys.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        capitalizeFirst(value),
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ), */
             ],
           ),
           Column(
@@ -270,7 +175,9 @@ class _SelectModuleState extends State<SelectModule> {
           ),
           Expanded(
             child: modules == null
-                ? const Center(child: Text("No module availabe"))
+                ? const Center(
+                    child: Text("No module availabe"),
+                  )
                 : ListView(
                     children: modules
                         .map(
@@ -278,20 +185,18 @@ class _SelectModuleState extends State<SelectModule> {
                             title: Text(module),
                             value: selectedModules.contains(
                                 "${gradeVal}_${specialityVal}_module_${modules?.indexOf(module)}"),
-                            onChanged: (newValue) {
-                              setState(() {
-                                String moduleName =
-                                    "${gradeVal}_${specialityVal}_module_${modules?.indexOf(module)}";
-                                if (newValue!) {
-                                  addedModules.add(moduleName);
-                                  selectedModules.add(moduleName);
-                                } else {
-                                  addedModules.remove(moduleName);
-                                  selectedModules.remove(moduleName);
-                                }
-                                hasSelected = addedModules.isNotEmpty;
-                              });
-                            },
+                            onChanged: (newValue) => setState(() {
+                              String moduleName =
+                                  "${gradeVal}_${specialityVal}_module_${modules?.indexOf(module)}";
+                              if (newValue!) {
+                                addedModules.add(moduleName);
+                                selectedModules.add(moduleName);
+                              } else {
+                                addedModules.remove(moduleName);
+                                selectedModules.remove(moduleName);
+                              }
+                              hasSelected = addedModules.isNotEmpty;
+                            }),
                           ),
                         )
                         .toList(),
@@ -307,7 +212,12 @@ class _SelectModuleState extends State<SelectModule> {
                   onPressed: addedModules.isEmpty
                       ? null
                       : () async {
+                          showLoadingDialog(
+                            context,
+                            "Saving modules ...",
+                          );
                           try {
+                            setState(() => isSaving = true);
                             for (String module in addedModules) {
                               List<String> moduleInfo = module.split('_');
                               String grade = moduleInfo[0];
@@ -315,7 +225,6 @@ class _SelectModuleState extends State<SelectModule> {
                               int moduleIndex = int.parse(moduleInfo[3]);
                               String moduleName =
                                   modulesMap[grade]![speciality]![moduleIndex];
-                              //print(addedModules.toString());
                               await widget.databaseService.updateModuleData(
                                 uid: module,
                                 name: moduleName,
@@ -340,6 +249,7 @@ class _SelectModuleState extends State<SelectModule> {
                             );
 
                             if (mounted) {
+                              Navigator.of(context).pop();
                               showDialogBox(
                                 context,
                                 "Success",
@@ -347,11 +257,11 @@ class _SelectModuleState extends State<SelectModule> {
                                 false,
                               );
                             }
-                            setState(() {
-                              isSaved = true;
-                            });
+                            setState(() => isSaved = true);
                           } catch (e) {
+                            setState(() => isSaving = false);
                             if (mounted) {
+                              Navigator.of(context).pop();
                               showDialogBox(
                                 context,
                                 "Error",

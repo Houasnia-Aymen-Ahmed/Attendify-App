@@ -1,9 +1,10 @@
-import 'package:attendify/models/attendify_student.dart';
-import 'package:attendify/models/attendify_teacher.dart';
-import 'package:attendify/models/module_model.dart';
-import 'package:attendify/models/user_of_attendify.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
+import '../models/attendify_student.dart';
+import '../models/attendify_teacher.dart';
+import '../models/module_model.dart';
+import '../models/user_of_attendify.dart';
 import 'auth.dart';
 
 class DatabaseService {
@@ -303,8 +304,10 @@ class DatabaseService {
     String? studentUID,
     String? studentName,
   }) async {
-    QuerySnapshot querySnapshot =
-        await getModulesByGradeAndSpeciality(grade!, speciality!);
+    QuerySnapshot querySnapshot = await getModulesByGradeAndSpeciality(
+      grade!,
+      speciality!,
+    );
 
     for (var doc in querySnapshot.docs) {
       await updateModuleSpecificData(
@@ -362,25 +365,6 @@ class DatabaseService {
   Module _currentModuleFromSnapshots(DocumentSnapshot snapshot) {
     if (snapshot.exists) {
       Map<String, dynamic> doc = snapshot.data() as Map<String, dynamic>;
-      /* Module module = Module(
-        uid: doc["uid"] ?? 'uid',
-        name: doc["name"] ?? 'name',
-        speciality: doc["speciality"] ?? 'speciality',
-        grade: doc["grade"] ?? "grade",
-        isActive: doc["isActive"] ?? false,
-        students: Map<String, String>.from(doc["students"] ?? {}),
-      ); */
-
-      /* QuerySnapshot attendanceSnapshot =
-          await snapshot.reference.collection('attendanceTable').get();
-
-      if (attendanceSnapshot.docs.isNotEmpty) {
-        List<Map<String, dynamic>> attendanceTable = attendanceSnapshot.docs
-            .map((DocumentSnapshot doc) => doc.data() as Map<String, dynamic>)
-            .toList();
-
-        module.attendanceTable = attendanceTable;
-      } */
 
       return Module(
         uid: doc["uid"] ?? 'uid',
@@ -395,19 +379,6 @@ class DatabaseService {
           doc["attendanceTable"] ?? {},
         ),
       );
-      /* Module(
-        uid: doc["uid"] ?? 'uid',
-        name: doc["name"] ?? 'name',
-        speciality: doc["speciality"] ?? 'speciality',
-        grade: doc["grade"] ?? "grade",
-        isActive: doc["isActive"] ?? false,
-        students: (doc["students"] as List<dynamic>?)
-                ?.map(
-                  (e) => e.toString(),
-                )
-                .toList() ??
-            [""],
-      ); */
     } else {
       return Module(
         uid: "uid",
@@ -481,20 +452,6 @@ class DatabaseService {
     });
   }
 
-  /* Stream<List<Student>> getStudentsFromUids(List<String> studentUids) {
-    return Stream.periodic(const Duration(seconds: 5), (i) {
-      return Future.wait(studentUids.map((uid) {
-        return studentColl.doc(uid).get().then(_currentStudentFromSnapshots);
-      }));
-    }).asyncMap((listOfFutureStudents) async {
-      List<Student> students = [];
-      for (var futureStudent in listOfFutureStudents) {
-        students.add(await futureStudent);
-      }
-      return students;
-    });
-  } */
-
   Stream<Module> getModuleStream(String moduleId) {
     return modulesColl
         .doc(moduleId)
@@ -523,7 +480,7 @@ class DatabaseService {
           return [
             Module(
               uid: "uid",
-              name: "name",
+              name: "names",
               speciality: "speciality",
               grade: "grade",
               isActive: false,
@@ -561,18 +518,4 @@ class DatabaseService {
       return modules;
     });
   }
-
-  /* Stream<List<Map<String, dynamic>>> getAttendanceDataStream(String moduleID) {
-    return modulesColl
-        .doc(moduleID)
-        .collection('attendanceTable')
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) => doc.data()).toList();
-    });
-  } */
-
-  /* Stream<QuerySnapshot> get users {
-    return userColl.snapshots();
-  } */
 }

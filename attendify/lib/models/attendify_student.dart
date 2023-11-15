@@ -1,4 +1,4 @@
-import 'package:attendify/models/user_of_attendify.dart';
+import 'user_of_attendify.dart';
 
 class Student extends AttendifyUser {
   String? grade, speciality;

@@ -1,7 +1,8 @@
-import 'package:attendify/views/auth/signin.dart';
-import 'package:attendify/views/auth/student_register.dart';
-import 'package:attendify/views/auth/teacher_register.dart';
 import 'package:flutter/material.dart';
+
+import 'signin.dart';
+import 'student_register.dart';
+import 'teacher_register.dart';
 
 class Authenticate extends StatefulWidget {
   final String userType;

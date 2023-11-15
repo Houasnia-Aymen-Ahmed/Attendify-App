@@ -1,8 +1,9 @@
 import 'dart:ui';
-import 'package:attendify/services/auth.dart';
-import 'package:attendify/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../services/auth.dart';
+import '../../shared/constants.dart';
 
 class StudentRegister extends StatefulWidget {
   final Function toggleView;
@@ -27,8 +28,13 @@ class _StudentRegisterState extends State<StudentRegister> {
     if (_formKey.currentState!.validate()) {
       setState(() => loading = true);
       dynamic result = _auth.signUpWithEmailAndPassword(
-          _name, _email, _password, "student",
-          grade: gradeValue, speciality: specialityValue);
+        _name,
+        _email,
+        _password,
+        "student",
+        grade: gradeValue,
+        speciality: specialityValue,
+      );
       if (result == null) {
         setState(() {
           loading = false;

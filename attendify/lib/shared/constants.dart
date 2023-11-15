@@ -157,6 +157,20 @@ DropdownButton<String> dropDownBtn({
 }
 
 const modulesMap = {
+  "formations": {
+    "python": [
+      "session_01",
+      "session_02",
+      "session_03",
+      "session_04",
+      "session_05",
+      "session_06",
+      "session_07",
+      "session_08",
+      "session_09",
+      "session_10",
+    ]
+  },
   "5th": {
     "iriia": [
       "Advanced AI (Deep Learning)",
@@ -304,7 +318,31 @@ const Map<String, List<String>> specialities = {
   '3rd': ['er', 'ge', 'gh', 'iriia', 'micro'],
   '4th': ['er', 'ge', 'gh', 'iriia', 'micro'],
   '5th': ['er', 'ge', 'gh', 'iriia', 'micro'],
+  'formations': ['python'],
 };
+
+void showLoadingDialog(
+  BuildContext context,
+  String content,
+) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(content),
+          ],
+        ),
+      );
+    },
+  );
+}
 
 void showDialogBox(
   BuildContext context,

@@ -1,13 +1,15 @@
-import 'package:attendify/models/attendify_student.dart';
-import 'package:attendify/models/attendify_teacher.dart';
-import 'package:attendify/models/user.dart';
-import 'package:attendify/models/user_of_attendify.dart';
-import 'package:attendify/services/auth.dart';
-import 'package:attendify/services/databases.dart';
-import 'package:attendify/shared/loading.dart';
-import 'package:attendify/views/home/student/student_view.dart';
-import 'package:attendify/views/home/teacher/teacher_view.dart';
 import 'package:flutter/material.dart';
+
+import '../../models/attendify_student.dart';
+import '../../models/attendify_teacher.dart';
+import '../../models/user.dart';
+import '../../models/user_of_attendify.dart';
+import '../../services/auth.dart';
+import '../../services/databases.dart';
+import '../../shared/error_pages.dart';
+import '../../shared/loading.dart';
+import '../home/student/student_view.dart';
+import '../home/teacher/teacher_view.dart';
 
 class UserWrapper extends StatelessWidget {
   final UserHandler user;
@@ -28,11 +30,15 @@ class UserWrapper extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Loading();
         } else if (snapshot.hasError) {
-          return Text(
-            'An error occurred while loading data: ${snapshot.error}',
+          return ErrorPages(
+            title: "Server Error",
+            message: snapshot.error.toString(),
           );
         } else if (!snapshot.hasData) {
-          return const Text('No user data available');
+          return const ErrorPages(
+            title: "Error 404: Not Found",
+            message: "No user data available",
+          );
         } else {
           AttendifyUser user = snapshot.data!;
           if (user.userType == 'teacher') {

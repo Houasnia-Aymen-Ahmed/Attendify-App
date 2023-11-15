@@ -1,10 +1,12 @@
-import 'package:attendify/models/attendify_student.dart';
-import 'package:attendify/services/auth.dart';
-import 'package:attendify/services/databases.dart';
-import 'package:attendify/shared/loading.dart';
-import 'package:attendify/views/home/body.dart';
-import 'package:attendify/views/home/drawer.dart';
 import 'package:flutter/material.dart';
+
+import '../../../models/attendify_student.dart';
+import '../../../services/auth.dart';
+import '../../../services/databases.dart';
+import '../../../shared/error_pages.dart';
+import '../../../shared/loading.dart';
+import '../body.dart';
+import '../drawer.dart';
 
 class StudentView extends StatelessWidget {
   final Student student;
@@ -25,13 +27,17 @@ class StudentView extends StatelessWidget {
       ),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Text(
-            'An error occurred while loading data: ${snapshot.error}',
+          return ErrorPages(
+            title: "Server Error",
+            message: snapshot.error.toString(),
           );
         } else if (snapshot.connectionState == ConnectionState.waiting) {
           return const Loading();
         } else if (!snapshot.hasData) {
-          return const Text("No student data found");
+          return const ErrorPages(
+            title: "Error 404: Not Found",
+            message: "No student data found",
+          );
         } else {
           final Student student = snapshot.data!;
           return Scaffold(

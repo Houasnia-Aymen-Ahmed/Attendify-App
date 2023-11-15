@@ -1,7 +1,8 @@
-import 'package:attendify/shared/constants.dart';
-import 'package:attendify/views/auth/authenticate.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../shared/constants.dart';
+import '../auth/authenticate.dart';
 
 class TypeWrapper extends StatefulWidget {
   const TypeWrapper({super.key});

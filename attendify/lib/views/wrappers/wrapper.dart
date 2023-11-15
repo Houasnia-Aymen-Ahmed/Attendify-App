@@ -1,10 +1,11 @@
-import 'package:attendify/models/user.dart';
-import 'package:attendify/services/auth.dart';
-import 'package:attendify/services/databases.dart';
-import 'package:attendify/views/wrappers/user_wrapper.dart';
-import 'package:attendify/views/wrappers/type_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../../models/user.dart';
+import '../../services/auth.dart';
+import '../../services/databases.dart';
+import 'type_wrapper.dart';
+import 'user_wrapper.dart';
 
 class Wrapper extends StatelessWidget {
   const Wrapper({super.key});

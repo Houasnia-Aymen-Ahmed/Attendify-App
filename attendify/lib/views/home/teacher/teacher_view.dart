@@ -1,13 +1,14 @@
-import 'package:attendify/models/attendify_teacher.dart';
-import 'package:attendify/models/module_model.dart';
-import 'package:attendify/services/auth.dart';
-import 'package:attendify/services/databases.dart';
-import 'package:attendify/shared/constants.dart';
-import 'package:attendify/views/home/drawer.dart';
 import 'package:flutter/material.dart';
 
+import '../../../models/attendify_teacher.dart';
+import '../../../models/module_model.dart';
+import '../../../services/auth.dart';
+import '../../../services/databases.dart';
+import '../../../shared/constants.dart';
+import '../../../shared/error_pages.dart';
 import '../../../shared/loading.dart';
 import '../../../shared/module_list_view.dart';
+import '../drawer.dart';
 
 class TeacherView extends StatefulWidget {
   final Teacher teacher;
@@ -25,7 +26,6 @@ class TeacherView extends StatefulWidget {
 }
 
 class _TeacherViewState extends State<TeacherView> {
-  //List<String> gradeKeys = modulesMap.keys.toList();
   String? gradeVal, specialityVal;
   bool isDisabled = true, showAll = false;
   List<Module>? modulesData;
@@ -48,8 +48,9 @@ class _TeacherViewState extends State<TeacherView> {
           .getTeacherDataStream(widget.authService.currentUsr!.uid),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Text(
-            'An error occurred while loading teacher data: ${snapshot.error}',
+          return ErrorPages(
+            title: "Server Error",
+            message: snapshot.error.toString(),
           );
         } else if (!snapshot.hasData) {
           return const Loading();
@@ -60,7 +61,10 @@ class _TeacherViewState extends State<TeacherView> {
             stream: widget.databaseService.getModulesOfTeacher(moduleUIDs),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return Text(snapshot.error.toString());
+                return ErrorPages(
+                  title: "Server Error",
+                  message: snapshot.error.toString(),
+                );
               } else if (!snapshot.hasData) {
                 return const Loading();
               } else {
@@ -92,32 +96,6 @@ class _TeacherViewState extends State<TeacherView> {
                     teacher: teacher,
                     modules: modulesData ?? [],
                   ),
-                  /* Drawer(
-              child: ListView(
-                children: [
-                  userAccountDrawerHeader(
-                    username: widget.teacher.userName,
-                    email: widget.authService.currentUsr?.email ??
-                        "user@hns-re2sd.dz",
-                  ),
-                  ListTile(
-                    title: const Text("Add a module"),
-                    trailing: const Icon(Icons.arrow_forward_ios_rounded),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SelectModule(
-                            teacher: widget.teacher,
-                            modules: modulesData,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ), */
                   body: Column(
                     children: <Widget>[
                       Row(
@@ -154,107 +132,6 @@ class _TeacherViewState extends State<TeacherView> {
                                     },
                             ),
                           ),
-                          /* Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: DropdownButton<String>(
-                              padding: const EdgeInsets.all(8.0),
-                              elevation: 16,
-                              dropdownColor: Colors.blue[100],
-                              borderRadius: BorderRadius.circular(20),
-                              value: gradeVal,
-                              hint: Text(
-                                "Choose your grade",
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  color: Colors.blue[900],
-                                ),
-                              ),
-                              style: const TextStyle(
-                                color: Colors.black,
-                                backgroundColor: Colors.transparent,
-                              ),
-                              underline: Container(
-                                height: 2,
-                                color: Colors.blue[900],
-                              ),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  isDisabled = false;
-                                  showAll = false;
-                                  gradeVal = newValue;
-                                });
-                              },
-                              items: gradeKeys.map<DropdownMenuItem<String>>(
-                                  (String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(
-                                    capitalizeFirst(value),
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: DropdownButton<String>(
-                              padding: const EdgeInsets.all(8.0),
-                              elevation: 16,
-                              dropdownColor: Colors.blue[100],
-                              borderRadius: BorderRadius.circular(20),
-                              value: specialityVal,
-                              hint: Text(
-                                "Choose your speciality",
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  color: isDisabled
-                                      ? Colors.blueGrey
-                                      : Colors.blue[900],
-                                ),
-                              ),
-                              style: const TextStyle(
-                                color: Colors.black,
-                                backgroundColor: Colors.transparent,
-                              ),
-                              underline: Container(
-                                height: 2,
-                                color: isDisabled
-                                    ? Colors.blueGrey
-                                    : Colors.blue[900],
-                              ),
-                              onChanged: isDisabled
-                                  ? null
-                                  : (String? newValue) {
-                                      setState(() {
-                                        specialityVal = newValue;
-                                      });
-                                    },
-                              items: modulesMap[gradeVal]
-                                  ?.keys
-                                  .toList()
-                                  .map<DropdownMenuItem<String>>(
-                                      (String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(
-                                    capitalizeFirst(value),
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ), */
                         ],
                       ),
                       if (modulesData!.isEmpty)
@@ -354,54 +231,7 @@ class _TeacherViewState extends State<TeacherView> {
                             modules: filteredModules,
                             userType: "teacher",
                             teacher: widget.teacher,
-                          ), /* ListView.builder(
-                            itemCount: filteredModules.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Card(
-                                  color: Colors.blue[100],
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15.0),
-                                  ),
-                                  child: ListTile(
-                                    leading: Padding(
-                                      padding: const EdgeInsets.only(left: 20),
-                                      child: Icon(
-                                        Icons.circle_rounded,
-                                        color: filteredModules[index].isActive
-                                            ? Colors.green
-                                            : Colors.red,
-                                      ),
-                                    ),
-                                    trailing: IconButton(
-                                      onPressed: () {
-                                        Navigator.pushNamed(
-                                          context,
-                                          '/moduleView',
-                                          arguments: {
-                                            'module': filteredModules[index],
-                                          },
-                                        );
-                                      },
-                                      icon: const Icon(
-                                          Icons.arrow_forward_ios_rounded),
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15.0),
-                                    ),
-                                    splashColor: Colors.blue[300],
-                                    contentPadding: const EdgeInsets.all(5.0),
-                                    title: Text(filteredModules[index].name),
-                                    onTap: () {
-                                      showOverlay(
-                                          context, overlayEntry, isRoomActive);
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                          ), */
+                          ),
                         ),
                       ],
                       ElevatedButton(

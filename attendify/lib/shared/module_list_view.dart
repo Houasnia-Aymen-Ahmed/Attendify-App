@@ -1,7 +1,7 @@
-import 'package:attendify/models/attendify_student.dart';
-import 'package:attendify/models/attendify_teacher.dart';
 import 'package:flutter/material.dart';
 
+import '../models/attendify_student.dart';
+import '../models/attendify_teacher.dart';
 import '../models/module_model.dart';
 
 class ModuleListView extends StatelessWidget {

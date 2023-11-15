@@ -1,9 +1,11 @@
-import 'package:attendify/models/attendify_student.dart';
-import 'package:attendify/models/module_model.dart';
-import 'package:attendify/services/databases.dart';
-import 'package:attendify/shared/loading.dart';
-import 'package:attendify/views/home/teacher/presence_table.dart';
 import 'package:flutter/material.dart';
+
+import '../../../models/attendify_student.dart';
+import '../../../models/module_model.dart';
+import '../../../services/databases.dart';
+import '../../../shared/error_pages.dart';
+import '../../../shared/loading.dart';
+import 'presence_table.dart';
 
 class ModuleViewFromTeacher extends StatefulWidget {
   final Module module;
@@ -19,23 +21,32 @@ class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Student>>(
-      stream: _databaseService
-          .getStudentsList(widget.module.students.keys.toList()),
+      stream: _databaseService.getStudentsList(
+        widget.module.students.keys.toList(),
+      ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Loading();
         } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
+          return ErrorPages(
+            title: "Server error",
+            message: snapshot.error.toString(),
+          );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Text('No students found.');
+          return const ErrorPages(
+            title: "Error 404: Not Found",
+            message: "There are no students for this module",
+          );
         } else {
           List<Student> students = snapshot.data!;
           return StreamBuilder<Module>(
             stream: _databaseService.getModuleStream(widget.module.uid),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return Text(
-                    "in module_View:48\n Error: ${snapshot.error.toString()}");
+                return ErrorPages(
+                  title: "Server Error",
+                  message: snapshot.error.toString(),
+                );
               } else {
                 Module module = snapshot.data!;
                 return Scaffold(
