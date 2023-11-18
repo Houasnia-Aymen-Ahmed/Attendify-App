@@ -284,11 +284,11 @@ const Map<String, List<String>> specialities = {
   'Sem 3': ['er', 'ge', 'gh', 'iriia', 'micro'],
   'Sem 4': ['er', 'ge', 'gh', 'iriia', 'micro'], */
   'Sem 5': ['er', 'ge', 'gh', 'iriia', 'micro'],
-  'Sem 6': ['er', 'ge', 'gh', 'iriia', 'micro'],
+  //'Sem 6': ['er', 'ge', 'gh', 'iriia', 'micro'],
   'Sem 7': ['er', 'ge', 'gh', 'iriia', 'micro'],
-  'Sem 8': ['er', 'ge', 'gh', 'iriia', 'micro'],
+  //'Sem 8': ['er', 'ge', 'gh', 'iriia', 'micro'],
   'Sem 9': ['er', 'ge', 'gh', 'iriia', 'micro'],
-  'Sem 10': ['er', 'ge', 'gh', 'iriia', 'micro'],
+  //'Sem 10': ['er', 'ge', 'gh', 'iriia', 'micro'],
   'formations': ['python'],
 };
 
