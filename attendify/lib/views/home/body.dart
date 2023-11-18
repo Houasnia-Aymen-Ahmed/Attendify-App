@@ -45,7 +45,6 @@ class _BuildBodyState extends State<BuildBody> {
               message: "No module data available for student");
         } else {
           List<Module> modules = snapshot.data!;
-          print(modules[0].name);
           return Column(
             children: [
               const Padding(

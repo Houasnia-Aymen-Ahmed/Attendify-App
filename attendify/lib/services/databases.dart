@@ -506,16 +506,33 @@ class DatabaseService {
   Stream<List<Module>> getModulesOfTeacher(List<String> moduleUIDs) {
     moduleUIDs =
         moduleUIDs.isNotEmpty ? moduleUIDs : ["grade_speciality_module_index"];
-    return modulesColl
-        .where(FieldPath.documentId, whereIn: moduleUIDs)
-        .snapshots()
-        .asyncMap((snapshot) async {
-      List<Module> modules = [];
-      for (var doc in snapshot.docs) {
-        Module module = _currentModuleFromSnapshots(doc);
-        modules.add(module);
+
+    // Split the list of module UIDs into chunks of size 30
+    var chunks = <List<String>>[];
+    for (var i = 0; i < moduleUIDs.length; i += 30) {
+      chunks.add(moduleUIDs.sublist(
+          i, i + 30 > moduleUIDs.length ? moduleUIDs.length : i + 30));
+    }
+
+    // Create a list to store the results
+    var results = <List<Module>>[];
+
+    // Perform queries for each chunk
+    var queries = chunks.map((chunk) =>
+        modulesColl.where(FieldPath.documentId, whereIn: chunk).get());
+
+    // Use Future.wait to wait for all queries to complete
+    return Future.wait(queries).then((querySnapshots) {
+      for (var snapshot in querySnapshots) {
+        List<Module> modules = [];
+        for (var doc in snapshot.docs) {
+          Module module = _currentModuleFromSnapshots(doc);
+          modules.add(module);
+        }
+        results.add(modules);
       }
-      return modules;
-    });
+      // Flatten the list of results and return
+      return results.expand((modules) => modules).toList();
+    }).asStream();
   }
 }

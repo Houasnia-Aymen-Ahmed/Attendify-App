@@ -40,11 +40,15 @@ class _ModuleViewFromStudentState extends State<ModuleViewFromStudent> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Loading();
-        } else if (!snapshot.hasData) {
+        } else if (snapshot.hasError) {
           return ErrorPages(
             title: "Server Error",
             message: snapshot.error.toString(),
           );
+        } else if (!snapshot.hasData) {
+          return const ErrorPages(
+              title: "Error 404: Not Found",
+              message: "No module data available for student");
         } else {
           Module module = snapshot.data!;
           Map<String, dynamic> attendanceTable = module.attendanceTable;

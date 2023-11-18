@@ -29,7 +29,7 @@ class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
           return const Loading();
         } else if (snapshot.hasError) {
           return ErrorPages(
-            title: "Server error",
+            title: "Server Error",
             message: snapshot.error.toString(),
           );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -42,11 +42,13 @@ class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
           return StreamBuilder<Module>(
             stream: _databaseService.getModuleStream(widget.module.uid),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+              if (snapshot.hasError) {
                 return ErrorPages(
                   title: "Server Error",
                   message: snapshot.error.toString(),
                 );
+              } else if (!snapshot.hasData) {
+                return const Loading();
               } else {
                 Module module = snapshot.data!;
                 return Scaffold(

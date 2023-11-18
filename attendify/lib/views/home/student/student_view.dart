@@ -26,13 +26,13 @@ class StudentView extends StatelessWidget {
         authService.currentUsr!.uid,
       ),
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Loading();
+        } else if (snapshot.hasError) {
           return ErrorPages(
             title: "Server Error",
             message: snapshot.error.toString(),
           );
-        } else if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Loading();
         } else if (!snapshot.hasData) {
           return const ErrorPages(
             title: "Error 404: Not Found",

@@ -18,6 +18,31 @@ class ModuleListView extends StatelessWidget {
     this.teacher,
   });
 
+  dynamic gotoModule(BuildContext context, Module module) {
+    if (userType == "student") {
+      if (module.isActive) {
+        return () => Navigator.pushNamed(
+              context,
+              '/moduleViewFromStudent',
+              arguments: {
+                'module': module,
+                'student': student,
+              },
+            );
+      } else {
+        return null;
+      }
+    } else {
+      return () => Navigator.pushNamed(
+            context,
+            '/moduleViewFromTeacher',
+            arguments: {
+              'module': module,
+            },
+          );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
@@ -39,30 +64,11 @@ class ModuleListView extends StatelessWidget {
                   color: modules[index].isActive ? Colors.green : Colors.red,
                 ),
               ),
-              trailing: IconButton(
-                onPressed: userType == "student"
-                    ? !modules[index].isActive
-                        ? null
-                        : () {
-                            Navigator.pushNamed(
-                              context,
-                              '/moduleViewFromStudent',
-                              arguments: {
-                                'module': modules[index],
-                                'student': student,
-                              },
-                            );
-                          }
-                    : () {
-                        Navigator.pushNamed(
-                          context,
-                          '/moduleViewFromTeacher',
-                          arguments: {
-                            'module': modules[index],
-                          },
-                        );
-                      },
-                icon: const Icon(Icons.arrow_forward_ios_rounded),
+              trailing: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Icon(
+                  Icons.arrow_forward_ios_rounded,
+                ),
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15.0),
@@ -70,7 +76,7 @@ class ModuleListView extends StatelessWidget {
               splashColor: Colors.blue[300],
               contentPadding: const EdgeInsets.all(5.0),
               title: Text(modules[index].name),
-              onTap: () {},
+              onTap: gotoModule(context, modules[index]),
             ),
           ),
         );

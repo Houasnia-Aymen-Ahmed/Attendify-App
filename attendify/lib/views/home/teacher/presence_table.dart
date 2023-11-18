@@ -53,14 +53,14 @@ class _PresenceTableState extends State<PresenceTable> {
     for (var i = 0; i < columns.length; i++) {
       sheetObject
           .cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0))
-          .value = columns[i].label.toString();
+          .value = (columns[i].label as Text).data!;
     }
 
     for (var i = 0; i < rows.length; i++) {
       for (var j = 0; j < rows[i].cells.length; j++) {
         sheetObject
             .cell(CellIndex.indexByColumnRow(columnIndex: j, rowIndex: i + 1))
-            .value = rows[i].cells[j].child.toString();
+            .value = (rows[i].cells[j].child as Text).data!;
       }
     }
 
@@ -196,7 +196,7 @@ class _PresenceTableState extends State<PresenceTable> {
                   );
                   if (val) {
                     enablePresence(
-                      DateFormat('hh:mm:ss').format(
+                      DateFormat('dd-MM-yyyy').format(
                         DateTime.now(),
                       ),
                     );
@@ -230,11 +230,15 @@ class _PresenceTableState extends State<PresenceTable> {
             ],
           ),
         ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            columns: columns,
-            rows: rows,
+        Expanded(
+          child: SingleChildScrollView(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columns: columns,
+                rows: rows,
+              ),
+            ),
           ),
         ),
       ],

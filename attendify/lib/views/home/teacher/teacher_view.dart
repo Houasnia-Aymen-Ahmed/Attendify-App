@@ -47,13 +47,18 @@ class _TeacherViewState extends State<TeacherView> {
       stream: widget.databaseService
           .getTeacherDataStream(widget.authService.currentUsr!.uid),
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Loading();
+        } else if (snapshot.hasError) {
           return ErrorPages(
             title: "Server Error",
             message: snapshot.error.toString(),
           );
         } else if (!snapshot.hasData) {
-          return const Loading();
+          return const ErrorPages(
+            title: "Error 404: Not Found",
+            message: "No module data available for teacher",
+          );
         } else {
           final Teacher teacher = snapshot.data!;
           List<String> moduleUIDs = teacher.modules!;
@@ -69,8 +74,7 @@ class _TeacherViewState extends State<TeacherView> {
                 return const Loading();
               } else {
                 modulesData = snapshot.data!;
-                List<Module> filteredModules =
-                    filterModulesByGradeAndSpeciality(
+                List<Module> filteredModules = filterModulesByGradeAndSpeciality(
                   modulesData!,
                   gradeVal ?? "5th",
                   specialityVal ?? "",
@@ -111,6 +115,7 @@ class _TeacherViewState extends State<TeacherView> {
                                   isDisabled = false;
                                   showAll = false;
                                   gradeVal = newValue;
+                                  specialityVal = null;
                                 });
                               },
                             ),

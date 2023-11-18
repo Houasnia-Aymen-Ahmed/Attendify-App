@@ -36,7 +36,9 @@ class BuildDrawer extends StatelessWidget {
             child: ListView(
               children: [
                 userAccountDrawerHeader(
-                  username: student?.userName ?? "UserName",
+                  username: userType == "teacher"
+                      ? teacher?.userName ?? "Teacher"
+                      : student?.userName ?? "Student",
                   email: authService.currentUsr?.email ?? "user@hns-re2sd.dz",
                 ),
                 if (userType == "student")
@@ -45,7 +47,7 @@ class BuildDrawer extends StatelessWidget {
                   ListTile(
                     title: const Text("Add a module"),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded),
-                    onTap: () {                      
+                    onTap: () {
                       Navigator.pushNamed(
                         context,
                         '/selectModule',
