@@ -189,7 +189,7 @@ class _StudentRegisterState extends State<StudentRegister> {
                                         specialityValue = newValue;
                                       });
                                     },
-                              items: specialities[gradeValue ?? "5th"]!
+                              items: specialities[gradeValue ?? "Sem 9"]!
                                   .map<DropdownMenuItem<String>>(
                                       (String value) {
                                 return DropdownMenuItem<String>(
