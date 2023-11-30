@@ -236,6 +236,7 @@ class _TeacherViewState extends State<TeacherView> {
                             modules: filteredModules,
                             userType: "teacher",
                             teacher: widget.teacher,
+                            databaseService: widget.databaseService ,
                           ),
                         ),
                       ],

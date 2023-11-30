@@ -9,19 +9,22 @@ import 'presence_table.dart';
 
 class ModuleViewFromTeacher extends StatefulWidget {
   final Module module;
-  const ModuleViewFromTeacher({super.key, required this.module});
+  final DatabaseService databaseService;
+  const ModuleViewFromTeacher({
+    super.key,
+    required this.module,
+    required this.databaseService,
+  });
 
   @override
   State<ModuleViewFromTeacher> createState() => _ModuleViewFromTeacherState();
 }
 
 class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
-  final DatabaseService _databaseService = DatabaseService();
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Student>>(
-      stream: _databaseService.getStudentsList(
+      stream: widget.databaseService.getStudentsList(
         widget.module.students.keys.toList(),
       ),
       builder: (context, snapshot) {
@@ -40,7 +43,7 @@ class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
         } else {
           List<Student> students = snapshot.data!;
           return StreamBuilder<Module>(
-            stream: _databaseService.getModuleStream(widget.module.uid),
+            stream: widget.databaseService.getModuleStream(widget.module.uid),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return ErrorPages(
@@ -51,6 +54,7 @@ class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
                 return const Loading();
               } else {
                 Module module = snapshot.data!;
+                print(" in module from teacher : ${module.isActive}");
                 return Scaffold(
                   appBar: AppBar(
                     title: Text(
@@ -65,6 +69,8 @@ class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
                   body: PresenceTable(
                     students: students,
                     module: module,
+                    databaseService: widget.databaseService,
+                    
                   ),
                 );
               }

@@ -1,3 +1,4 @@
+import 'package:attendify/responsive/responsive_layout_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -37,7 +38,9 @@ class Attentdify extends StatelessWidget {
       },
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: const Wrapper(),
+        title: "Attendify",
+        theme: ThemeData.light(),
+        home: const ResponsiveLayout(mobileScreenLayout: Wrapper()),
         routes: {
           '/studentView': (context) {
             var args = ModalRoute.of(context)!.settings.arguments
@@ -67,8 +70,10 @@ class Attentdify extends StatelessWidget {
             var args = ModalRoute.of(context)!.settings.arguments
                 as Map<String, dynamic>;
             var module = args['module'] as Module;
+            var databaseService = args['databaseService'] as DatabaseService;
             return ModuleViewFromTeacher(
               module: module,
+              databaseService: databaseService,
             );
           },
           '/moduleViewFromStudent': (context) {
@@ -76,9 +81,11 @@ class Attentdify extends StatelessWidget {
                 as Map<String, dynamic>;
             var module = args['module'] as Module;
             var student = args['student'] as Student;
+            var databaseService = args['databaseService'] as DatabaseService;
             return ModuleViewFromStudent(
               module: module,
               student: student,
+              databaseService: databaseService,
             );
           },
           '/selectModule': (context) {

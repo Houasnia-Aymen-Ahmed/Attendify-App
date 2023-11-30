@@ -62,6 +62,7 @@ class _BuildBodyState extends State<BuildBody> {
                   modules: modules,
                   userType: "student",
                   student: widget.student,
+                  databaseService: widget.databaseService,
                 ),
               ),
             ],

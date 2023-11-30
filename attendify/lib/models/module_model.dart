@@ -1,4 +1,6 @@
-class Module {
+import 'package:flutter/material.dart';
+
+class Module extends ChangeNotifier {
   String uid;
   String name;
   bool isActive;
@@ -6,6 +8,13 @@ class Module {
   String grade;
   Map<String, String> students;
   Map<String, dynamic> attendanceTable;
+
+  bool get isActiveNotifier => isActive;
+
+  set isActiveNotifier(bool value) {
+    isActive = value;
+    notifyListeners();  
+  }
 
   Module({
     this.uid = "uid",

@@ -10,10 +10,12 @@ import '../../../shared/loading.dart';
 class ModuleViewFromStudent extends StatefulWidget {
   final Module module;
   final Student student;
+  final DatabaseService databaseService;
   const ModuleViewFromStudent({
     super.key,
     required this.module,
     required this.student,
+    required this.databaseService,
   });
 
   @override
@@ -21,7 +23,6 @@ class ModuleViewFromStudent extends StatefulWidget {
 }
 
 class _ModuleViewFromStudentState extends State<ModuleViewFromStudent> {
-  final DatabaseService _databaseService = DatabaseService();
   String date = DateFormat('dd-MM-yyyy').format(DateTime.now());
   bool _isSelected = false;
 
@@ -30,13 +31,13 @@ class _ModuleViewFromStudentState extends State<ModuleViewFromStudent> {
     setState(() {
       _isSelected = true;
     });
-    _databaseService.updateAttendance(moduleID, date, studentID, true, context);
+    widget.databaseService.updateAttendance(moduleID, date, studentID, true, context);
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Module>(
-      stream: _databaseService.getModuleStream(widget.module.uid),
+      stream: widget.databaseService.getModuleStream(widget.module.uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Loading();

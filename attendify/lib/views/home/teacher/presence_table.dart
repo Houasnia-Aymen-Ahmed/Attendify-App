@@ -11,11 +11,15 @@ import '../../../services/databases.dart';
 class PresenceTable extends StatefulWidget {
   final List<Student> students;
   final Module module;
+  final DatabaseService databaseService;
+  
 
   const PresenceTable({
     super.key,
     required this.students,
     required this.module,
+    required this.databaseService,
+    
   });
 
   @override
@@ -23,7 +27,6 @@ class PresenceTable extends StatefulWidget {
 }
 
 class _PresenceTableState extends State<PresenceTable> {
-  final DatabaseService _databaseService = DatabaseService();
   List<String> dates = [];
   List<String> studentList = [];
 
@@ -40,7 +43,7 @@ class _PresenceTableState extends State<PresenceTable> {
     for (String uid in studentList) {
       newAttendance[todayDate][uid] = false;
     }
-    _databaseService.addToAttendanceTable(
+    widget.databaseService.addToAttendanceTable(
       widget.module.uid,
       newAttendance,
     );
@@ -190,10 +193,12 @@ class _PresenceTableState extends State<PresenceTable> {
                 value: widget.module.isActive,
                 onChanged: (val) {
                   widget.module.isActive = val;
-                  _databaseService.updateModuleSpecificData(
+                  print(" in presence table : ${widget.module.isActive}");
+                  widget.databaseService.updateModuleSpecificData(
                     uid: widget.module.uid,
                     isActive: val,
                   );
+                  
                   if (val) {
                     enablePresence(
                       DateFormat('dd-MM-yyyy').format(
