@@ -57,12 +57,24 @@ class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
                 print(" in module from teacher : ${module.isActive}");
                 return Scaffold(
                   appBar: AppBar(
-                    title: Text(
-                      module.name,
-                      style: const TextStyle(
-                        fontSize: 17.5,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    title: Row(
+                      children: [
+                        Text(
+                          module.name,
+                          style: const TextStyle(
+                            fontSize: 17.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                          child: Icon(
+                            Icons.circle_rounded,
+                            size: 15,
+                            color: module.isActive ? Colors.green : Colors.red, //For Cursor-GPT: this color changes based on isActive on real-time
+                          ),
+                        ),
+                      ],
                     ),
                     backgroundColor: Colors.blue[200],
                   ),
@@ -70,7 +82,6 @@ class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
                     students: students,
                     module: module,
                     databaseService: widget.databaseService,
-                    
                   ),
                 );
               }

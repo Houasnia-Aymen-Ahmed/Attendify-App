@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:async/async.dart';
 
 import '../models/attendify_student.dart';
 import '../models/attendify_teacher.dart';
@@ -506,33 +507,38 @@ class DatabaseService {
   Stream<List<Module>> getModulesOfTeacher(List<String> moduleUIDs) {
     moduleUIDs =
         moduleUIDs.isNotEmpty ? moduleUIDs : ["grade_speciality_module_index"];
+    return modulesColl
+        .where(FieldPath.documentId, whereIn: moduleUIDs)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      List<Module> modules = [];
+      for (var doc in snapshot.docs) {
+        Module module = _currentModuleFromSnapshots(doc);
+        modules.add(module);
+      }
+      return modules;
+    });
+  }
 
-    // Split the list of module UIDs into chunks of size 30
-    var chunks = <List<String>>[];
+  Stream<List<Module>> getModulesOfTeacherFromAdmin(List<String> moduleUIDs) async* {
+    moduleUIDs =
+        moduleUIDs.isNotEmpty ? moduleUIDs : ["grade_speciality_module_index"];
+
+    List<Stream<List<Module>>> streams = [];
     for (var i = 0; i < moduleUIDs.length; i += 30) {
-      chunks.add(moduleUIDs.sublist(
-          i, i + 30 > moduleUIDs.length ? moduleUIDs.length : i + 30));
+      var end = (i + 30 < moduleUIDs.length) ? i + 30 : moduleUIDs.length;
+      var slice = moduleUIDs.sublist(i, end);
+
+      streams.add(modulesColl
+          .where(FieldPath.documentId, whereIn: slice)
+          .snapshots()
+          .map((snapshot) {
+        return snapshot.docs
+            .map((doc) => _currentModuleFromSnapshots(doc))
+            .toList();
+      }));
     }
 
-    // Create a list to store the results
-    var results = <List<Module>>[];
-
-    // Perform queries for each chunk
-    var queries = chunks.map((chunk) =>
-        modulesColl.where(FieldPath.documentId, whereIn: chunk).get());
-
-    // Use Future.wait to wait for all queries to complete
-    return Future.wait(queries).then((querySnapshots) {
-      for (var snapshot in querySnapshots) {
-        List<Module> modules = [];
-        for (var doc in snapshot.docs) {
-          Module module = _currentModuleFromSnapshots(doc);
-          modules.add(module);
-        }
-        results.add(modules);
-      }
-      // Flatten the list of results and return
-      return results.expand((modules) => modules).toList();
-    }).asStream();
+    yield* StreamGroup.merge(streams);
   }
 }

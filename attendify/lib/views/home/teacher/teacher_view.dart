@@ -28,7 +28,8 @@ class TeacherView extends StatefulWidget {
 class _TeacherViewState extends State<TeacherView> {
   String? gradeVal, specialityVal;
   bool isDisabled = true, showAll = false;
-  List<Module>? modulesData;
+  List<Module> modulesData = [];
+  final DatabaseService dbs = DatabaseService();
 
   List<Module> filterModulesByGradeAndSpeciality(
     List<Module> modules,
@@ -44,8 +45,7 @@ class _TeacherViewState extends State<TeacherView> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Teacher>(
-      stream: widget.databaseService
-          .getTeacherDataStream(widget.authService.currentUsr!.uid),
+      stream: dbs.getTeacherDataStream(widget.authService.currentUsr!.uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Loading();
@@ -63,7 +63,7 @@ class _TeacherViewState extends State<TeacherView> {
           final Teacher teacher = snapshot.data!;
           List<String> moduleUIDs = teacher.modules!;
           return StreamBuilder<List<Module>>(
-            stream: widget.databaseService.getModulesOfTeacher(moduleUIDs),
+            stream: dbs.getModulesOfTeacher(moduleUIDs),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return ErrorPages(
@@ -74,13 +74,17 @@ class _TeacherViewState extends State<TeacherView> {
                 return const Loading();
               } else {
                 modulesData = snapshot.data!;
-                List<Module> filteredModules = filterModulesByGradeAndSpeciality(
-                  modulesData!,
+                int moduleNbr = 0;
+                print(
+                    "module ${modulesData[moduleNbr].name} : ${modulesData[moduleNbr].isActive}");
+                List<Module> filteredModules =
+                    filterModulesByGradeAndSpeciality(
+                  modulesData,
                   gradeVal ?? "5th",
                   specialityVal ?? "",
                 );
                 if (showAll) {
-                  filteredModules = modulesData!;
+                  filteredModules = modulesData;
                 }
                 return Scaffold(
                   appBar: AppBar(
@@ -98,7 +102,7 @@ class _TeacherViewState extends State<TeacherView> {
                     databaseService: widget.databaseService,
                     userType: "teacher",
                     teacher: teacher,
-                    modules: modulesData ?? [],
+                    modules: modulesData,
                   ),
                   body: Column(
                     children: <Widget>[
@@ -131,15 +135,15 @@ class _TeacherViewState extends State<TeacherView> {
                               onChanged: isDisabled
                                   ? null
                                   : (String? newValue) {
-                                      setState(() {
-                                        specialityVal = newValue;
-                                      });
+                                      setState(
+                                        () => specialityVal = newValue,
+                                      );
                                     },
                             ),
                           ),
                         ],
                       ),
-                      if (modulesData!.isEmpty)
+                      if (modulesData.isEmpty)
                         Expanded(
                           child: Center(
                             child: Column(
@@ -236,7 +240,7 @@ class _TeacherViewState extends State<TeacherView> {
                             modules: filteredModules,
                             userType: "teacher",
                             teacher: widget.teacher,
-                            databaseService: widget.databaseService ,
+                            databaseService: widget.databaseService,
                           ),
                         ),
                       ],

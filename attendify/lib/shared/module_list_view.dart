@@ -74,8 +74,8 @@ class _ModuleListViewState extends State<ModuleListView> {
                 padding: const EdgeInsets.only(left: 20),
                 child: Icon(
                   Icons.circle_rounded,
-                  color: widget.modules[index].isActive
-                      ? Colors.green
+                  color: widget.modules[index].isActive //For Cursor-GPT: this color suppose to change based on isActive on real-time, but it doesn't change until i hit hot-reload
+                      ? Colors.green[900]
                       : Colors.red,
                 ),
               ),
