@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:async/async.dart';
@@ -15,6 +17,10 @@ class DatabaseService {
   bool isModuleDataExist = true;
   DatabaseService({this.uid});
 
+  CollectionReference teacherEmailsColl =
+      FirebaseFirestore.instance.collection("TeacherEmailsCollection");
+  CollectionReference adminEmailsColl =
+      FirebaseFirestore.instance.collection("AdminEmailsCollection");
   CollectionReference userColl =
       FirebaseFirestore.instance.collection("UserCollection");
   CollectionReference teacherColl =
@@ -24,48 +30,86 @@ class DatabaseService {
   CollectionReference modulesColl =
       FirebaseFirestore.instance.collection("Modules");
 
+  Future<void> addTeacherEmail(String email) async {
+    teacherEmailsColl.doc("TeacherEmails").update({
+      'emails': FieldValue.arrayUnion([email])
+    });
+  }
+
+  Future<void> removeTeacherEmail(String email) async {
+    teacherEmailsColl.doc("TeacherEmails").update({
+      'emails': FieldValue.arrayRemove([email])
+    });
+  }
+
   Future updateUserData({
     required String userName,
     required String userType,
-    String token = '',
     required String usrUid,
+    required String email,
+    required String photoURL,
   }) async {
     DocumentReference userDoc = userColl.doc(uid);
     await userDoc.set({
       'username': userName,
       'userType': userType,
-      'token': token,
       'uid': uid,
+      'email': email,
+      'photoURL': photoURL,
     });
-    if (userType == "teacher") {
-      await teacherColl.doc(uid).set({
-        'username': userName,
-        'userType': userType,
-        'token': token,
-        'uid': uid,
-      });
-    } else {
-      await studentColl.doc(uid).set({
-        'username': userName,
-        'userType': userType,
-        'token': token,
-        'uid': uid,
-      });
+
+    switch (userType) {
+      case "teacher":
+        await teacherColl.doc(uid).set({
+          'username': userName,
+          'userType': userType,
+          'uid': uid,
+          'email': email,
+          'photoURL': photoURL,
+        });
+        break;
+      case "student":
+        await studentColl.doc(uid).set({
+          'username': userName,
+          'userType': userType,
+          'uid': uid,
+          'email': email,
+          'photoURL': photoURL,
+        });
+        break;
+    }
+  }
+
+  Future<bool> isUserRegistered(String email) async {
+    try {
+      QuerySnapshot querySnapshot = await userColl
+          .where(
+            'email',
+            isEqualTo: email,
+          )
+          .limit(1)
+          .get();
+      if (querySnapshot.docs.isEmpty) return false;
+      return true;
+    } on Exception catch (_) {
+      return false;
     }
   }
 
   Future updateUserSpecificData({
     String? username,
     String? userType,
-    String? token,
     String? uid,
+    String? email,
+    String? photoURL,
   }) async {
     String usrUid = uid ?? _auth.currentUsr!.uid;
     Map<String, dynamic> map = {
       "username": username,
       "userType": userType,
-      "token": token,
       "uid": uid,
+      "email": email,
+      "photoURL": photoURL,
     };
     for (var entry in map.entries) {
       if (entry.value != null) {
@@ -79,16 +123,18 @@ class DatabaseService {
   Future<void> updateTeacherData({
     required String userName,
     required String userType,
-    String token = '',
     required String uid,
+    required String email,
+    required String photoURL,
     List<String>? modules,
   }) async {
     await teacherColl.doc(uid).set(
       {
-        'user': uid,
+        'uid': uid,
+        'email': email,
         'username': userName,
         'userType': userType,
-        'token': token,
+        'photoURL': photoURL,
         'modules': modules,
       },
     );
@@ -97,16 +143,18 @@ class DatabaseService {
   Future<void> updateTeacherSpecificData({
     String? username,
     String? userType,
-    String? token,
     String? uid,
+    String? email,
+    String? photoURL,
     List<String>? modules,
   }) async {
     String usrUid = uid ?? _auth.currentUsr!.uid;
     Map<String, dynamic> map = {
       "username": username,
       "userType": userType,
-      "token": token,
       "uid": uid,
+      "email": email,
+      'photoURL': photoURL,
     };
     for (var entry in map.entries) {
       if (entry.value != null) {
@@ -126,17 +174,19 @@ class DatabaseService {
   Future<void> updateStudentData({
     required String userName,
     required String userType,
-    String token = '',
     required String uid,
+    required String email,
+    required String photoURL,
     String? grade,
     String? speciality,
   }) async {
     await studentColl.doc(uid).set(
       {
         'uid': uid,
+        'email': email,
         'username': userName,
         'userType': userType,
-        'token': token,
+        'photoURL': photoURL,
         'grade': grade,
         'speciality': speciality,
       },
@@ -146,8 +196,9 @@ class DatabaseService {
   Future<void> updateStudentSpecificData({
     String? username,
     String? userType,
-    String? token,
     String? uid,
+    String? email,
+    String? photoURL,
     String? grade,
     String? speciality,
   }) async {
@@ -155,8 +206,9 @@ class DatabaseService {
     Map<String, dynamic> map = {
       "username": username,
       "userType": userType,
-      "token": token,
       "uid": uid,
+      "email": email,
+      'photoURL': photoURL,
       "grade": grade,
       "speciality": speciality,
     };
@@ -175,20 +227,52 @@ class DatabaseService {
     required bool isActive,
     required String speciality,
     required String grade,
+    required int numberOfStudents,
     required Map<String, String> students,
     required Map<String, dynamic> attendanceTable,
     bool? checkExists,
+    bool isNewModule = false,
   }) async {
     if (checkExists == null || !checkExists) {
-      return await modulesColl.doc(uid).set({
-        'uid': uid,
-        'name': name,
-        'isActive': isActive,
-        'speciality': speciality,
-        'grade': grade,
-        'students': students,
-        'attendanceTable': attendanceTable,
-      });
+      if (isNewModule) {
+        int index = 0;
+        QuerySnapshot querySnapshot = await modulesColl
+            .where('uid', isGreaterThanOrEqualTo: uid)
+            .orderBy('uid', descending: true)
+            .limit(1)
+            .get();
+        for (var doc in querySnapshot.docs) {
+          String docUid = doc.get('uid');
+          if (docUid.startsWith(uid)) {
+            int? currentIndex = int.tryParse(docUid.substring(uid.length));
+            if (currentIndex != null && currentIndex >= index) {
+              index = currentIndex + 1;
+            }
+          }
+        }
+        uid = '$uid$index';
+        return await modulesColl.doc(uid).set({
+          'uid': uid,
+          'name': name,
+          'isActive': isActive,
+          'speciality': speciality,
+          'grade': grade,
+          'numberOfStudents': numberOfStudents,
+          'students': {},
+          'attendanceTable': {},
+        });
+      } else {
+        return await modulesColl.doc(uid).set({
+          'uid': uid,
+          'name': name,
+          'isActive': isActive,
+          'speciality': speciality,
+          'grade': grade,
+          'numberOfStudents': numberOfStudents,
+          'students': students,
+          'attendanceTable': attendanceTable,
+        });
+      }
     } else {
       DocumentSnapshot document = await modulesColl.doc(uid).get();
       if (!document.exists) {
@@ -198,6 +282,7 @@ class DatabaseService {
           'isActive': isActive,
           'speciality': speciality,
           'grade': grade,
+          'numberOfStudents': numberOfStudents,
           'students': students,
           'attendanceTable': attendanceTable,
         });
@@ -211,9 +296,9 @@ class DatabaseService {
     bool? isActive,
     String? speciality,
     String? grade,
+    int? numberOfStudents,
     String? addStudent,
     String? studentName,
-    bool? checkExists,
   }) async {
     if (addStudent != null && studentName != null) {
       final moduleDoc = modulesColl.doc(uid);
@@ -235,6 +320,7 @@ class DatabaseService {
       'isActive': isActive,
       'speciality': speciality,
       'grade': grade,
+      'numberOfStudents': numberOfStudents
     };
 
     for (var entry in map.entries) {
@@ -289,6 +375,85 @@ class DatabaseService {
     );
   }
 
+  Future<Map<String, int>> fetchModuleAttendanceData(String moduleId) async {
+    DocumentSnapshot moduleSnapshot = await modulesColl.doc(moduleId).get();
+    Map<String, dynamic> attendanceTable =
+        moduleSnapshot.get('attendanceTable');
+    Map<String, int> attendanceData = {};
+
+    if (attendanceTable.isNotEmpty) {
+      attendanceTable.forEach((date, data) {
+        int presentCount = data.values.where((value) => value == true).length;
+        attendanceData[date] = presentCount;
+      });
+    }
+    return attendanceData;
+  }
+
+  Future<Map<String, int>> fetchModuleStudentAttendancePercentage(
+      String moduleId) async {
+    DocumentSnapshot moduleSnapshot = await modulesColl.doc(moduleId).get();
+    Map<String, dynamic> attendanceTable =
+        moduleSnapshot.get('attendanceTable');
+    Map<String, int> studentPresenceCount = {};
+
+    if (attendanceTable.isNotEmpty) {
+      attendanceTable.forEach((date, data) {
+        data.forEach((student, isPresent) {
+          if (!studentPresenceCount.containsKey(student)) {
+            studentPresenceCount[student] = 0;
+          }
+          if (isPresent) {
+            studentPresenceCount[student] = studentPresenceCount[student]! + 1;
+          }
+        });
+      });
+    }
+    return studentPresenceCount;
+  }
+
+  Future<Map<String, dynamic>> fetchModuleStats(
+    String moduleId,
+  ) async {
+    DocumentSnapshot moduleSnapshot = await modulesColl.doc(moduleId).get();
+    Map<String, dynamic> attendanceTable = moduleSnapshot.get(
+      'attendanceTable',
+    );
+    Map<String, int> attendanceData = {};
+    Map<String, double> studentPresenceCount = {};
+
+    if (attendanceTable.isNotEmpty) {
+      attendanceTable.forEach(
+        (date, data) {
+          int presentCount = data.values.where((value) => value == true).length;
+          attendanceData[date] = presentCount;
+
+          data.forEach(
+            (student, isPresent) {
+              if (!studentPresenceCount.containsKey(student)) {
+                studentPresenceCount[student] = 0;
+              }
+              if (isPresent) {
+                studentPresenceCount[student] =
+                    studentPresenceCount[student]! + 1;
+              }
+            },
+          );
+        },
+      );
+      int totalDates = attendanceTable.length;
+      studentPresenceCount.forEach((student, presenceCount) {
+        double percentage = (presenceCount / totalDates) * 100;
+        studentPresenceCount[student] = percentage;
+      });
+    }
+
+    return {
+      'attendanceData': attendanceData,
+      'studentPresenceCount': studentPresenceCount,
+    };
+  }
+
   Future<QuerySnapshot> getModulesByGradeAndSpeciality(
       String grade, String speciality) async {
     QuerySnapshot querySnapshot = await modulesColl
@@ -326,16 +491,18 @@ class DatabaseService {
       return AttendifyUser(
         userName: doc["username"] ?? 'username',
         userType: doc["userType"] ?? "usertype",
-        token: doc["token"] ?? 'token',
         uid: doc["uid"] ?? 'uid',
+        email: doc["email"] ?? "email",
+        photoURL: doc["photoURL"] ?? "photoURL",
       );
     } else {
       isUserDataExist = false;
       return AttendifyUser(
         userName: 'username',
         userType: "usertype",
-        token: 'token',
         uid: 'uid',
+        email: "email",
+        photoURL: "photoURL",
       );
     }
   }
@@ -346,8 +513,9 @@ class DatabaseService {
       return Student(
         userName: doc["username"] ?? 'username',
         userType: doc["userType"] ?? "usertype",
-        token: doc["token"] ?? 'token',
         uid: doc["uid"] ?? 'uid',
+        email: doc["email"] ?? "email",
+        photoURL: doc["photoURL"] ?? "photoURL",
         grade: doc["grade"] ?? 'grade',
         speciality: doc["speciality"] ?? 'speciality',
       );
@@ -355,8 +523,9 @@ class DatabaseService {
       return Student(
         userName: 'username',
         userType: "usertype",
-        token: 'token',
         uid: 'uid',
+        email: "email",
+        photoURL: "photoURL",
         grade: 'grade',
         speciality: 'speciality',
       );
@@ -372,6 +541,7 @@ class DatabaseService {
         name: doc["name"] ?? 'name',
         speciality: doc["speciality"] ?? 'speciality',
         grade: doc["grade"] ?? "grade",
+        numberOfStudents: doc["numberOfStudents"] ?? 0,
         isActive: doc["isActive"] ?? false,
         students: Map<String, String>.from(
           doc["students"] ?? {},
@@ -386,6 +556,7 @@ class DatabaseService {
         name: "name",
         speciality: "speciality",
         grade: "grade",
+        numberOfStudents: 0,
         isActive: false,
         students: {},
         attendanceTable: {},
@@ -396,28 +567,29 @@ class DatabaseService {
   Teacher _currentTeacherFromSnapshots(DocumentSnapshot snapshot) {
     if (snapshot.exists) {
       Map<String, dynamic> doc = snapshot.data() as Map<String, dynamic>;
-      String userUid = doc["user"];
 
       List<String>? modules = (doc["modules"] as List<dynamic>?)
               ?.map(
                 (e) => e.toString(),
               )
               .toList() ??
-          [""];
+          [];
 
       return Teacher(
         userName: doc["username"] ?? 'username',
         userType: doc["userType"] ?? "usertype",
-        token: doc["token"] ?? 'token',
-        uid: userUid,
+        uid: doc["uid"] ?? 'uid',
+        email: doc["email"] ?? "email",
+        photoURL: doc["photoURL"] ?? "photoURL",
         modules: modules,
       );
     } else {
       return Teacher(
         userName: 'username',
         userType: "usertype",
-        token: 'token',
         uid: 'uid',
+        email: "email",
+        photoURL: "photoURL",
         modules: [],
       );
     }
@@ -484,6 +656,7 @@ class DatabaseService {
               name: "names",
               speciality: "speciality",
               grade: "grade",
+              numberOfStudents: 0,
               isActive: false,
               students: {},
               attendanceTable: {},
@@ -516,11 +689,15 @@ class DatabaseService {
         Module module = _currentModuleFromSnapshots(doc);
         modules.add(module);
       }
+      if (modules.length == 1 && modules[0].uid == "uid") {
+        modules = [];
+      }
       return modules;
     });
   }
 
-  Stream<List<Module>> getModulesOfTeacherFromAdmin(List<String> moduleUIDs) async* {
+  Stream<List<Module>> getModulesOfTeacherFromAdmin(
+      List<String> moduleUIDs) async* {
     moduleUIDs =
         moduleUIDs.isNotEmpty ? moduleUIDs : ["grade_speciality_module_index"];
 
@@ -529,16 +706,100 @@ class DatabaseService {
       var end = (i + 30 < moduleUIDs.length) ? i + 30 : moduleUIDs.length;
       var slice = moduleUIDs.sublist(i, end);
 
-      streams.add(modulesColl
-          .where(FieldPath.documentId, whereIn: slice)
-          .snapshots()
-          .map((snapshot) {
-        return snapshot.docs
-            .map((doc) => _currentModuleFromSnapshots(doc))
-            .toList();
-      }));
+      streams.add(
+        modulesColl.where(FieldPath.documentId, whereIn: slice).snapshots().map(
+          (snapshot) {
+            return snapshot.docs
+                .map((doc) => _currentModuleFromSnapshots(doc))
+                .toList();
+          },
+        ),
+      );
     }
 
     yield* StreamGroup.merge(streams);
+  }
+
+  Future<void> removeTeacherById(String id) async {
+    await teacherColl.doc(id).delete();
+  }
+
+  Future<void> removeStudentById(String id) async {
+    await studentColl.doc(id).delete();
+  }
+
+  Future<void> removeModuleById(String id) async {
+    await modulesColl.doc(id).delete();
+  }
+
+  Future<List<Module>> getAllModules() async {
+    QuerySnapshot querySnapshot = await modulesColl.get();
+    return querySnapshot.docs
+        .map((doc) => _currentModuleFromSnapshots(doc))
+        .toList();
+  }
+
+  Future<List<Student>> getAllStudents() async {
+    QuerySnapshot querySnapshot = await studentColl.get();
+    return querySnapshot.docs
+        .map((doc) => _currentStudentFromSnapshots(doc))
+        .toList();
+  }
+
+  Future<List<Teacher>> getAllTeachers() async {
+    QuerySnapshot querySnapshot = await teacherColl.get();
+    return querySnapshot.docs
+        .map((doc) => _currentTeacherFromSnapshots(doc))
+        .toList();
+  }
+
+  Future<List<String>> getAllTeachersEmails() async {
+    try {
+      List<String> emails = [];
+      await teacherEmailsColl.doc("TeacherEmails").get().then((value) =>
+          emails = (value.get("emails") as List<dynamic>).cast<String>());
+      return emails;
+    } on Exception catch (_) {
+      throw Exception("not-authenticated-teacher");
+    }
+  }
+
+  Future<List<String>> getAllAdminsEmails() async {
+    try {
+      List<String> emails = [];
+      await adminEmailsColl.doc("AdminEmails").get().then((value) =>
+          emails = (value.get("emails") as List<dynamic>).cast<String>());
+      return emails;
+    } on Exception catch (_) {
+      throw Exception("not-authenticated-admin");
+    }
+  }
+
+  Future<bool> isTeacherEmailRegistered(String email) async {
+    try {
+      List<String> allTeacherEmails = await getAllTeachersEmails();
+      return allTeacherEmails.contains(email);
+    } catch (e) {
+      throw Exception("Database error: $e");
+    }
+  }
+
+  Future<bool> isAdminEmailRegistered(String email) async {
+    try {
+      List<String> allAdminEmails = await getAllAdminsEmails();
+      return allAdminEmails.contains(email);
+    } catch (e) {
+      throw Exception("Database error: $e");
+    }
+  }
+
+  Future<Map<String, dynamic>> getAllTeachersAndEmails() async {
+    final List<Teacher> teachers = await getAllTeachers();
+    final List<String> emails = await getAllTeachersEmails();
+
+    return {
+      'teachers': teachers,
+      'emails': emails,
+    };
   }
 }

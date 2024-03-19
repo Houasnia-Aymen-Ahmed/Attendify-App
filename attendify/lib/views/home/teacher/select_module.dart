@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 import '../../../models/attendify_teacher.dart';
@@ -5,6 +7,7 @@ import '../../../models/module_model.dart';
 import '../../../services/auth.dart';
 import '../../../services/databases.dart';
 import '../../../shared/constants.dart';
+import '../../../shared/school_data.dart';
 
 class SelectModule extends StatefulWidget {
   final Teacher teacher;
@@ -24,13 +27,12 @@ class SelectModule extends StatefulWidget {
 }
 
 class _SelectModuleState extends State<SelectModule> {
-  List<String> addedModules = [];
-  List<String> selectedModules = [];
-  late List<Module> selectedModulesModel;
-  String? gradeVal, specialityVal;
-  bool hasSelected = false,
-      isSaved = false,
-      isDisabled = true,
+  final List<String> _addedModules = [], _selectedModules = [];
+  late List<Module> _selectedModulesModel;
+  String? _gradeVal, _specialityVal;
+  bool _hasSelected = false,
+      _isSaved = false,
+      _isDisabled = true,
       isSaving = false;
 
   void addModule(
@@ -41,7 +43,7 @@ class _SelectModuleState extends State<SelectModule> {
     bool isActive,
   ) {
     setState(() {
-      selectedModulesModel.add(
+      _selectedModulesModel.add(
         Module(
           uid: uid,
           grade: grade,
@@ -56,18 +58,18 @@ class _SelectModuleState extends State<SelectModule> {
   @override
   void initState() {
     super.initState();
-    isSaved = false;
-    selectedModulesModel = widget.modules ?? [];
-    selectedModules.clear();
-    selectedModules.addAll(selectedModulesModel.map((module) => module.uid));
+    _isSaved = false;
+    _selectedModulesModel = widget.modules ?? [];
+    _selectedModules.clear();
+    _selectedModules.addAll(_selectedModulesModel.map((module) => module.uid));
   }
 
   @override
   Widget build(BuildContext context) {
     List<String>? modules = [];
-    if (modulesMap.containsKey(gradeVal) &&
-        modulesMap[gradeVal]?.containsKey(specialityVal) == true) {
-      modules = modulesMap[gradeVal]![specialityVal];
+    if (modulesMap.containsKey(_gradeVal) &&
+        modulesMap[_gradeVal]?.containsKey(_specialityVal) == true) {
+      modules = modulesMap[_gradeVal]![_specialityVal];
       if (modules?[0] == "") {
         modules = null;
       }
@@ -89,12 +91,15 @@ class _SelectModuleState extends State<SelectModule> {
         child: ListView(
           children: [
             userAccountDrawerHeader(
-                username: widget.teacher.userName,
-                email: widget.authService.currentUsr?.email ??
-                    "user@hns-re2sd.dz"),
+              username: widget.teacher.userName,
+              email:
+                  widget.authService.currentUsr?.email ?? "user@hns-re2sd.dz",
+              profileURL: widget.authService.currentUsr?.photoURL ?? "url",
+            ),
             ListTile(
               title: Text(widget.teacher.userName),
-            )
+            ),
+            drawerFooter(),
           ],
         ),
       ),
@@ -103,31 +108,37 @@ class _SelectModuleState extends State<SelectModule> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: dropDownBtn(
-                  hint: "Select a grade",
-                  type: "grade",
-                  gradeVal: gradeVal,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      isDisabled = false;
-                      gradeVal = newValue!;
-                    });
-                  },
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: dropDownBtn(
+                    hint: "Choose grade",
+                    type: "grade",
+                    gradeVal: _gradeVal,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _isDisabled = false;
+                        _gradeVal = newValue!;
+                        _specialityVal = null;
+                      });
+                    },
+                  ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: dropDownBtn(
-                  hint: "Select a speciality",
-                  type: "speciality",
-                  gradeVal: gradeVal,
-                  specialityVal: specialityVal,
-                  onChanged: isDisabled
-                      ? null
-                      : (String? newValue) =>
-                          setState(() => specialityVal = newValue!),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: dropDownBtn(
+                    hint: "Choose speciality",
+                    type: "speciality",
+                    isDisabled: _isDisabled,
+                    gradeVal: _gradeVal,
+                    specialityVal: _specialityVal,
+                    onChanged: _isDisabled
+                        ? null
+                        : (String? newValue) =>
+                            setState(() => _specialityVal = newValue),
+                  ),
                 ),
               ),
             ],
@@ -143,24 +154,29 @@ class _SelectModuleState extends State<SelectModule> {
                       "Unselect new selected modules",
                       style: TextStyle(
                         fontSize: 17.5,
-                        color: hasSelected ? Colors.black : Colors.grey,
+                        color: _hasSelected ? Colors.black : Colors.blueGrey,
                       ),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(right: 16.0),
                     child: IconButton(
-                      onPressed: hasSelected
+                      onPressed: _hasSelected
                           ? () => setState(
                                 () {
-                                  addedModules.clear();
-                                  selectedModules.addAll(selectedModulesModel
-                                      .map((module) => module.uid));
-                                  hasSelected = false;
+                                  _addedModules.clear();
+                                  _selectedModules.addAll(
+                                    _selectedModulesModel
+                                        .map((module) => module.uid),
+                                  );
+                                  _hasSelected = false;
                                 },
                               )
                           : null,
-                      icon: const Icon(Icons.unpublished_rounded),
+                      icon: const Icon(
+                        Icons.unpublished_rounded,
+                        color: Colors.blueGrey,
+                      ),
                     ),
                   )
                 ],
@@ -183,19 +199,19 @@ class _SelectModuleState extends State<SelectModule> {
                         .map(
                           (module) => CheckboxListTile(
                             title: Text(module),
-                            value: selectedModules.contains(
-                                "${gradeVal}_${specialityVal}_module_${modules?.indexOf(module)}"),
+                            value: _selectedModules.contains(
+                                "${_gradeVal}_${_specialityVal}_module_${modules?.indexOf(module)}"),
                             onChanged: (newValue) => setState(() {
                               String moduleName =
-                                  "${gradeVal}_${specialityVal}_module_${modules?.indexOf(module)}";
+                                  "${_gradeVal}_${_specialityVal}_module_${modules?.indexOf(module)}";
                               if (newValue!) {
-                                addedModules.add(moduleName);
-                                selectedModules.add(moduleName);
+                                _addedModules.add(moduleName);
+                                _selectedModules.add(moduleName);
                               } else {
-                                addedModules.remove(moduleName);
-                                selectedModules.remove(moduleName);
+                                _addedModules.remove(moduleName);
+                                _selectedModules.remove(moduleName);
                               }
-                              hasSelected = addedModules.isNotEmpty;
+                              _hasSelected = _addedModules.isNotEmpty;
                             }),
                           ),
                         )
@@ -209,7 +225,7 @@ class _SelectModuleState extends State<SelectModule> {
               textDirection: TextDirection.rtl,
               children: [
                 ElevatedButton(
-                  onPressed: addedModules.isEmpty
+                  onPressed: _addedModules.isEmpty
                       ? null
                       : () async {
                           showLoadingDialog(
@@ -218,22 +234,21 @@ class _SelectModuleState extends State<SelectModule> {
                           );
                           try {
                             setState(() => isSaving = true);
-                            for (String module in addedModules) {
+                            for (String module in _addedModules) {
                               List<String> moduleInfo = module.split('_');
                               String grade = moduleInfo[0];
                               String speciality = moduleInfo[1];
-                              int moduleIndex = int.parse(moduleInfo[3]);
+                              int moduleIndex = int.parse(
+                                  moduleInfo[3].toString().padLeft(2, '0'));
                               String moduleName =
                                   modulesMap[grade]![speciality]![moduleIndex];
-                              await widget.databaseService.updateModuleData(
+                              await widget.databaseService
+                                  .updateModuleSpecificData(
                                 uid: module,
                                 name: moduleName,
                                 isActive: false,
                                 speciality: speciality,
                                 grade: grade,
-                                students: {},
-                                attendanceTable: {},
-                                checkExists: true,
                               );
                               addModule(
                                 module,
@@ -245,7 +260,7 @@ class _SelectModuleState extends State<SelectModule> {
                             }
                             await widget.databaseService
                                 .updateTeacherSpecificData(
-                              modules: addedModules,
+                              modules: _addedModules,
                             );
 
                             if (mounted) {
@@ -257,7 +272,7 @@ class _SelectModuleState extends State<SelectModule> {
                                 false,
                               );
                             }
-                            setState(() => isSaved = true);
+                            setState(() => _isSaved = true);
                           } catch (e) {
                             setState(() => isSaving = false);
                             if (mounted) {
@@ -275,7 +290,7 @@ class _SelectModuleState extends State<SelectModule> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    if (addedModules.isNotEmpty && !isSaved) {
+                    if (_addedModules.isNotEmpty && !_isSaved) {
                       await showCloseConfirmationDialog(context);
                     } else {
                       Navigator.pop(context);

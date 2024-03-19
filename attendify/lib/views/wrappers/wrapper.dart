@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/user.dart';
 import '../../services/auth.dart';
 import '../../services/databases.dart';
-import 'type_wrapper.dart';
+import '../auth/authenticate.dart';
 import 'user_wrapper.dart';
 
 class Wrapper extends StatelessWidget {
@@ -17,7 +17,7 @@ class Wrapper extends StatelessWidget {
     return Consumer<UserHandler?>(
       builder: (context, user, _) {
         if (user == null) {
-          return const TypeWrapper();
+          return Authenticate(authService: authService);
         } else {
           return UserWrapper(
             user: user,

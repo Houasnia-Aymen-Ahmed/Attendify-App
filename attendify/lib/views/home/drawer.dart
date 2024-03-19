@@ -1,17 +1,21 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/attendify_student.dart';
 import '../../models/attendify_teacher.dart';
 import '../../models/module_model.dart';
+import '../../models/user_of_attendify.dart';
 import '../../services/auth.dart';
 import '../../services/databases.dart';
 import '../../shared/constants.dart';
+
 
 class BuildDrawer extends StatelessWidget {
   final AuthService authService;
   final DatabaseService databaseService;
   final String userType;
+  final AttendifyUser? admin;
   final Student? student;
   final Teacher? teacher;
   final List<Module>? modules;
@@ -20,6 +24,7 @@ class BuildDrawer extends StatelessWidget {
     required this.authService,
     required this.databaseService,
     required this.userType,
+    this.admin,
     this.student,
     this.teacher,
     this.modules,
@@ -27,57 +32,57 @@ class BuildDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      backgroundColor: Colors.blue[100],
-      elevation: 10,
-      child: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              children: [
-                userAccountDrawerHeader(
-                  username: userType == "teacher"
-                      ? teacher?.userName ?? "Teacher"
-                      : student?.userName ?? "Student",
-                  email: authService.currentUsr?.email ?? "user@hns-re2sd.dz",
-                ),
-                if (userType == "student")
-                  ...drawerList(student)
-                else
-                  ListTile(
-                    title: const Text("Add a module"),
-                    trailing: const Icon(Icons.arrow_forward_ios_rounded),
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        '/selectModule',
-                        arguments: {
-                          'modules': modules,
-                          'teacher': teacher,
-                          'databaseService': databaseService,
-                          'authService': authService,
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Drawer(
+          backgroundColor: Colors.blue[100],
+          elevation: 10,
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  children: [
+                    userAccountDrawerHeader(
+                      username: userType == "admin"
+                          ? admin?.userName ?? "admin"
+                          : userType == "teacher"
+                              ? teacher?.userName ?? "Teacher"
+                              : student?.userName ?? "Student",
+                      email:
+                          authService.currentUsr?.email ?? "user@hns-re2sd.dz",
+                      profileURL: userType == "admin"
+                          ? admin?.photoURL ?? ""
+                          : userType == "teacher"
+                              ? teacher?.photoURL ?? ""
+                              : student?.photoURL ?? "",
+                    ),
+                    if (userType == "student")
+                      ...drawerList(student)
+                    else
+                      ListTile(
+                        title: const Text("Add a module"),
+                        trailing: const Icon(Icons.arrow_forward_ios_rounded),
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/selectModule',
+                            arguments: {
+                              'modules': modules,
+                              'teacher': teacher,
+                              'databaseService': databaseService,
+                              'authService': authService,
+                            },
+                          );
                         },
-                      );
-                    },
-                  ),
-              ],
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Text(
-                "Houasnia-Aymen-Ahmed\n© 2023-${DateTime.now().year} All rights reserved",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
+                      ),
+                  ],
                 ),
               ),
-            ),
-          )
-        ],
+              drawerFooter(),
+            ],
+          ),
+        ),
       ),
     );
   }

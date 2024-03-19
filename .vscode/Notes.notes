@@ -1,0 +1,64 @@
+/* My Attendify Notes */
+
+TODO:
+[ ] delete unecessary widgets from dashboard admin page (AllModules, AllTeachers, AllStudents).
+[ ] Update the dashboard to show all items statistic (items = "Module", "Teahcer", "Student")
+[√] reconfigure the getIndicator method to show the name of the module not the key of the map
+[√] try to Customize Pie Chart in all_modules_view.dart.
+[√] make it possible to access a specific item stats from the search page.
+[√] save and get method in SharedPrefsHelper, to save and get the item itself not just a string.
+[√] think of an idea to make a common bar_chart between all_modules_stats & bar_chart of a specific module.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*Down below the notes guide*/
+TODO:
+[ ] Something
+[√] Something done
+[!] something deprecated
+[x] something canceled
+
+Unordered list:
+- item 1
+- item 2
+- item 3
+- IMPORTANT: item 4
+
+Ordered list:
+1. item 1
+2. item 2
+3. item 3
+
+-= Special Heading 1 =-
+== Special Heading 2 ==
+
+---> arrow
+===> double arrow
+* Emhpasis * something
+! Critical ! something urgent
+// comment
+"something"
+`something`
+#tag#
+
+

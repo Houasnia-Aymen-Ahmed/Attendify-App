@@ -54,7 +54,6 @@ class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
                 return const Loading();
               } else {
                 Module module = snapshot.data!;
-                print(" in module from teacher : ${module.isActive}");
                 return Scaffold(
                   appBar: AppBar(
                     title: Row(
@@ -71,7 +70,10 @@ class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
                           child: Icon(
                             Icons.circle_rounded,
                             size: 15,
-                            color: module.isActive ? Colors.green : Colors.red, //For Cursor-GPT: this color changes based on isActive on real-time
+                            color: module.isActive
+                                ? Colors.green
+                                : Colors
+                                    .red,
                           ),
                         ),
                       ],

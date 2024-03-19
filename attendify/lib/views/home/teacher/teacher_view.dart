@@ -29,7 +29,6 @@ class _TeacherViewState extends State<TeacherView> {
   String? gradeVal, specialityVal;
   bool isDisabled = true, showAll = false;
   List<Module> modulesData = [];
-  final DatabaseService dbs = DatabaseService();
 
   List<Module> filterModulesByGradeAndSpeciality(
     List<Module> modules,
@@ -45,7 +44,8 @@ class _TeacherViewState extends State<TeacherView> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Teacher>(
-      stream: dbs.getTeacherDataStream(widget.authService.currentUsr!.uid),
+      stream: widget.databaseService
+          .getTeacherDataStream(widget.authService.currentUsr!.uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Loading();
@@ -63,7 +63,7 @@ class _TeacherViewState extends State<TeacherView> {
           final Teacher teacher = snapshot.data!;
           List<String> moduleUIDs = teacher.modules!;
           return StreamBuilder<List<Module>>(
-            stream: dbs.getModulesOfTeacher(moduleUIDs),
+            stream: widget.databaseService.getModulesOfTeacher(moduleUIDs),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return ErrorPages(
@@ -74,9 +74,6 @@ class _TeacherViewState extends State<TeacherView> {
                 return const Loading();
               } else {
                 modulesData = snapshot.data!;
-                int moduleNbr = 0;
-                print(
-                    "module ${modulesData[moduleNbr].name} : ${modulesData[moduleNbr].isActive}");
                 List<Module> filteredModules =
                     filterModulesByGradeAndSpeciality(
                   modulesData,
@@ -108,37 +105,41 @@ class _TeacherViewState extends State<TeacherView> {
                     children: <Widget>[
                       Row(
                         children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: dropDownBtn(
-                              hint: "Choose your grade",
-                              type: "grade",
-                              gradeVal: gradeVal,
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  isDisabled = false;
-                                  showAll = false;
-                                  gradeVal = newValue;
-                                  specialityVal = null;
-                                });
-                              },
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: dropDownBtn(
+                                hint: "Choose your grade",
+                                type: "grade",
+                                gradeVal: gradeVal,
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    isDisabled = false;
+                                    showAll = false;
+                                    gradeVal = newValue;
+                                    specialityVal = null;
+                                  });
+                                },
+                              ),
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: dropDownBtn(
-                              hint: "Choose your speciality",
-                              type: "speciality",
-                              isDisabled: isDisabled,
-                              gradeVal: gradeVal,
-                              specialityVal: specialityVal,
-                              onChanged: isDisabled
-                                  ? null
-                                  : (String? newValue) {
-                                      setState(
-                                        () => specialityVal = newValue,
-                                      );
-                                    },
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: dropDownBtn(
+                                hint: "Choose your speciality",
+                                type: "speciality",
+                                isDisabled: isDisabled,
+                                gradeVal: gradeVal,
+                                specialityVal: specialityVal,
+                                onChanged: isDisabled
+                                    ? null
+                                    : (String? newValue) {
+                                        setState(
+                                          () => specialityVal = newValue,
+                                        );
+                                      },
+                              ),
                             ),
                           ),
                         ],

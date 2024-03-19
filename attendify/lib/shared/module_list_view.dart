@@ -58,7 +58,6 @@ class _ModuleListViewState extends State<ModuleListView> {
     return ListView.builder(
       itemCount: widget.modules.length,
       itemBuilder: (BuildContext context, int index) {
-        print("in module list view: ${widget.modules[index].isActive}");
         return Padding(
           padding: const EdgeInsets.all(5.0),
           child: Card(
@@ -74,7 +73,7 @@ class _ModuleListViewState extends State<ModuleListView> {
                 padding: const EdgeInsets.only(left: 20),
                 child: Icon(
                   Icons.circle_rounded,
-                  color: widget.modules[index].isActive //For Cursor-GPT: this color suppose to change based on isActive on real-time, but it doesn't change until i hit hot-reload
+                  color: widget.modules[index].isActive
                       ? Colors.green[900]
                       : Colors.red,
                 ),

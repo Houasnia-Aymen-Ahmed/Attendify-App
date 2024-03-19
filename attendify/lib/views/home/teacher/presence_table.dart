@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
@@ -12,14 +13,12 @@ class PresenceTable extends StatefulWidget {
   final List<Student> students;
   final Module module;
   final DatabaseService databaseService;
-  
 
   const PresenceTable({
     super.key,
     required this.students,
     required this.module,
     required this.databaseService,
-    
   });
 
   @override
@@ -56,14 +55,14 @@ class _PresenceTableState extends State<PresenceTable> {
     for (var i = 0; i < columns.length; i++) {
       sheetObject
           .cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0))
-          .value = (columns[i].label as Text).data!;
+          .value = columns[i].label;
     }
 
     for (var i = 0; i < rows.length; i++) {
       for (var j = 0; j < rows[i].cells.length; j++) {
         sheetObject
             .cell(CellIndex.indexByColumnRow(columnIndex: j, rowIndex: i + 1))
-            .value = (rows[i].cells[j].child as Text).data!;
+            .value = (rows[i].cells[j].child as Text).data! as CellValue?;
       }
     }
 
@@ -193,12 +192,11 @@ class _PresenceTableState extends State<PresenceTable> {
                 value: widget.module.isActive,
                 onChanged: (val) {
                   widget.module.isActive = val;
-                  print(" in presence table : ${widget.module.isActive}");
                   widget.databaseService.updateModuleSpecificData(
                     uid: widget.module.uid,
                     isActive: val,
                   );
-                  
+
                   if (val) {
                     enablePresence(
                       DateFormat('dd-MM-yyyy').format(
@@ -222,10 +220,8 @@ class _PresenceTableState extends State<PresenceTable> {
             children: [
               const Expanded(
                 child: Text(
-                  "Students",
-                  style: TextStyle(
-                    fontSize: 20.0,
-                  ),
+                  "Students' Attendance",
+                  style: TextStyle(fontSize: 20.0),
                 ),
               ),
               IconButton(
