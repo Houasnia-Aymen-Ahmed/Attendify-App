@@ -1,11 +1,15 @@
-import 'package:attendify/views/auth/signin.dart';
-import 'package:attendify/views/auth/student_register.dart';
-import 'package:attendify/views/auth/teacher_register.dart';
 import 'package:flutter/material.dart';
 
+import '../../services/auth.dart';
+import 'signin.dart';
+import 'register.dart';
+
 class Authenticate extends StatefulWidget {
-  final String userType;
-  const Authenticate({super.key, required this.userType});
+  final AuthService authService;
+  const Authenticate({
+    super.key,
+    required this.authService,
+  });
 
   @override
   State<Authenticate> createState() => _AuthenticateState();
@@ -17,16 +21,39 @@ class _AuthenticateState extends State<Authenticate> {
 
   @override
   Widget build(BuildContext context) {
-    if (showSignIn == true) {
-      if (widget.userType == "teacher") {
-        return TeacherRegister(toggleView: toggleView);
-      } else {
-        return StudentRegister(toggleView: toggleView);
-      }
-    } else {
-      return SignIn(
-        toggleView: toggleView,
-      );
-    }
+    return Card(
+      child: Column(
+        children: [
+          AppBar(
+            title: const Text(
+              "Attendify",
+              style: TextStyle(
+                fontSize: 50,
+                color: Colors.white,
+              ),
+            ),
+            centerTitle: true,
+            backgroundColor: Colors.blue[200],
+            elevation: 20,
+            shadowColor: Colors.black,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(25),
+            ),
+            toolbarHeight: 150,
+          ),
+          Expanded(
+            child: showSignIn
+                ? Register(
+                    toggleView: toggleView,
+                    authService: widget.authService,
+                  )
+                : SignIn(
+                    toggleView: toggleView,
+                    authService: widget.authService,
+                  ),
+          )
+        ],
+      ),
+    );
   }
 }

@@ -1,29 +1,16 @@
+import 'dart:math';
+
+import 'package:attendify/index.dart';
+import 'package:attendify/shared/loading.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-const textInputDecoation = InputDecoration(
-  contentPadding: EdgeInsets.fromLTRB(27, 20, 27, 20),
-  hintText: "Email",
-  hintStyle: TextStyle(
-    color: Colors.white54,
-  ),
-  fillColor: Colors.transparent,
-  filled: true,
-  enabledBorder: OutlineInputBorder(
-    borderSide: BorderSide(
-      color: Colors.white38,
-      width: 2,
-    ),
-  ),
-  focusedBorder: OutlineInputBorder(
-    borderSide: BorderSide(
-      color: Colors.white,
-      width: 2,
-    ),
-  ),
-);
+import 'school_data.dart';
 
-txt() {
+TextStyle txt() {
   return GoogleFonts.poppins(
     color: Colors.white,
     fontSize: 15,
@@ -31,53 +18,93 @@ txt() {
   );
 }
 
-final elevatedBtnStyle = ElevatedButton.styleFrom(
-  shadowColor: Colors.white.withOpacity(0.1),
-  backgroundColor: Colors.transparent,
-  elevation: 1,
-  fixedSize: const Size(100, 50),
+final textInputDecoration = InputDecoration(
+  hintText: 'Module Name',
+  hintStyle: GoogleFonts.poppins(
+    fontSize: 15,
+    color: Colors.black38,
+  ),
+  filled: true,
+  border: outLineBorder(),
+  enabledBorder: outLineBorder(),
+  focusedBorder: outLineBorder(),
 );
 
-final textDisabled = Text(
-  "Your friend's Message",
-  style: txt().copyWith(fontSize: 25.0, color: Colors.grey),
-  textAlign: TextAlign.center,
-);
-
-userAccountDrawerHeader({String? username, String? email}) {
-  return UserAccountsDrawerHeader(
-    accountName: Text(
-      username ?? "Houasnia Ahmed Aymen",
-      style: GoogleFonts.roboto(
-        fontSize: 20,
-        fontWeight: FontWeight.w500,
-        color: Colors.white,
+userAccountDrawerHeader({
+  required String username,
+  required String email,
+  required String profileURL,
+  bool hasLogout = false,
+  void Function()? onLogout,
+}) {
+  return Stack(
+    children: [
+      UserAccountsDrawerHeader(
+        currentAccountPicture: CircleAvatar(
+          backgroundColor: Colors.blue[100],
+          child: ClipOval(
+            child: CachedNetworkImage(
+              imageUrl: profileURL,
+              placeholder: (context, url) => const Loading(),
+              errorWidget: (context, url, error) =>
+                  AppImages.defaultProfilePicture,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+        accountName: Text(
+          username,
+          style: GoogleFonts.roboto(
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
+        margin: const EdgeInsets.all(8.0),
+        accountEmail: Text(
+          email,
+          style: GoogleFonts.roboto(
+            fontSize: 18,
+            fontWeight: FontWeight.w400,
+            fontStyle: FontStyle.italic,
+            color: Colors.white,
+          ),
+        ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.blue[700]!,
+              Colors.blue[100]!,
+            ],
+            tileMode: TileMode.decal,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black,
+              blurRadius: 0.5,
+              blurStyle: BlurStyle.normal,
+              offset: Offset(0, 3),
+            )
+          ],
+        ),
+        arrowColor: Colors.black,
       ),
-    ),
-    accountEmail: Text(
-      email ?? "aymenaymen2056@gmail.com",
-      style: GoogleFonts.roboto(
-        fontSize: 18,
-        fontWeight: FontWeight.w400,
-        fontStyle: FontStyle.italic,
-        color: Colors.white,
-      ),
-    ),
-    decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [
-          Colors.blue[900]!,
-          Colors.blue[100]!,
-        ]),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black,
-            blurRadius: 0.5,
-            blurStyle: BlurStyle.normal,
-            offset: Offset(0, 3),
-          )
-        ]),
-    arrowColor: Colors.black,
+      if (hasLogout)
+        Positioned(
+          top: 16.0,
+          right: 16.0,
+          child: IconButton(
+            icon: Icon(
+              Icons.logout,
+              color: Colors.blue[900]!,
+            ),
+            onPressed: onLogout,
+          ),
+        ),
+    ],
   );
 }
 
@@ -87,178 +114,250 @@ var dropDownTextStyle = GoogleFonts.poppins(
   fontWeight: FontWeight.w500,
 );
 
-String capitalizeFirst(String? input) {
-  if (input == null) {
-    return "text";
-  }
-
+String capitalizeFirst(String input) {
   if (input.length <= 1) {
     return input;
   }
   return input[0].toUpperCase() + input.substring(1);
 }
 
-List<String> modules = [
-  "Advanced AI (Deep Learning)",
-  "Virualization & Industrial Control on the Cloud",
-  "Mobile Applications & HMI under Android",
-  "Home Automation for Renewable Energy",
-  "N-tier Development",
-  "Smart Grids",
-  "Industrial Metrology",
-  "Workshop: Entrepreneurship & Startup Establishment",
-  "Academic Ethics",
-];
-
-const modulesMap = {
-  "5th": {
-    "iriia": [
-      "Advanced AI (Deep Learning)",
-      "Virualization & Industrial Control on the Cloud",
-      "Mobile Applications & HMI under Android",
-      "Home Automation for Renewable Energy",
-      "N-tier Development",
-      "Smart Grids",
-      "Industrial Metrology",
-      "Workshop: Entrepreneurship & Startup Establishment",
-      "Academic Ethics",
-    ],
-    "er": [
-      "5th er modules 1",
-      "5th er modules 2",
-      "5th er modules 3",
-      "5th er modules 4",
-      "5th er modules 5",
-      "5th er modules 6",
-      "5th er modules 7",
-      "5th er modules 8",
-      "5th er modules 9",
-    ],
-    "micro": [""],
-    "ge": [""],
-    "gh": [""],
-  },
-  "4th": {
-    "iriia": [
-      "4th iriia modules 1",
-      "4th iriia modules 2",
-      "4th iriia modules 3",
-      "4th iriia modules 4",
-      "4th iriia modules 5",
-      "4th iriia modules 6",
-      "4th iriia modules 7",
-      "4th iriia modules 8",
-      "4th iriia modules 9",
-    ],
-    "er": [
-      "4th er modules 1",
-      "4th er modules 2",
-      "4th er modules 3",
-      "4th er modules 4",
-      "4th er modules 5",
-      "4th er modules 6",
-      "4th er modules 7",
-      "4th er modules 8",
-      "4th er modules 9",
-    ],
-    "micro": [
-      "4th micro modules 1",
-      "4th micro modules 2",
-      "4th micro modules 3",
-      "4th micro modules 4",
-      "4th micro modules 5",
-      "4th micro modules 6",
-      "4th micro modules 7",
-      "4th micro modules 8",
-      "4th micro modules 9",
-    ],
-    "ge": [
-      "4th ge modules 1",
-      "4th ge modules 2",
-      "4th ge modules 3",
-      "4th ge modules 4",
-      "4th ge modules 5",
-      "4th ge modules 6",
-      "4th ge modules 7",
-      "4th ge modules 8",
-      "4th ge modules 9",
-    ],
-    "gh": [
-      "4th gh modules 1",
-      "4th gh modules 2",
-      "4th gh modules 3",
-      "4th gh modules 4",
-      "4th gh modules 5",
-      "4th gh modules 6",
-      "4th gh modules 7",
-      "4th gh modules 8",
-      "4th gh modules 9",
-    ],
-  },
-  "3rd": {
-    "iriia": [
-      "3rd iriia modules 1",
-      "3rd iriia modules 2",
-      "3rd iriia modules 3",
-      "3rd iriia modules 4",
-      "3rd iriia modules 5",
-      "3rd iriia modules 6",
-      "3rd iriia modules 7",
-      "3rd iriia modules 8",
-      "3rd iriia modules 9",
-    ],
-    "er": [
-      "3rd er modules 1",
-      "3rd er modules 2",
-      "3rd er modules 3",
-      "3rd er modules 4",
-      "3rd er modules 5",
-      "3rd er modules 6",
-      "3rd er modules 7",
-      "3rd er modules 8",
-      "3rd er modules 9",
-    ],
-    "micro": [
-      "3rd micro modules 1",
-      "3rd micro modules 2",
-      "3rd micro modules 3",
-      "3rd micro modules 4",
-      "3rd micro modules 5",
-      "3rd micro modules 6",
-      "3rd micro modules 7",
-      "3rd micro modules 8",
-      "3rd micro modules 9",
-    ],
-    "ge": [
-      "3rd ge modules 1",
-      "3rd ge modules 2",
-      "3rd ge modules 3",
-      "3rd ge modules 4",
-      "3rd ge modules 5",
-      "3rd ge modules 6",
-      "3rd ge modules 7",
-      "3rd ge modules 8",
-      "3rd ge modules 9",
-    ],
-    "gh": [
-      "3rd gh modules 1",
-      "3rd gh modules 2",
-      "3rd gh modules 3",
-      "3rd gh modules 4",
-      "3rd gh modules 5",
-      "3rd gh modules 6",
-      "3rd gh modules 7",
-      "3rd gh modules 8",
-      "3rd gh modules 9",
-    ],
+String? capitalizeWords(String? input) {
+  if (input == null || input.isEmpty) {
+    return input;
   }
-};
 
-const Map<String, List<String>> specialities = {
-  '3rd': ['er', 'ge', 'gh', 'iriia', 'micro'],
-  '4th': ['er', 'ge', 'gh', 'iriia', 'micro'],
-  '5th': ['er', 'ge', 'gh', 'iriia', 'micro'],
-};
+  List<String> words = input.split(' ');
+
+  for (int i = 0; i < words.length; i++) {
+    if (words[i].isNotEmpty) {
+      words[i] =
+          words[i][0].toUpperCase() + words[i].substring(1).toLowerCase();
+    }
+  }
+
+  return words.join(' ');
+}
+
+List<ListTile> drawerList(dynamic user) {
+  return [
+    ListTile(
+      title: Text(
+        capitalizeFirst(user?.grade ?? "Grade"),
+      ),
+      subtitle: const Text("Grade"),
+    ),
+    ListTile(
+      title: Text(
+        capitalizeFirst(user?.speciality ?? "Speciality"),
+      ),
+      subtitle: const Text("Speciality"),
+    ),
+  ];
+}
+
+Padding imageItem(IconData icon) {
+  return Padding(
+    padding: const EdgeInsets.all(10.0),
+    child: Icon(
+      icon,
+      color: Colors.blue[100],
+      size: 35,
+    ),
+  );
+}
+
+OutlineInputBorder outLineBorder() => OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15),
+      borderSide: BorderSide(
+        color: Colors.blue[900]!,
+        width: 1.0,
+        style: BorderStyle.solid,
+      ),
+    );
+
+DropdownButtonFormField<String> dropDownBtn({
+  required hint,
+  required type,
+  bool isDisabled = false,
+  bool? isExpanded,
+  bool? filled = false,
+  String? typeVal,
+  String? gradeVal,
+  String? specialityVal,
+  Color? textColor,
+  void Function(String?)? onChanged,
+  String? Function(String?)? validator,
+}) {
+  dynamic items = type == "type"
+      ? ["admin", "teacher", "student"]
+      : type == "grade"
+          ? modulesMap.keys.toList()
+          : modulesMap[gradeVal]?.keys.toList() ?? ['item'];
+
+  return DropdownButtonFormField<String>(
+    padding: const EdgeInsets.all(8.0),
+    elevation: 16,
+    isExpanded: isExpanded ?? false,
+    dropdownColor: Colors.blue[100],
+    borderRadius: BorderRadius.circular(15),
+    value: type == "type"
+        ? typeVal
+        : type == "grade"
+            ? gradeVal
+            : specialityVal,
+    decoration: InputDecoration(
+      filled: filled,
+      hintText: hint,
+      hintStyle: GoogleFonts.poppins(
+        fontSize: 15,
+        color: isDisabled ? Colors.black38 : Colors.blue[900],
+      ),
+      border: outLineBorder(),
+      focusedBorder: outLineBorder(),
+      enabledBorder: outLineBorder(),
+      alignLabelWithHint: true,
+    ),
+    style: const TextStyle(backgroundColor: Colors.transparent),
+    onChanged: onChanged,
+    validator: validator,
+    items: items.map<DropdownMenuItem<String>>((String value) {
+      return DropdownMenuItem<String>(
+        value: value,
+        child: Text(
+          capitalizeFirst(value),
+          textAlign: TextAlign.center,
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+            color: textColor ?? Colors.black,
+          ),
+        ),
+      );
+    }).toList(),
+  );
+}
+
+void showLoadingDialog(
+  BuildContext context,
+  String content,
+) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(content),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void removeConfirmationDialog(
+  BuildContext context,
+  String itemType,
+  VoidCallback removeItem,
+) =>
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Delete $itemType"),
+          content: Text("Are you sure you want to delete this $itemType"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (itemType == "teacher") {
+                  removeItem;
+                } else {
+                  removeItem;
+                }
+                Navigator.pop(context, true);
+              },
+              child: const Text("Delete"),
+            ),
+          ],
+        );
+      },
+    );
+
+void showDialogBox(
+  BuildContext context,
+  String title,
+  String content,
+  bool isError,
+) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) => AlertDialog(
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isError ? Colors.red : Colors.green,
+        ),
+      ),
+      content: Text(
+        content,
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: const Text('OK'),
+          onPressed: () {
+            if (isError) {
+              Navigator.of(context).pop();
+            } else {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> showCloseConfirmationDialog(BuildContext context) async {
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Confirm Exit'),
+        content: const Text(
+            'You have unsaved changes. Do you want to exit without saving?'),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Back'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: const Text('Exit Anyway'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
 void showOverlay(BuildContext context, OverlayEntry? overlayEntry,
     ValueNotifier<bool> isRoomActive) {
@@ -328,3 +427,149 @@ void showOverlay(BuildContext context, OverlayEntry? overlayEntry,
   );
   Overlay.of(context).insert(overlayEntry);
 }
+
+List<Widget> dashboardDrawerList({
+  required BuildContext context,
+  required int selectedIndex,
+  required Function(int) onTap,
+  Function(int)? onLongTap,
+}) {
+  return [
+    dashboardDrawerListTile(
+      'Modules',
+      'Add new modules',
+      FontAwesomeIcons.bookOpenReader,
+      selectedIndex == 0,
+      onTap: () => onTap(0),
+    ),
+    dashboardDrawerListTile(
+      'Teachers',
+      'Add new teachers',
+      FontAwesomeIcons.personChalkboard,
+      selectedIndex == 1,
+      onTap: () => onTap(1),
+    ),
+    /* dashboardDrawerListTile(
+      'Students',
+      'Add new students',
+      FontAwesomeIcons.graduationCap,
+      selectedIndex == 2,
+      onTap: () {
+        onTap(2);
+        //Navigator.pushNamed(context, "routeName");
+      },
+    ), */
+    dashboardDrawerListTile(
+      'Settings',
+      'Open settings',
+      FontAwesomeIcons.gears,
+      selectedIndex == 2,
+      onTap: () => onTap(2),
+    ),
+  ];
+}
+
+Widget dashboardDrawerListTile(
+  String title,
+  String subtitle,
+  IconData icon,
+  bool selected, {
+  VoidCallback? onTap,
+  VoidCallback? onLongTap,
+}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(
+      horizontal: 8.0,
+      vertical: 6.0,
+    ),
+    child: ListTile(
+      horizontalTitleGap: 20.0,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 25.0,
+        vertical: 8.0,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      splashColor: Colors.blue[700],
+      tileColor: selected ? Colors.blue[700] : Colors.blue[300],
+      leading: Icon(
+        icon,
+        color: selected ? Colors.white : Colors.blue[900],
+        size: 30,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 19,
+          color: selected ? Colors.white : Colors.blue[900],
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          color: selected ? Colors.white54 : Colors.blueGrey,
+        ),
+      ),
+      onTap: onTap,
+      onLongPress: onLongTap,
+    ),
+  );
+}
+
+final Random random = Random(42);
+final List<String> names = [
+  'Houasnia',
+  'Aymen',
+  'Ahmed',
+  'Abdelouadoud',
+  'Khalfi',
+  'Houach',
+  'Mohammed',
+  'Difallah',
+  'Fairouz',
+  'Chemmami',
+  'Abderzak'
+];
+final List<String> students = List.generate(
+  27,
+  (index) {
+    final randomNames = List.from(names)..shuffle(random);
+    return '${randomNames[0]} ${randomNames[1]}';
+  },
+);
+final Map<String, double> studentUidToRandomNumber = Map.fromEntries(
+  students.map(
+    (student) => MapEntry(
+      'uid',
+      random.nextInt(21).toDouble(),
+    ),
+  ),
+);
+
+Future<bool?> infoTost(String msg) async {
+  Fluttertoast.showToast(
+    msg: msg,
+    toastLength: Toast.LENGTH_LONG,
+    gravity: ToastGravity.CENTER,
+    fontSize: 20.0,
+    backgroundColor: Colors.blue[700],
+    textColor: Colors.white,
+  );
+  return null;
+}
+
+Widget drawerFooter() => Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Text(
+          "Houasnia-Aymen-Ahmed\n© 2023-${DateTime.now().year} All rights reserved",
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
+        ),
+      ),
+    );

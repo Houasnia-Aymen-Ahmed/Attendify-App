@@ -1,25 +1,28 @@
-import 'package:attendify/models/attendify_student.dart';
-import 'package:attendify/models/module_model.dart';
-import 'package:attendify/services/databases.dart';
-import 'package:attendify/shared/loading.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class ModuleFromStudent extends StatefulWidget {
+import '../../../models/attendify_student.dart';
+import '../../../models/module_model.dart';
+import '../../../services/databases.dart';
+import '../../../shared/error_pages.dart';
+import '../../../shared/loading.dart';
+
+class ModuleViewFromStudent extends StatefulWidget {
   final Module module;
   final Student student;
-  const ModuleFromStudent({
+  final DatabaseService databaseService;
+  const ModuleViewFromStudent({
     super.key,
     required this.module,
     required this.student,
+    required this.databaseService,
   });
 
   @override
-  State<ModuleFromStudent> createState() => _ModuleFromStudentState();
+  State<ModuleViewFromStudent> createState() => _ModuleViewFromStudentState();
 }
 
-class _ModuleFromStudentState extends State<ModuleFromStudent> {
-  final DatabaseService _databaseService = DatabaseService();
+class _ModuleViewFromStudentState extends State<ModuleViewFromStudent> {
   String date = DateFormat('dd-MM-yyyy').format(DateTime.now());
   bool _isSelected = false;
 
@@ -28,20 +31,25 @@ class _ModuleFromStudentState extends State<ModuleFromStudent> {
     setState(() {
       _isSelected = true;
     });
-    _databaseService.updateAttendance(moduleID, date, studentID, true, context);
+    widget.databaseService.updateAttendance(moduleID, date, studentID, true, context);
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Module>(
-      stream: _databaseService.getModuleStream(widget.module.uid),
+      stream: widget.databaseService.getModuleStream(widget.module.uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Loading();
-        } else if (!snapshot.hasData) {
-          return Text(
-            "in module_View:53\n Error: ${snapshot.error.toString()}",
+        } else if (snapshot.hasError) {
+          return ErrorPages(
+            title: "Server Error",
+            message: snapshot.error.toString(),
           );
+        } else if (!snapshot.hasData) {
+          return const ErrorPages(
+              title: "Error 404: Not Found",
+              message: "No module data available for student");
         } else {
           Module module = snapshot.data!;
           Map<String, dynamic> attendanceTable = module.attendanceTable;

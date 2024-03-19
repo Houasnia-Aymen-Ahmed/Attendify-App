@@ -1,18 +1,37 @@
-import 'package:attendify/models/user_of_attendify.dart';
+import 'user_of_attendify.dart';
 
 class Student extends AttendifyUser {
   String? grade, speciality;
   Student({
-    required String userName,
-    required String userType,
-    required String token,
-    required String uid,
+    required super.userName,
+    required super.userType,
+    required super.uid,
+    required super.email,
+    required super.photoURL,
     this.grade,
     this.speciality,
-  }) : super(
-          userName: userName,
-          userType: userType,
-          token: token,
-          uid: uid,
-        );
+  });
+  Map<String, dynamic> toJson() {
+    return {
+      'uid': uid,
+      'email': email,
+      'userName': userName,
+      'userType': userType,
+      'photoURL': photoURL,
+      'grade': grade,
+      'speciality': speciality,
+    };
+  }
+
+  factory Student.fromJson(Map<String, dynamic> json) {
+    return Student(
+      uid: json['uid'],
+      email: json['email'],
+      userName: json['userName'],
+      userType: json['userType'],
+      photoURL: json['photoURL'],
+      grade: json['grade'],
+      speciality: json['speciality'],
+    );
+  }
 }

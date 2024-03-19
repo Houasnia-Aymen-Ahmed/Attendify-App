@@ -1,51 +1,85 @@
 import 'dart:ui';
-import 'package:attendify/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:sign_in_button/sign_in_button.dart';
+
 import '../../services/auth.dart';
+import '../../shared/constants.dart';
 
 class SignIn extends StatefulWidget {
   final Function toggleView;
-  const SignIn({super.key, required this.toggleView});
+  final AuthService authService;
+  const SignIn({
+    super.key,
+    required this.toggleView,
+    required this.authService,
+  });
 
   @override
   State<SignIn> createState() => _SignInState();
 }
 
 class _SignInState extends State<SignIn> {
-  final AuthService _auth = AuthService();
-  final _formKey = GlobalKey<FormState>();
-  String _error = "", _email = "", _password = "";
-  bool _obsecureText = true;
-  bool loading = false;
+  String _error = "";
+  bool _isLoading = false;
 
   void buttonController() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => loading = true);
-      dynamic result = _auth.signInWithEmailAndPassword(_email, _password);
+    setState(() {
+      _error = "";
+      _isLoading = true;
+    });
+    try {
+      dynamic result = await widget.authService.signInWithGoogleProvider();
       if (result == null) {
         setState(() {
-          loading = false;
-          _error = "Couldn't sign in with those credentials";
+          _isLoading = false;
+          _error =
+              "Couldn't Register with those Credientials, Please try again";
         });
       }
+    } on Exception catch (e) {
+      if (e.toString().contains("not-hns-email")) {
+        setState(() {
+          _isLoading = false;
+          _error = "You must use an HNS-RE2SD account";
+        });
+      } else if (e.toString().contains("no-email")) {
+        setState(() {
+          _isLoading = false;
+          _error = "You must have select an email";
+        });
+      } else if (e.toString().contains("not-registered")) {
+        setState(() {
+          _isLoading = false;
+          _error = "You are not registered, Please register first";
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+          _error = "An error occured while signing in, Please try again";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _error = "A server error occured while signing in, Please try again";
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-    return Scaffold(
-      body: Container(
-        alignment: Alignment.center,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(25),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-            child: SingleChildScrollView(
+    return Container(
+      alignment: Alignment.center,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(25),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: AspectRatio(
+              aspectRatio: 3 / 4,
               child: Container(
-                height: screenHeight * 0.6,
-                width: 350,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.bottomRight,
@@ -58,18 +92,18 @@ class _SignInState extends State<SignIn> {
                   borderRadius: BorderRadius.circular(25),
                   border: Border.all(
                     width: 2,
-                    color: Colors.white30,
+                    color: Colors.transparent,
                   ),
                 ),
-                child: Form(
-                  key: _formKey,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 15.0,
+                    horizontal: 0.0,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
-                      const Spacer(
-                        flex: 2,
-                      ),
                       Text(
                         "Sign in",
                         style: GoogleFonts.poppins(
@@ -78,90 +112,34 @@ class _SignInState extends State<SignIn> {
                           color: Colors.white,
                         ),
                       ),
-                      const Spacer(flex: 2),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(35, 10, 35, 10),
+                      Transform.scale(
+                        scale: 1.25,
                         child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 50),
+                          child: SignInButton(
+                            Buttons.google,
+                            padding: const EdgeInsets.all(5.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            text: "Sign in with HNS-RE2SD",
+                            onPressed: buttonController,
+                          ),
+                        ),
+                      ),
+                      if (_error != "")
+                        ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 275),
-                          child: TextFormField(
-                            style: const TextStyle(
-                              color: Colors.white,
-                            ),
-                            decoration: textInputDecoation.copyWith(
-                              hintText: "Email",
-                            ),
-                            keyboardType: TextInputType.emailAddress,
-                            autocorrect: false,
-                            enableSuggestions: false,
-                            validator: (val) {
-                              if (val!.isEmpty) {
-                                return "Please enter an Email";
-                              } else if (!val.contains('@')) {
-                                return "Please enter a valid Email";
-                              } else {
-                                return null;
-                              }
-                            },
-                            onChanged: (val) => setState(
-                              () => _email = val,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(35, 10, 35, 10),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: 275,
-                          ),
-                          child: TextFormField(
-                            style: const TextStyle(
-                              color: Colors.white,
-                            ),
-                            decoration: textInputDecoation.copyWith(
-                              hintText: "Password",
-                              suffixIcon: IconButton(
-                                icon: _obsecureText
-                                    ? const Icon(
-                                        Icons.visibility_rounded,
-                                      )
-                                    : const Icon(
-                                        Icons.visibility_off_rounded,
-                                      ),
-                                onPressed: () => setState(
-                                  () => _obsecureText = !_obsecureText,
-                                ),
-                                color: Colors.white,
-                              ),
-                            ),
-                            obscureText: _obsecureText,
-                            autocorrect: false,
-                            enableSuggestions: false,
-                            validator: (val) {
-                              return val!.length < 6
-                                  ? "The password must be at least 6 characters long"
-                                  : null;
-                            },
-                            onChanged: (val) => setState(
-                              () => _password = val,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const Spacer(flex: 2),
-                      ElevatedButton(
-                        style: elevatedBtnStyle,
-                        onPressed: () async => buttonController(),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                           child: Text(
-                            "Sign in",
-                            style: txt().copyWith(
-                              color: Colors.white,
+                            _error,
+                            style: TextStyle(
+                              color: Colors.red[900],
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                      ),
+                      if (_isLoading) const CircularProgressIndicator(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -188,19 +166,6 @@ class _SignInState extends State<SignIn> {
                           ),
                         ],
                       ),
-                      const Spacer(flex: 2),
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 275),
-                        child: Text(
-                          _error,
-                          style: TextStyle(
-                            color: Colors.red[900],
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const Spacer(flex: 2),
                     ],
                   ),
                 ),

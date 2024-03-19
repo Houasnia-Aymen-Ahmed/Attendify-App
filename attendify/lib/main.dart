@@ -1,15 +1,13 @@
-import 'package:attendify/firebase_options.dart';
-import 'package:attendify/models/attendify_student.dart';
-import 'package:attendify/models/module_model.dart';
-import 'package:attendify/models/user.dart';
-import 'package:attendify/services/auth.dart';
-import 'package:attendify/views/home/home.dart';
-import 'package:attendify/views/home/module_view.dart';
-import 'package:attendify/views/type_wrapper.dart';
-import 'package:attendify/views/wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'firebase_options.dart';
+import 'models/user.dart';
+import 'responsive/responsive_layout_screen.dart';
+import 'services/auth.dart';
+import 'routes/routes.dart';
+import 'views/wrappers/wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,26 +30,10 @@ class Attentdify extends StatelessWidget {
       },
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: const Wrapper(),
-        routes: {
-          '/home': (context) {
-            var args = ModalRoute.of(context)!.settings.arguments
-                as Map<String, dynamic>;
-            var student = args['student'] as Student;
-            return Home(
-              student: student,
-            );
-          },
-          '/typewrapper': (context) => const TypeWrapper(),
-          '/moduleView': (context) {
-            var args = ModalRoute.of(context)!.settings.arguments
-                as Map<String, dynamic>;
-            var module = args['module'] as Module;
-            return ModuleView(
-              module: module,
-            );
-          },
-        },
+        title: "Attendify",
+        theme: ThemeData.light(),
+        home: const ResponsiveLayout(mobileScreenLayout: Wrapper()),
+        routes: generateRoutes(),
       ),
     );
   }
