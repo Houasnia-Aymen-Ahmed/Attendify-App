@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../../components/custom_dropdown_btn.dart';
 import '../../../models/attendify_teacher.dart';
 import '../../../models/module_model.dart';
 import '../../../services/auth.dart';
 import '../../../services/databases.dart';
-import '../../../shared/constants.dart';
 import '../../../shared/error_pages.dart';
 import '../../../shared/loading.dart';
 import '../../../shared/module_list_view.dart';
@@ -108,7 +108,7 @@ class _TeacherViewState extends State<TeacherView> {
                           Expanded(
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: dropDownBtn(
+                              child: CustomDrowdownBtn(
                                 hint: "Choose your grade",
                                 type: "grade",
                                 gradeVal: gradeVal,
@@ -126,7 +126,7 @@ class _TeacherViewState extends State<TeacherView> {
                           Expanded(
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: dropDownBtn(
+                              child: CustomDrowdownBtn(
                                 hint: "Choose your speciality",
                                 type: "speciality",
                                 isDisabled: isDisabled,

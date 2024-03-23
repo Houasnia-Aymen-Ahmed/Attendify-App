@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../components/custom_dropdown_btn.dart';
+import '../../../components/popups.dart';
 import '../../../models/attendify_teacher.dart';
 import '../../../models/module_model.dart';
 import '../../../services/auth.dart';
 import '../../../services/databases.dart';
-import '../../../shared/constants.dart';
 import '../../../shared/school_data.dart';
 
 class SelectModule extends StatefulWidget {
@@ -93,7 +94,7 @@ class _SelectModuleState extends State<SelectModule> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: dropDownBtn(
+                  child: CustomDrowdownBtn(
                     hint: "Choose grade",
                     type: "grade",
                     gradeVal: _gradeVal,
@@ -110,7 +111,7 @@ class _SelectModuleState extends State<SelectModule> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: dropDownBtn(
+                  child: CustomDrowdownBtn(
                     hint: "Choose speciality",
                     type: "speciality",
                     isDisabled: _isDisabled,
@@ -245,7 +246,7 @@ class _SelectModuleState extends State<SelectModule> {
                               modules: _addedModules,
                             );
 
-                            if (mounted) {
+                            if (context.mounted) {
                               Navigator.of(context).pop();
                               showDialogBox(
                                 context,
@@ -257,7 +258,7 @@ class _SelectModuleState extends State<SelectModule> {
                             setState(() => _isSaved = true);
                           } catch (e) {
                             setState(() => isSaving = false);
-                            if (mounted) {
+                            if (context.mounted) {
                               Navigator.of(context).pop();
                               showDialogBox(
                                 context,

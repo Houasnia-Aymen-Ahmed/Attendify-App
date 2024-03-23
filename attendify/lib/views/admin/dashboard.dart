@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../components/drawer_footer.dart';
+import '../../components/image_item.dart';
+import '../../components/user_account_drawer_header.dart';
 import '../../models/attendify_student.dart';
 import '../../models/module_model.dart';
 import '../../models/user_of_attendify.dart';
@@ -57,8 +60,8 @@ class _DashboardState extends State<Dashboard> {
   }
 
   final imageItems = <Widget>[
-    imageItem(FontAwesomeIcons.personChalkboard),
-    imageItem(FontAwesomeIcons.bookOpenReader),
+    const ImageItem(icon: FontAwesomeIcons.personChalkboard),
+    const ImageItem(icon: FontAwesomeIcons.bookOpenReader)
   ];
 
   Future<dynamic> getData(index) {
@@ -181,7 +184,7 @@ class _DashboardState extends State<Dashboard> {
               Expanded(
                 child: ListView(
                   children: [
-                    userAccountDrawerHeader(
+                    UserAccountDrawerHeader(
                       username: widget.admin.userName,
                       email: widget.authService.currentUsr?.email ?? "email",
                       profileURL: widget.admin.photoURL,
@@ -202,7 +205,7 @@ class _DashboardState extends State<Dashboard> {
                   ],
                 ),
               ),
-              drawerFooter(),
+              const DrawerFooter(),
             ],
           ),
         ),

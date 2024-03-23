@@ -1,9 +1,9 @@
-import 'package:attendify/shared/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/user.dart';
+import '../utils/functions.dart';
 import 'databases.dart';
 
 class AuthService {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../components/custom_dropdown_btn.dart';
 import '../../models/module_model.dart';
-import '../../shared/constants.dart';
 import '../statistics/all/all_stats.dart';
 import '../statistics/module_stats.dart';
 
@@ -53,7 +53,7 @@ class _AllModulesViewState extends State<AllModulesView> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: dropDownBtn(
+                child: CustomDrowdownBtn(
                   hint: "Choose a grade",
                   type: "grade",
                   gradeVal: gradeVal,
@@ -74,7 +74,7 @@ class _AllModulesViewState extends State<AllModulesView> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: dropDownBtn(
+                child: CustomDrowdownBtn(
                   hint: "Choose a speciality",
                   type: "speciality",
                   isDisabled: isDisabled,

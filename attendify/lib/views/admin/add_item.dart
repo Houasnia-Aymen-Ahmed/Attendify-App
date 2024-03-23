@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../components/custom_dropdown_btn.dart';
 import '../../services/databases.dart';
 import '../../shared/constants.dart';
 
@@ -114,7 +115,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          dropDownBtn(
+          CustomDrowdownBtn(
             hint: "Choose your grade",
             type: "grade",
             gradeVal: gradeVal,
@@ -135,7 +136,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
               });
             },
           ),
-          dropDownBtn(
+          CustomDrowdownBtn(
             hint: "Choose your speciality",
             type: "speciality",
             isDisabled: isDisabled,
