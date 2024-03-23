@@ -28,58 +28,6 @@ var dropDownTextStyle = GoogleFonts.poppins(
   fontWeight: FontWeight.w500,
 );
 
-String capitalizeFirst(String input) {
-  if (input.length <= 1) {
-    return input;
-  }
-  return input[0].toUpperCase() + input.substring(1);
-}
-
-String? capitalizeWords(String? input) {
-  if (input == null || input.isEmpty) {
-    return input;
-  }
-
-  List<String> words = input.split(' ');
-
-  for (int i = 0; i < words.length; i++) {
-    if (words[i].isNotEmpty) {
-      words[i] =
-          words[i][0].toUpperCase() + words[i].substring(1).toLowerCase();
-    }
-  }
-
-  return words.join(' ');
-}
-
-List<ListTile> drawerList(dynamic user) {
-  return [
-    ListTile(
-      title: Text(
-        capitalizeFirst(user?.grade ?? "Grade"),
-      ),
-      subtitle: const Text("Grade"),
-    ),
-    ListTile(
-      title: Text(
-        capitalizeFirst(user?.speciality ?? "Speciality"),
-      ),
-      subtitle: const Text("Speciality"),
-    ),
-  ];
-}
-
-Padding imageItem(IconData icon) {
-  return Padding(
-    padding: const EdgeInsets.all(15.0),
-    child: Icon(
-      icon,
-      color: Colors.blue[100],
-      size: 25,
-    ),
-  );
-}
-
 OutlineInputBorder outLineBorder() => OutlineInputBorder(
       borderRadius: BorderRadius.circular(15),
       borderSide: BorderSide(

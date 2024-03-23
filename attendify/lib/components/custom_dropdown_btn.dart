@@ -5,7 +5,7 @@ import '../shared/constants.dart';
 import '../shared/school_data.dart';
 import '../utils/functions.dart';
 
-class CustomDropdownBtn extends StatefulWidget {
+class CustomDrowdownBtn extends StatefulWidget {
   final String hint;
   final String type;
   final bool isDisabled;
@@ -89,4 +89,3 @@ class _CustomDrowdownBtnState extends State<CustomDrowdownBtn> {
     );
   }
 }
-

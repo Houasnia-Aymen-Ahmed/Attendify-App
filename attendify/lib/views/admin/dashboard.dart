@@ -31,8 +31,8 @@ class _DashboardState extends ConsumerState<Dashboard> {
   final navigationKey = GlobalKey<CurvedNavigationBarState>();
 
   final imageItems = <Widget>[
-    imageItem(FontAwesomeIcons.personChalkboard),
-    imageItem(FontAwesomeIcons.bookOpenReader),
+    const ImageItem(icon: FontAwesomeIcons.personChalkboard),
+    const ImageItem(icon: FontAwesomeIcons.bookOpenReader)
   ];
 
   void _onItemTapped(
@@ -192,7 +192,7 @@ class _DashboardState extends ConsumerState<Dashboard> {
               Expanded(
                 child: ListView(
                   children: [
-                    userAccountDrawerHeader(
+                    UserAccountDrawerHeader(
                       username: widget.admin.userName,
                       email: authService.currentUsr?.email ?? "email",
                       profileURL: widget.admin.photoURL,
@@ -225,7 +225,7 @@ class _DashboardState extends ConsumerState<Dashboard> {
                   ],
                 ),
               ),
-              drawerFooter(),
+              const DrawerFooter(),
             ],
           ),
         ),

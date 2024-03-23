@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:attendify/models/user_of_attendify.dart'; // Assuming UserHandler is here
-import 'package:attendify/shared/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -9,6 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 // import 'package:flutter/material.dart';
 
 import '../models/user.dart'; // Ensure this is the correct path for UserHandler
+import '../utils/functions.dart';
 import 'databases.dart';
 
 // Define a type for error results for more clarity

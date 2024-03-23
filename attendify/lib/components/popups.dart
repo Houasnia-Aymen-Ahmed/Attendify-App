@@ -43,7 +43,11 @@ Future removeConfirmationDialog(
             ),
             ElevatedButton(
               onPressed: () {
-                removeItem;
+                if (itemType == "teacher") {
+                  removeItem;
+                } else {
+                  removeItem;
+                }
                 Navigator.pop(context, true);
               },
               child: const Text("Delete"),
@@ -190,7 +194,7 @@ void showOverlay(
   Overlay.of(context).insert(overlayEntry);
 }
 
-Future<bool?> infoToast(String msg) async {
+Future<bool?> infoTost(String msg) async {
   Fluttertoast.showToast(
     msg: msg,
     toastLength: Toast.LENGTH_LONG,
@@ -201,4 +205,3 @@ Future<bool?> infoToast(String msg) async {
   );
   return null;
 }
-
