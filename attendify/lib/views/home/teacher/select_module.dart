@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 
 import '../../../models/attendify_teacher.dart';
@@ -86,22 +84,6 @@ class _SelectModuleState extends State<SelectModule> {
             icon: const Icon(Icons.logout_rounded),
           )
         ],
-      ),
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            userAccountDrawerHeader(
-              username: widget.teacher.userName,
-              email:
-                  widget.authService.currentUsr?.email ?? "user@hns-re2sd.dz",
-              profileURL: widget.authService.currentUsr?.photoURL ?? "url",
-            ),
-            ListTile(
-              title: Text(widget.teacher.userName),
-            ),
-            drawerFooter(),
-          ],
-        ),
       ),
       body: Column(
         children: [

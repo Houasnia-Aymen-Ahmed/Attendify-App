@@ -12,7 +12,6 @@ import '../../shared/constants.dart';
 import '../../utils/shared_prefs_helper.dart';
 import 'add_item.dart';
 import 'all_modules_view.dart';
-import 'all_students_view.dart';
 import 'all_teachers_view.dart';
 import 'search_page.dart';
 
@@ -52,8 +51,6 @@ class _DashboardState extends State<Dashboard> {
         );
       case 1:
         return AllModulesView(dataModules: data as List<Module>);
-      case 2:
-        return AllStudentsView(dataStudents: data as List<Student>);
       default:
         return Container();
     }
@@ -62,7 +59,6 @@ class _DashboardState extends State<Dashboard> {
   final imageItems = <Widget>[
     imageItem(FontAwesomeIcons.personChalkboard),
     imageItem(FontAwesomeIcons.bookOpenReader),
-    imageItem(FontAwesomeIcons.graduationCap),
   ];
 
   Future<dynamic> getData(index) {
@@ -71,8 +67,6 @@ class _DashboardState extends State<Dashboard> {
         return widget.databaseService.getAllTeachers();
       case 1:
         return widget.databaseService.getAllModules();
-      case 2:
-        return widget.databaseService.getAllStudents();
       default:
         return [] as Future<dynamic>;
     }
@@ -146,6 +140,7 @@ class _DashboardState extends State<Dashboard> {
               ),
               onPressed: () async {
                 showSearch(
+                  // ignore: use_build_context_synchronously
                   context: context,
                   delegate: SearchPage(
                     itemType: itemsTypes[index],
