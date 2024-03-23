@@ -9,7 +9,6 @@ import '../../shared/constants.dart';
 import '../../utils/shared_prefs_helper.dart';
 import 'add_item.dart';
 import 'all_modules_view.dart';
-import 'all_students_view.dart';
 import 'all_teachers_view.dart';
 import 'search_page.dart';
 import 'dashboard_stats_summary_view.dart';
@@ -34,7 +33,6 @@ class _DashboardState extends ConsumerState<Dashboard> {
   final imageItems = <Widget>[
     imageItem(FontAwesomeIcons.personChalkboard),
     imageItem(FontAwesomeIcons.bookOpenReader),
-    imageItem(FontAwesomeIcons.graduationCap),
   ];
 
   void _onItemTapped(
@@ -106,6 +104,7 @@ class _DashboardState extends ConsumerState<Dashboard> {
                 }
 
                 showSearch(
+                  // ignore: use_build_context_synchronously
                   context: context,
                   delegate: SearchPage(
                     itemType: itemsTypes[index],
