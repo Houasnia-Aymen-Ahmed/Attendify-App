@@ -27,11 +27,25 @@ class _ModuleViewFromStudentState extends State<ModuleViewFromStudent> {
   bool _isSelected = false;
 
   void _handleRadioValueChanged(
-      String moduleID, String studentID, BuildContext context) {
+      String moduleID, String studentID) async { // Removed BuildContext, added async
     setState(() {
       _isSelected = true;
     });
-    widget.databaseService.updateAttendance(moduleID, date, studentID, true, context);
+
+    // Call the updated service method
+    bool success = await widget.databaseService.updateAttendance(moduleID, date, studentID, true);
+
+    // Show SnackBar based on the result
+    if (mounted) { // Check if the widget is still in the widget tree
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success
+              ? "Attendance marked successfully!"
+              : "Failed to mark attendance. Please try again."),
+          backgroundColor: success ? Colors.green : Colors.red,
+        ),
+      );
+    }
   }
 
   @override
