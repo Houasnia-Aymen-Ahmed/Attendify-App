@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/attendify_student.dart';
 import '../models/attendify_teacher.dart';
 import '../models/module_model.dart';
-import '../shared/constants.dart';
+import 'functions.dart';
 
 class SharedPrefsHelper {
   static Future<void> saveLastAccessedItems(

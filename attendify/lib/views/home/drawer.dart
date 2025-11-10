@@ -2,14 +2,15 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../../components/drawer_footer.dart';
+import '../../components/drawer_list_grade_specialty.dart';
+import '../../components/user_account_drawer_header.dart';
 import '../../models/attendify_student.dart';
 import '../../models/attendify_teacher.dart';
 import '../../models/module_model.dart';
 import '../../models/user_of_attendify.dart';
 import '../../services/auth.dart';
 import '../../services/databases.dart';
-import '../../shared/constants.dart';
-
 
 class BuildDrawer extends StatelessWidget {
   final AuthService authService;
@@ -43,7 +44,7 @@ class BuildDrawer extends StatelessWidget {
               Expanded(
                 child: ListView(
                   children: [
-                    userAccountDrawerHeader(
+                    UserAccountDrawerHeader(
                       username: userType == "admin"
                           ? admin?.userName ?? "admin"
                           : userType == "teacher"
@@ -58,7 +59,7 @@ class BuildDrawer extends StatelessWidget {
                               : student?.photoURL ?? "",
                     ),
                     if (userType == "student")
-                      ...drawerList(student)
+                      DrawerListGradeSpecialty(user: student)
                     else
                       ListTile(
                         title: const Text("Add a module"),
@@ -79,7 +80,7 @@ class BuildDrawer extends StatelessWidget {
                   ],
                 ),
               ),
-              drawerFooter(),
+              const DrawerFooter(),
             ],
           ),
         ),

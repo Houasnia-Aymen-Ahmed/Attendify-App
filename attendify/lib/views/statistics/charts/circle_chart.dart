@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
-import '../../../shared/constants.dart';
+import '../../../components/popups.dart';
 
 class CustomCircleChart extends StatelessWidget {
   final Map<String, int> attendanceData;

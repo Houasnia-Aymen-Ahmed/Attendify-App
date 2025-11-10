@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import '../../../shared/constants.dart';
+import '../../../components/popups.dart';
 
 class CustomPieChart extends StatefulWidget {
   final Map<double, List<String>> data;
