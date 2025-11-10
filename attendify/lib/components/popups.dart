@@ -44,9 +44,9 @@ Future removeConfirmationDialog(
             ElevatedButton(
               onPressed: () {
                 if (itemType == "teacher") {
-                  removeItem;
+                  removeItem();
                 } else {
-                  removeItem;
+                  removeItem();
                 }
                 Navigator.pop(context, true);
               },
@@ -205,3 +205,4 @@ Future<bool?> infoTost(String msg) async {
   );
   return null;
 }
+
