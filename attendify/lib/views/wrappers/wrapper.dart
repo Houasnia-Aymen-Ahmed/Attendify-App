@@ -1,31 +1,29 @@
+import 'package:attendify/services/providers.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/user.dart';
-import '../../services/auth.dart';
-import '../../services/databases.dart';
 import '../auth/authenticate.dart';
 import 'user_wrapper.dart';
 
-class Wrapper extends StatelessWidget {
+class Wrapper extends ConsumerWidget {
   const Wrapper({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final DatabaseService databaseService = DatabaseService();
-    final AuthService authService = AuthService();
-    return Consumer<UserHandler?>(
-      builder: (context, user, _) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
+    return authState.when(
+      data: (user) {
         if (user == null) {
-          return Authenticate(authService: authService);
+          return const Authenticate();
         } else {
           return UserWrapper(
             user: user,
-            databaseService: databaseService,
-            authService: authService,
           );
         }
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Center(child: Text(error.toString())),
     );
   }
 }

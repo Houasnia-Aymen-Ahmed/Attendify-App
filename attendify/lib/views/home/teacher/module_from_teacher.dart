@@ -1,96 +1,78 @@
+import 'package:attendify/services/providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/attendify_student.dart';
 import '../../../models/module_model.dart';
-import '../../../services/databases.dart';
 import '../../../shared/error_pages.dart';
 import '../../../shared/loading.dart';
 import 'presence_table.dart';
 
-class ModuleViewFromTeacher extends StatefulWidget {
+class ModuleViewFromTeacher extends ConsumerWidget {
   final Module module;
-  final DatabaseService databaseService;
   const ModuleViewFromTeacher({
     super.key,
     required this.module,
-    required this.databaseService,
   });
 
   @override
-  State<ModuleViewFromTeacher> createState() => _ModuleViewFromTeacherState();
-}
-
-class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<List<Student>>(
-      stream: widget.databaseService.getStudentsList(
-        widget.module.students.keys.toList(),
-      ),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Loading();
-        } else if (snapshot.hasError) {
-          return ErrorPages(
-            title: "Server Error",
-            message: snapshot.error.toString(),
-          );
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final studentsAsyncValue = ref.watch(studentsProvider(module.students.keys.toList()));
+    return studentsAsyncValue.when(
+      data: (students) {
+        if (students.isEmpty) {
           return const ErrorPages(
             title: "Error 404: Not Found",
             message: "There are no students for this module",
           );
-        } else {
-          List<Student> students = snapshot.data!;
-          return StreamBuilder<Module>(
-            stream: widget.databaseService.getModuleStream(widget.module.uid),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return ErrorPages(
-                  title: "Server Error",
-                  message: snapshot.error.toString(),
-                );
-              } else if (!snapshot.hasData) {
-                return const Loading();
-              } else {
-                Module module = snapshot.data!;
-                return Scaffold(
-                  appBar: AppBar(
-                    title: Row(
-                      children: [
-                        Text(
-                          module.name,
-                          style: const TextStyle(
-                            fontSize: 17.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                          child: Icon(
-                            Icons.circle_rounded,
-                            size: 15,
-                            color: module.isActive
-                                ? Colors.green
-                                : Colors
-                                    .red,
-                          ),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.blue[200],
-                  ),
-                  body: PresenceTable(
-                    students: students,
-                    module: module,
-                    databaseService: widget.databaseService,
-                  ),
-                );
-              }
-            },
-          );
         }
+        final moduleAsyncValue = ref.watch(moduleProvider(module.uid));
+        return moduleAsyncValue.when(
+          data: (module) {
+            return Scaffold(
+              appBar: AppBar(
+                title: Row(
+                  children: [
+                    Text(
+                      module.name,
+                      style: const TextStyle(
+                        fontSize: 17.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                      child: Icon(
+                        Icons.circle_rounded,
+                        size: 15,
+                        color: module.isActive
+                            ? Colors.green
+                            : Colors
+                                .red,
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.blue[200],
+              ),
+              body: PresenceTable(
+                students: students,
+                module: module,
+              ),
+            );
+          },
+          loading: () => const Loading(),
+          error: (error, stack) => ErrorPages(
+            title: "Server Error",
+            message: error.toString(),
+          ),
+        );
       },
+      loading: () => const Loading(),
+      error: (error, stack) => ErrorPages(
+        title: "Server Error",
+        message: error.toString(),
+      ),
     );
   }
 }

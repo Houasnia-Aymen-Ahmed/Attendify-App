@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../services/auth.dart';
 import 'signin.dart';
 import 'register.dart';
 
 class Authenticate extends StatefulWidget {
-  final AuthService authService;
   const Authenticate({
     super.key,
-    required this.authService,
   });
 
   @override
@@ -45,11 +42,9 @@ class _AuthenticateState extends State<Authenticate> {
             child: showSignIn
                 ? Register(
                     toggleView: toggleView,
-                    authService: widget.authService,
                   )
                 : SignIn(
                     toggleView: toggleView,
-                    authService: widget.authService,
                   ),
           )
         ],

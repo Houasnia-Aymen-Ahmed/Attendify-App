@@ -1,13 +1,13 @@
-import 'package:attendify/services/databases.dart';
+import 'package:attendify/views/home/student/module_from_student.dart';
+import 'package:attendify/views/home/teacher/module_from_teacher.dart';
 import 'package:flutter/material.dart';
 
 import '../models/attendify_student.dart';
 import '../models/attendify_teacher.dart';
 import '../models/module_model.dart';
 
-class ModuleListView extends StatefulWidget {
+class ModuleListView extends StatelessWidget {
   final List<Module> modules;
-  final DatabaseService databaseService;
   final String userType;
   final Student? student;
   final Teacher? teacher;
@@ -15,49 +15,17 @@ class ModuleListView extends StatefulWidget {
   const ModuleListView({
     super.key,
     required this.modules,
-    required this.databaseService,
     required this.userType,
     this.student,
     this.teacher,
   });
 
   @override
-  State<ModuleListView> createState() => _ModuleListViewState();
-}
-
-class _ModuleListViewState extends State<ModuleListView> {
-  dynamic gotoModule(BuildContext context, Module module) {
-    if (widget.userType == "student") {
-      if (module.isActive) {
-        return () => Navigator.pushNamed(
-              context,
-              '/moduleViewFromStudent',
-              arguments: {
-                'module': module,
-                'student': widget.student,
-                'databaseService': widget.databaseService,
-              },
-            );
-      } else {
-        return null;
-      }
-    } else {
-      return () => Navigator.pushNamed(
-            context,
-            '/moduleViewFromTeacher',
-            arguments: {
-              'module': module,
-              'databaseService': widget.databaseService,
-            },
-          );
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: widget.modules.length,
+      itemCount: modules.length,
       itemBuilder: (BuildContext context, int index) {
+        final module = modules[index];
         return Padding(
           padding: const EdgeInsets.all(5.0),
           child: Card(
@@ -66,16 +34,12 @@ class _ModuleListViewState extends State<ModuleListView> {
               borderRadius: BorderRadius.circular(15.0),
             ),
             child: ListTile(
-              enabled: widget.userType == "student"
-                  ? widget.modules[index].isActive
-                  : true,
+              enabled: userType == "student" ? module.isActive : true,
               leading: Padding(
                 padding: const EdgeInsets.only(left: 20),
                 child: Icon(
                   Icons.circle_rounded,
-                  color: widget.modules[index].isActive
-                      ? Colors.green[900]
-                      : Colors.red,
+                  color: module.isActive ? Colors.green[900] : Colors.red,
                 ),
               ),
               trailing: const Padding(
@@ -89,8 +53,31 @@ class _ModuleListViewState extends State<ModuleListView> {
               ),
               splashColor: Colors.blue[300],
               contentPadding: const EdgeInsets.all(5.0),
-              title: Text(widget.modules[index].name),
-              onTap: gotoModule(context, widget.modules[index]),
+              title: Text(module.name),
+              onTap: () {
+                if (userType == "student") {
+                  if (module.isActive) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ModuleViewFromStudent(
+                          module: module,
+                          student: student!,
+                        ),
+                      ),
+                    );
+                  }
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ModuleViewFromTeacher(
+                        module: module,
+                      ),
+                    ),
+                  );
+                }
+              },
             ),
           ),
         );
