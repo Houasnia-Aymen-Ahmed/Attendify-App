@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import '../../../shared/constants.dart';
+import '../../../components/popups.dart';
 
 class CustomBarChart extends StatefulWidget {
   final Map<String, double> data;

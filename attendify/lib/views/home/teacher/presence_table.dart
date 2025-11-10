@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
@@ -73,7 +72,7 @@ class _PresenceTableState extends State<PresenceTable> {
       File returnedFile = File(name);
       await returnedFile.writeAsBytes(excelData.encode()!);
 
-      if (!context.mounted) return;
+      if (!mounted) return;
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -102,7 +101,7 @@ class _PresenceTableState extends State<PresenceTable> {
         },
       );
     } catch (e) {
-      if (!context.mounted) return;
+      if (!mounted) return;
       showDialog(
         context: context,
         builder: (BuildContext context) {

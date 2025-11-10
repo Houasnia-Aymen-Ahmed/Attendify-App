@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../components/drawer_footer.dart';
+import '../../components/image_item.dart';
+import '../../components/user_account_drawer_header.dart';
 import '../../models/attendify_student.dart';
 import '../../models/module_model.dart';
 import '../../models/user_of_attendify.dart';
@@ -12,7 +15,6 @@ import '../../shared/constants.dart';
 import '../../utils/shared_prefs_helper.dart';
 import 'add_item.dart';
 import 'all_modules_view.dart';
-import 'all_students_view.dart';
 import 'all_teachers_view.dart';
 import 'search_page.dart';
 
@@ -52,17 +54,14 @@ class _DashboardState extends State<Dashboard> {
         );
       case 1:
         return AllModulesView(dataModules: data as List<Module>);
-      case 2:
-        return AllStudentsView(dataStudents: data as List<Student>);
       default:
         return Container();
     }
   }
 
   final imageItems = <Widget>[
-    imageItem(FontAwesomeIcons.personChalkboard),
-    imageItem(FontAwesomeIcons.bookOpenReader),
-    imageItem(FontAwesomeIcons.graduationCap),
+    const ImageItem(icon: FontAwesomeIcons.personChalkboard),
+    const ImageItem(icon: FontAwesomeIcons.bookOpenReader)
   ];
 
   Future<dynamic> getData(index) {
@@ -71,8 +70,6 @@ class _DashboardState extends State<Dashboard> {
         return widget.databaseService.getAllTeachers();
       case 1:
         return widget.databaseService.getAllModules();
-      case 2:
-        return widget.databaseService.getAllStudents();
       default:
         return [] as Future<dynamic>;
     }
@@ -146,6 +143,7 @@ class _DashboardState extends State<Dashboard> {
               ),
               onPressed: () async {
                 showSearch(
+                  // ignore: use_build_context_synchronously
                   context: context,
                   delegate: SearchPage(
                     itemType: itemsTypes[index],
@@ -186,7 +184,7 @@ class _DashboardState extends State<Dashboard> {
               Expanded(
                 child: ListView(
                   children: [
-                    userAccountDrawerHeader(
+                    UserAccountDrawerHeader(
                       username: widget.admin.userName,
                       email: widget.authService.currentUsr?.email ?? "email",
                       profileURL: widget.admin.photoURL,
@@ -207,7 +205,7 @@ class _DashboardState extends State<Dashboard> {
                   ],
                 ),
               ),
-              drawerFooter(),
+              const DrawerFooter(),
             ],
           ),
         ),

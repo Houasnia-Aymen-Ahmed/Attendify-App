@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 
+import '../../components/custom_dropdown_btn.dart';
 import '../../services/auth.dart';
 import '../../shared/constants.dart';
 
@@ -144,7 +145,7 @@ class _RegisterState extends State<Register> {
                                 left: 20.0,
                                 right: 20.0,
                               ),
-                              child: dropDownBtn(
+                              child: CustomDrowdownBtn(
                                 hint: "Choose type",
                                 type: "type",
                                 isExpanded: true,
@@ -176,7 +177,7 @@ class _RegisterState extends State<Register> {
                                 horizontal: 9.0,
                                 vertical: 8.0,
                               ),
-                              child: dropDownBtn(
+                              child: CustomDrowdownBtn(
                                 hint: "Choose grade",
                                 type: "grade",
                                 isDisabled: _isGradeDisabled,
@@ -201,7 +202,7 @@ class _RegisterState extends State<Register> {
                                 horizontal: 9.0,
                                 vertical: 8.0,
                               ),
-                              child: dropDownBtn(
+                              child: CustomDrowdownBtn(
                                 hint: "Choose speciality",
                                 type: "speciality",
                                 isDisabled: _isDisabled,

@@ -1,8 +1,8 @@
 import 'package:attendify/services/databases.dart';
-import 'package:attendify/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../components/popups.dart';
 import '../../models/attendify_teacher.dart';
 
 class AllTeachersView extends StatefulWidget {
