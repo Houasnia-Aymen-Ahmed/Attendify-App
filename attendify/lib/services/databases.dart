@@ -1,124 +1,155 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:async/async.dart';
 
 import '../models/attendify_student.dart';
 import '../models/attendify_teacher.dart';
 import '../models/module_model.dart';
 import '../models/user_of_attendify.dart';
-import 'auth.dart';
+// import 'auth.dart'; // AuthService instance removed, not used directly in this refactored version.
 
 class DatabaseService {
-  final AuthService _auth = AuthService();
-  final String? uid;
-  bool isUserDataExist = true;
-  bool isModuleDataExist = true;
-  DatabaseService({this.uid});
+  final String? uid; // UID of the current user, if relevant for the instance context
 
-  CollectionReference teacherEmailsColl =
-      FirebaseFirestore.instance.collection("TeacherEmailsCollection");
-  CollectionReference adminEmailsColl =
-      FirebaseFirestore.instance.collection("AdminEmailsCollection");
-  CollectionReference userColl =
-      FirebaseFirestore.instance.collection("UserCollection");
-  CollectionReference teacherColl =
-      FirebaseFirestore.instance.collection("TeacherCollection");
-  CollectionReference studentColl =
-      FirebaseFirestore.instance.collection("StudentCollection");
-  CollectionReference modulesColl =
-      FirebaseFirestore.instance.collection("Modules");
+  // These flags' utility is questionable and they are not used in the refactored methods.
+  // Consider removing them.
+  // bool isUserDataExist = true;
+  // bool isModuleDataExist = true;
+
+  final FirebaseFirestore _firestore; // For testability
+
+  DatabaseService({this.uid, FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
+
+
+  // Collection References using the injected _firestore instance
+  CollectionReference get teacherEmailsColl =>
+      _firestore.collection("TeacherEmailsCollection");
+  CollectionReference get adminEmailsColl =>
+      _firestore.collection("AdminEmailsCollection");
+  CollectionReference get userColl =>
+      _firestore.collection("UserCollection");
+  CollectionReference get teacherColl =>
+      _firestore.collection("TeacherCollection");
+  CollectionReference get studentColl =>
+      _firestore.collection("StudentCollection");
+  CollectionReference get modulesColl =>
+      _firestore.collection("Modules");
+
+  // Private helper method for updating document data
+  Future<bool> _updateDocumentData(DocumentReference docRef, Map<String, dynamic> data) async {
+    try {
+      if (data.isEmpty) { // No actual data to update
+        return true; // Or false if this is considered an issue. For now, true as nothing failed.
+      }
+      await docRef.update(data);
+      return true;
+    } catch (e) {
+      log("Error updating document ${docRef.path}: $e");
+      return false;
+    }
+  }
 
   Future<void> addTeacherEmail(String email) async {
-    teacherEmailsColl.doc("TeacherEmails").update({
-      'emails': FieldValue.arrayUnion([email])
-    });
+    try {
+      await teacherEmailsColl.doc("TeacherEmails").update({
+        'emails': FieldValue.arrayUnion([email])
+      });
+    } catch (e) {
+      log("Error in addTeacherEmail: $e");
+    }
   }
 
   Future<void> removeTeacherEmail(String email) async {
-    teacherEmailsColl.doc("TeacherEmails").update({
-      'emails': FieldValue.arrayRemove([email])
-    });
+    try {
+      await teacherEmailsColl.doc("TeacherEmails").update({
+        'emails': FieldValue.arrayRemove([email])
+      });
+    } catch (e) {
+      log("Error in removeTeacherEmail: $e");
+    }
   }
 
-  Future updateUserData({
+  Future<bool> updateUserData({
     required String userName,
     required String userType,
-    required String usrUid,
+    required String targetUid,
     required String email,
     required String photoURL,
   }) async {
-    DocumentReference userDoc = userColl.doc(uid);
-    await userDoc.set({
-      'username': userName,
-      'userType': userType,
-      'uid': uid,
-      'email': email,
-      'photoURL': photoURL,
-    });
+    try {
+      if (targetUid.isEmpty) {
+        log("Error in updateUserData: targetUid is null or empty.");
+        return false;
+      }
 
-    switch (userType) {
-      case "teacher":
-        await teacherColl.doc(uid).set({
-          'username': userName,
-          'userType': userType,
-          'uid': uid,
-          'email': email,
-          'photoURL': photoURL,
-        });
-        break;
-      case "student":
-        await studentColl.doc(uid).set({
-          'username': userName,
-          'userType': userType,
-          'uid': uid,
-          'email': email,
-          'photoURL': photoURL,
-        });
-        break;
+      DocumentReference userDoc = userColl.doc(targetUid);
+      await userDoc.set({
+        'username': userName, 'userType': userType, 'uid': targetUid,
+        'email': email, 'photoURL': photoURL,
+      });
+
+      switch (userType.toLowerCase()) {
+        case "teacher":
+          await teacherColl.doc(targetUid).set({
+            'username': userName, 'userType': userType, 'uid': targetUid,
+            'email': email, 'photoURL': photoURL,
+          });
+          break;
+        case "student":
+          await studentColl.doc(targetUid).set({
+            'username': userName, 'userType': userType, 'uid': targetUid,
+            'email': email, 'photoURL': photoURL,
+          });
+          break;
+      }
+      return true;
+    } catch (e) {
+      log("Error in updateUserData for uid $targetUid: $e");
+      return false;
     }
   }
 
   Future<bool> isUserRegistered(String email) async {
     try {
       QuerySnapshot querySnapshot = await userColl
-          .where(
-            'email',
-            isEqualTo: email,
-          )
+          .where('email', isEqualTo: email)
           .limit(1)
           .get();
-      if (querySnapshot.docs.isEmpty) return false;
-      return true;
-    } on Exception catch (_) {
+      return querySnapshot.docs.isNotEmpty;
+    } catch (e) {
+      log("Error in isUserRegistered for email $email: $e");
       return false;
     }
   }
 
-  Future updateUserSpecificData({
+  Future<bool> updateUserSpecificData({
+    required String targetUid,
     String? username,
     String? userType,
-    String? uid,
     String? email,
     String? photoURL,
   }) async {
-    String usrUid = uid ?? _auth.currentUsr!.uid;
-    Map<String, dynamic> map = {
-      "username": username,
-      "userType": userType,
-      "uid": uid,
-      "email": email,
-      "photoURL": photoURL,
-    };
-    for (var entry in map.entries) {
-      if (entry.value != null) {
-        await userColl.doc(usrUid).update({
-          entry.key.toString(): entry.value,
-        });
+    try {
+      if (targetUid.isEmpty) {
+        log("Error in updateUserSpecificData: targetUid is empty.");
+        return false;
       }
+      Map<String, dynamic> dataToUpdate = {};
+      if (username != null) dataToUpdate['username'] = username;
+      if (userType != null) dataToUpdate['userType'] = userType;
+      if (email != null) dataToUpdate['email'] = email;
+      if (photoURL != null) dataToUpdate['photoURL'] = photoURL;
+
+      return await _updateDocumentData(userColl.doc(targetUid), dataToUpdate);
+    } catch (e) { // Should be caught by _updateDocumentData, but as a fallback.
+      log("Error in updateUserSpecificData for uid $targetUid: $e");
+      return false;
     }
   }
 
-  Future<void> updateTeacherData({
+  Future<bool> updateTeacherData({
     required String userName,
     required String userType,
     required String uid,
@@ -126,50 +157,47 @@ class DatabaseService {
     required String photoURL,
     List<String>? modules,
   }) async {
-    await teacherColl.doc(uid).set(
-      {
-        'uid': uid,
-        'email': email,
-        'username': userName,
-        'userType': userType,
-        'photoURL': photoURL,
-        'modules': modules,
-      },
-    );
-  }
-
-  Future<void> updateTeacherSpecificData({
-    String? username,
-    String? userType,
-    String? uid,
-    String? email,
-    String? photoURL,
-    List<String>? modules,
-  }) async {
-    String usrUid = uid ?? _auth.currentUsr!.uid;
-    Map<String, dynamic> map = {
-      "username": username,
-      "userType": userType,
-      "uid": uid,
-      "email": email,
-      'photoURL': photoURL,
-    };
-    for (var entry in map.entries) {
-      if (entry.value != null) {
-        await teacherColl.doc(usrUid).update({
-          entry.key.toString(): entry.value,
-        });
-      }
-    }
-
-    if (modules != null) {
-      await teacherColl.doc(usrUid).update({
-        "modules": FieldValue.arrayUnion(modules),
+    try {
+      await teacherColl.doc(uid).set({
+        'uid': uid, 'email': email, 'username': userName,
+        'userType': userType, 'photoURL': photoURL, 'modules': modules ?? [],
       });
+      return true;
+    } catch (e) {
+      log("Error in updateTeacherData for uid $uid: $e");
+      return false;
     }
   }
 
-  Future<void> updateStudentData({
+  Future<bool> updateTeacherSpecificData({
+    required String targetUid,
+    String? username,
+    String? email,
+    String? photoURL,
+    List<String>? modules,
+  }) async {
+    try {
+      Map<String, dynamic> dataToUpdate = {};
+      if (username != null) dataToUpdate['username'] = username;
+      if (email != null) dataToUpdate['email'] = email;
+      if (photoURL != null) dataToUpdate['photoURL'] = photoURL;
+
+      bool mainDataUpdated = await _updateDocumentData(teacherColl.doc(targetUid), dataToUpdate);
+      if (!mainDataUpdated && dataToUpdate.isNotEmpty) return false; // Stop if initial update failed
+
+      if (modules != null && modules.isNotEmpty) {
+        await teacherColl.doc(targetUid).update({
+          "modules": FieldValue.arrayUnion(modules),
+        });
+      }
+      return true;
+    } catch (e) {
+      log("Error in updateTeacherSpecificData for uid $targetUid: $e");
+      return false;
+    }
+  }
+
+  Future<bool> updateStudentData({
     required String userName,
     required String userType,
     required String uid,
@@ -178,526 +206,438 @@ class DatabaseService {
     String? grade,
     String? speciality,
   }) async {
-    await studentColl.doc(uid).set(
-      {
-        'uid': uid,
-        'email': email,
-        'username': userName,
-        'userType': userType,
-        'photoURL': photoURL,
-        'grade': grade,
-        'speciality': speciality,
-      },
-    );
+    try {
+      await studentColl.doc(uid).set({
+        'uid': uid, 'email': email, 'username': userName,
+        'userType': userType, 'photoURL': photoURL,
+        'grade': grade, 'speciality': speciality,
+      });
+      return true;
+    } catch (e) {
+      log("Error in updateStudentData for uid $uid: $e");
+      return false;
+    }
   }
 
-  Future<void> updateStudentSpecificData({
+  Future<bool> updateStudentSpecificData({
+    required String targetUid,
     String? username,
-    String? userType,
-    String? uid,
     String? email,
     String? photoURL,
     String? grade,
     String? speciality,
   }) async {
-    String usrUid = uid ?? _auth.currentUsr!.uid;
-    Map<String, dynamic> map = {
-      "username": username,
-      "userType": userType,
-      "uid": uid,
-      "email": email,
-      'photoURL': photoURL,
-      "grade": grade,
-      "speciality": speciality,
-    };
-    for (var entry in map.entries) {
-      if (entry.value != null) {
-        await teacherColl.doc(usrUid).update({
-          entry.key.toString(): entry.value,
-        });
-      }
+    try {
+      Map<String, dynamic> dataToUpdate = {};
+      if (username != null) dataToUpdate['username'] = username;
+      if (email != null) dataToUpdate['email'] = email;
+      if (photoURL != null) dataToUpdate['photoURL'] = photoURL;
+      if (grade != null) dataToUpdate['grade'] = grade;
+      if (speciality != null) dataToUpdate['speciality'] = speciality;
+
+      return await _updateDocumentData(studentColl.doc(targetUid), dataToUpdate);
+    } catch (e) {
+      log("Error in updateStudentSpecificData for uid $targetUid: $e");
+      return false;
     }
   }
 
-  Future updateModuleData({
-    required String uid,
+  Future<String?> updateModuleData({
+    required String uidSeed,
     required String name,
     required bool isActive,
     required String speciality,
     required String grade,
-    required int numberOfStudents,
-    required Map<String, String> students,
-    required Map<String, dynamic> attendanceTable,
-    bool? checkExists,
     bool isNewModule = false,
   }) async {
-    if (checkExists == null || !checkExists) {
+    try {
+      String targetUid = uidSeed;
+      Map<String,dynamic> modulePayload = {
+        'name': name, 'isActive': isActive, 'speciality': speciality, 'grade': grade,
+        'numberOfStudents': 0,
+        'students': {}, 'attendanceTable': {},
+      };
+
       if (isNewModule) {
         int index = 0;
         QuerySnapshot querySnapshot = await modulesColl
-            .where('uid', isGreaterThanOrEqualTo: uid)
+            .where('uid', isGreaterThanOrEqualTo: uidSeed)
             .orderBy('uid', descending: true)
             .limit(1)
             .get();
         for (var doc in querySnapshot.docs) {
-          String docUid = doc.get('uid');
-          if (docUid.startsWith(uid)) {
-            int? currentIndex = int.tryParse(docUid.substring(uid.length));
+          String docUid = doc.get('uid') as String;
+          if (docUid.startsWith(uidSeed)) {
+            int? currentIndex = int.tryParse(docUid.substring(uidSeed.length));
             if (currentIndex != null && currentIndex >= index) {
               index = currentIndex + 1;
             }
           }
         }
-        uid = '$uid$index';
-        return await modulesColl.doc(uid).set({
-          'uid': uid,
-          'name': name,
-          'isActive': isActive,
-          'speciality': speciality,
-          'grade': grade,
-          'numberOfStudents': numberOfStudents,
-          'students': {},
-          'attendanceTable': {},
-        });
+        targetUid = '$uidSeed$index';
+        modulePayload['uid'] = targetUid;
+        await modulesColl.doc(targetUid).set(modulePayload);
+        return targetUid;
       } else {
-        return await modulesColl.doc(uid).set({
-          'uid': uid,
-          'name': name,
-          'isActive': isActive,
-          'speciality': speciality,
-          'grade': grade,
-          'numberOfStudents': numberOfStudents,
-          'students': students,
-          'attendanceTable': attendanceTable,
-        });
+        modulePayload['uid'] = targetUid;
+        await modulesColl.doc(targetUid).set(modulePayload);
+        return targetUid;
       }
-    } else {
-      DocumentSnapshot document = await modulesColl.doc(uid).get();
-      if (!document.exists) {
-        return await modulesColl.doc(uid).set({
-          'uid': uid,
-          'name': name,
-          'isActive': isActive,
-          'speciality': speciality,
-          'grade': grade,
-          'numberOfStudents': numberOfStudents,
-          'students': students,
-          'attendanceTable': attendanceTable,
-        });
-      }
+    } catch (e) {
+      log("Error in updateModuleData for seed_uid $uidSeed: $e");
+      return null;
     }
   }
 
-  Future updateModuleSpecificData({
-    String? uid,
+  Future<bool> updateModuleSpecificData({
+    required String uid,
     String? name,
     bool? isActive,
     String? speciality,
     String? grade,
-    int? numberOfStudents,
-    String? addStudent,
+    String? addStudentUid,
     String? studentName,
+    String? removeStudentUid,
   }) async {
-    if (addStudent != null && studentName != null) {
-      final moduleDoc = modulesColl.doc(uid);
-      final currentStudents = Map<String, String>.from(
-        (await moduleDoc.get()).get("students") ?? {},
-      );
+    try {
+      Map<String, dynamic> dataToUpdate = {};
+      if (name != null) dataToUpdate['name'] = name;
+      if (isActive != null) dataToUpdate['isActive'] = isActive;
+      if (speciality != null) dataToUpdate['speciality'] = speciality;
+      if (grade != null) dataToUpdate['grade'] = grade;
 
-      currentStudents[addStudent] = studentName;
-      await moduleDoc.update(
-        {
-          "students": currentStudents,
-        },
-      );
-    }
+      DocumentReference moduleDoc = modulesColl.doc(uid);
 
-    Map<String, dynamic> map = {
-      'uid': uid,
-      'name': name,
-      'isActive': isActive,
-      'speciality': speciality,
-      'grade': grade,
-      'numberOfStudents': numberOfStudents
-    };
-
-    for (var entry in map.entries) {
-      if (entry.value != null) {
-        await modulesColl.doc(uid).update({
-          entry.key.toString(): entry.value,
-        });
+      if (addStudentUid != null && studentName != null) {
+        dataToUpdate['students.$addStudentUid'] = studentName;
+        dataToUpdate['numberOfStudents'] = FieldValue.increment(1);
       }
+      if (removeStudentUid != null) {
+        dataToUpdate['students.$removeStudentUid'] = FieldValue.delete();
+        dataToUpdate['numberOfStudents'] = FieldValue.increment(-1);
+      }
+
+      // Only call update if there's something to update, to avoid unnecessary writes
+      // or errors if dataToUpdate is empty for FieldValue operations.
+      if (dataToUpdate.keys.any((k) => !k.startsWith('students.') && !k.startsWith('numberOfStudents'))) {
+         // Contains main field updates
+         await moduleDoc.update(Map.fromEntries(dataToUpdate.entries.where((e) => !e.key.startsWith('students.') && e.key != 'numberOfStudents')));
+      }
+      // Handle student and numberOfStudents updates separately if they exist
+      Map<String, dynamic> studentUpdates = Map.fromEntries(dataToUpdate.entries.where((e) => e.key.startsWith('students.') || e.key == 'numberOfStudents'));
+      if(studentUpdates.isNotEmpty) {
+        await moduleDoc.update(studentUpdates);
+      }
+
+      return true;
+    } catch (e) {
+      log("Error in updateModuleSpecificData for module uid $uid: $e");
+      return false;
     }
   }
 
-  Future<void> updateAttendance(
+  Future<bool> updateAttendance(
     String moduleID,
     String date,
     String studentID,
     bool isPresent,
-    BuildContext context,
   ) async {
     try {
       await modulesColl.doc(moduleID).update({
         'attendanceTable.$date.$studentID': isPresent,
       });
+      return true;
     } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(20.0),
-          backgroundColor: Colors.red,
-          dismissDirection: DismissDirection.startToEnd,
-          elevation: 20.0,
-          content: Text(e.toString()),
-          action: SnackBarAction(
-            textColor: Colors.blue[100],
-            label: 'OK',
-            onPressed: () {},
-          ),
-        ),
-      );
+      log("Error in updateAttendance for module $moduleID, student $studentID, date $date: $e");
+      return false;
     }
   }
 
-  Future<void> addToAttendanceTable(
+  Future<bool> addToAttendanceTable(
     String moduleID,
-    Map<String, dynamic> newAttendance,
+    Map<String, dynamic> newAttendanceSession,
   ) async {
-    await modulesColl.doc(moduleID).set(
-      {
-        'attendanceTable': newAttendance,
-      },
-      SetOptions(merge: true),
-    );
+    try {
+      await modulesColl.doc(moduleID).set(
+        {'attendanceTable': newAttendanceSession},
+        SetOptions(merge: true),
+      );
+      return true;
+    } catch (e) {
+      log("Error in addToAttendanceTable for module $moduleID: $e");
+      return false;
+    }
   }
 
   Future<Map<String, int>> fetchModuleAttendanceData(String moduleId) async {
-    DocumentSnapshot moduleSnapshot = await modulesColl.doc(moduleId).get();
-    Map<String, dynamic> attendanceTable =
-        moduleSnapshot.get('attendanceTable');
-    Map<String, int> attendanceData = {};
+    try {
+      DocumentSnapshot moduleSnapshot = await modulesColl.doc(moduleId).get();
+      if (!moduleSnapshot.exists) return {};
+      Map<String, dynamic> data = moduleSnapshot.data() as Map<String, dynamic>? ?? {};
+      Map<String, dynamic> attendanceTable = data['attendanceTable'] as Map<String, dynamic>? ?? {};
+      Map<String, int> attendanceData = {};
 
-    if (attendanceTable.isNotEmpty) {
-      attendanceTable.forEach((date, data) {
-        int presentCount = data.values.where((value) => value == true).length;
-        attendanceData[date] = presentCount;
+      attendanceTable.forEach((date, dateAttendance) {
+        if (dateAttendance is Map) {
+          int presentCount = dateAttendance.values.where((value) => value == true).length;
+          attendanceData[date] = presentCount;
+        }
       });
+      return attendanceData;
+    } catch (e) {
+      log("Error in fetchModuleAttendanceData for module $moduleId: $e");
+      return {};
     }
-    return attendanceData;
   }
 
   Future<Map<String, int>> fetchModuleStudentAttendancePercentage(
       String moduleId) async {
-    DocumentSnapshot moduleSnapshot = await modulesColl.doc(moduleId).get();
-    Map<String, dynamic> attendanceTable =
-        moduleSnapshot.get('attendanceTable');
-    Map<String, int> studentPresenceCount = {};
+    try {
+      DocumentSnapshot moduleSnapshot = await modulesColl.doc(moduleId).get();
+      if (!moduleSnapshot.exists) return {};
+      Map<String, dynamic> data = moduleSnapshot.data() as Map<String, dynamic>? ?? {};
+      Map<String, dynamic> attendanceTable = data['attendanceTable'] as Map<String, dynamic>? ?? {};
+      Map<String, int> studentPresenceCount = {};
 
-    if (attendanceTable.isNotEmpty) {
-      attendanceTable.forEach((date, data) {
-        data.forEach((student, isPresent) {
-          if (!studentPresenceCount.containsKey(student)) {
-            studentPresenceCount[student] = 0;
-          }
-          if (isPresent) {
-            studentPresenceCount[student] = studentPresenceCount[student]! + 1;
+      attendanceTable.forEach((date, dateData) {
+        if (dateData is Map) {
+          dateData.forEach((student, isPresent) {
+            if (isPresent is bool) {
+              studentPresenceCount.putIfAbsent(student as String, () => 0);
+              if (isPresent) {
+                studentPresenceCount[student as String] = studentPresenceCount[student]! + 1;
+              }
+            }
+          });
+        }
+      });
+      return studentPresenceCount;
+    } catch (e) {
+      log("Error in fetchModuleStudentAttendancePercentage for $moduleId: $e");
+      return {};
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchModuleStats(String moduleId) async {
+    try {
+      DocumentSnapshot moduleSnapshot = await modulesColl.doc(moduleId).get();
+       if (!moduleSnapshot.exists || moduleSnapshot.data() == null) {
+        return {'attendanceData': {}, 'studentPresenceCount': {}};
+      }
+      Map<String, dynamic> moduleData = moduleSnapshot.data() as Map<String, dynamic>;
+      Map<String, dynamic> attendanceTable = moduleData['attendanceTable'] as Map<String, dynamic>? ?? {};
+
+      Map<String, int> attendanceData = {};
+      Map<String, double> studentPercentages = {};
+      Map<String, int> studentRawPresenceCount = {};
+
+      if (attendanceTable.isNotEmpty) {
+        attendanceTable.forEach((date, dailyAttendance) {
+          if (dailyAttendance is Map) {
+            int presentCount = 0;
+            dailyAttendance.forEach((studentId, isPresent) {
+              if (isPresent == true) {
+                presentCount++;
+                studentRawPresenceCount[studentId as String] = (studentRawPresenceCount[studentId] ?? 0) + 1;
+              } else {
+                 studentRawPresenceCount.putIfAbsent(studentId as String, () => 0);
+              }
+            });
+            attendanceData[date] = presentCount;
           }
         });
-      });
+
+        int totalDates = attendanceTable.length;
+        if (totalDates > 0) {
+          studentRawPresenceCount.forEach((studentId, presenceCount) {
+            studentPercentages[studentId] = (presenceCount / totalDates) * 100.0;
+          });
+        }
+      }
+      return {
+        'attendanceData': attendanceData,
+        'studentPresenceCount': studentPercentages,
+      };
+    } catch (e) {
+      log("Error in fetchModuleStats for $moduleId: $e");
+      return {'attendanceData': {}, 'studentPresenceCount': {}};
     }
-    return studentPresenceCount;
   }
 
-  Future<Map<String, dynamic>> fetchModuleStats(
-    String moduleId,
-  ) async {
-    DocumentSnapshot moduleSnapshot = await modulesColl.doc(moduleId).get();
-    Map<String, dynamic> attendanceTable = moduleSnapshot.get(
-      'attendanceTable',
-    );
-    Map<String, int> attendanceData = {};
-    Map<String, double> studentPresenceCount = {};
-
-    if (attendanceTable.isNotEmpty) {
-      attendanceTable.forEach(
-        (date, data) {
-          int presentCount = data.values.where((value) => value == true).length;
-          attendanceData[date] = presentCount;
-
-          data.forEach(
-            (student, isPresent) {
-              if (!studentPresenceCount.containsKey(student)) {
-                studentPresenceCount[student] = 0;
-              }
-              if (isPresent) {
-                studentPresenceCount[student] =
-                    studentPresenceCount[student]! + 1;
-              }
-            },
-          );
-        },
-      );
-      int totalDates = attendanceTable.length;
-      studentPresenceCount.forEach((student, presenceCount) {
-        double percentage = (presenceCount / totalDates) * 100;
-        studentPresenceCount[student] = percentage;
-      });
-    }
-
-    return {
-      'attendanceData': attendanceData,
-      'studentPresenceCount': studentPresenceCount,
-    };
-  }
-
-  Future<QuerySnapshot> getModulesByGradeAndSpeciality(
+  Future<List<Module>> getModulesByGradeAndSpeciality(
       String grade, String speciality) async {
-    QuerySnapshot querySnapshot = await modulesColl
-        .where('grade', isEqualTo: grade)
-        .where('speciality', isEqualTo: speciality)
-        .get();
-
-    return querySnapshot;
+    try {
+      QuerySnapshot querySnapshot = await modulesColl
+          .where('grade', isEqualTo: grade)
+          .where('speciality', isEqualTo: speciality)
+          .get();
+      return querySnapshot.docs.map((doc) => _currentModuleFromSnapshots(doc)).toList();
+    } catch (e) {
+      log("Error in getModulesByGradeAndSpeciality for $grade, $speciality: $e");
+      return [];
+    }
   }
 
-  Future<void> updateModulesWithCriteria({
-    String? grade,
-    String? speciality,
-    String? studentUID,
-    String? studentName,
+  Future<bool> updateModulesWithCriteria({
+    required String grade,
+    required String speciality,
+    required String studentUID,
+    required String studentName,
   }) async {
-    QuerySnapshot querySnapshot = await getModulesByGradeAndSpeciality(
-      grade!,
-      speciality!,
-    );
+    try {
+      QuerySnapshot querySnapshot = await modulesColl
+          .where('grade', isEqualTo: grade)
+          .where('speciality', isEqualTo: speciality)
+          .get();
 
-    for (var doc in querySnapshot.docs) {
-      await updateModuleSpecificData(
-        uid: doc.id,
-        addStudent: studentUID,
-        studentName: studentName,
-      );
+      for (var doc in querySnapshot.docs) {
+        await updateModuleSpecificData(
+          uid: doc.id,
+          addStudentUid: studentUID,
+          studentName: studentName,
+        );
+      }
+      return true;
+    } catch (e) {
+      log("Error in updateModulesWithCriteria: $e");
+      return false;
     }
   }
 
   AttendifyUser _currentUserFromSnapshots(DocumentSnapshot snapshot) {
-    if (snapshot.exists) {
-      isUserDataExist = true;
+    if (snapshot.exists && snapshot.data() != null) {
       Map<String, dynamic> doc = snapshot.data() as Map<String, dynamic>;
       return AttendifyUser(
-        userName: doc["username"] ?? 'username',
-        userType: doc["userType"] ?? "usertype",
-        uid: doc["uid"] ?? 'uid',
-        email: doc["email"] ?? "email",
-        photoURL: doc["photoURL"] ?? "photoURL",
+        userName: doc["username"] ?? 'N/A',
+        userType: doc["userType"] ?? "unknown",
+        uid: doc["uid"] ?? snapshot.id,
+        email: doc["email"] ?? "N/A",
+        photoURL: doc["photoURL"] ?? "",
       );
     } else {
-      isUserDataExist = false;
-      return AttendifyUser(
-        userName: 'username',
-        userType: "usertype",
-        uid: 'uid',
-        email: "email",
-        photoURL: "photoURL",
-      );
+      log("User snapshot does not exist or data is null for ID: ${snapshot.id}");
+      return AttendifyUser(userName: 'N/A', userType: "unknown", uid: snapshot.id, email: "N/A", photoURL: "");
     }
   }
 
   Student _currentStudentFromSnapshots(DocumentSnapshot snapshot) {
-    if (snapshot.exists) {
+     if (snapshot.exists && snapshot.data() != null) {
       Map<String, dynamic> doc = snapshot.data() as Map<String, dynamic>;
       return Student(
-        userName: doc["username"] ?? 'username',
-        userType: doc["userType"] ?? "usertype",
-        uid: doc["uid"] ?? 'uid',
-        email: doc["email"] ?? "email",
-        photoURL: doc["photoURL"] ?? "photoURL",
-        grade: doc["grade"] ?? 'grade',
-        speciality: doc["speciality"] ?? 'speciality',
+        userName: doc["username"] ?? 'N/A', userType: doc["userType"] ?? "student",
+        uid: doc["uid"] ?? snapshot.id, email: doc["email"] ?? "N/A",
+        photoURL: doc["photoURL"] ?? "", grade: doc["grade"] ?? 'N/A',
+        speciality: doc["speciality"] ?? 'N/A',
       );
     } else {
-      return Student(
-        userName: 'username',
-        userType: "usertype",
-        uid: 'uid',
-        email: "email",
-        photoURL: "photoURL",
-        grade: 'grade',
-        speciality: 'speciality',
-      );
+      log("Student snapshot does not exist or data is null for ID: ${snapshot.id}");
+      return Student(userName: 'N/A', userType: "student", uid: snapshot.id, email: "N/A", photoURL: "", grade: "N/A", speciality: "N/A");
     }
   }
 
   Module _currentModuleFromSnapshots(DocumentSnapshot snapshot) {
-    if (snapshot.exists) {
+    if (snapshot.exists && snapshot.data() != null) {
       Map<String, dynamic> doc = snapshot.data() as Map<String, dynamic>;
-
       return Module(
-        uid: doc["uid"] ?? 'uid',
-        name: doc["name"] ?? 'name',
-        speciality: doc["speciality"] ?? 'speciality',
-        grade: doc["grade"] ?? "grade",
+        uid: doc["uid"] ?? snapshot.id, name: doc["name"] ?? 'N/A',
+        speciality: doc["speciality"] ?? 'N/A', grade: doc["grade"] ?? "N/A",
         numberOfStudents: doc["numberOfStudents"] ?? 0,
         isActive: doc["isActive"] ?? false,
-        students: Map<String, String>.from(
-          doc["students"] ?? {},
-        ),
-        attendanceTable: Map<String, dynamic>.from(
-          doc["attendanceTable"] ?? {},
-        ),
+        students: Map<String, String>.from(doc["students"] ?? {}),
+        attendanceTable: Map<String, dynamic>.from(doc["attendanceTable"] ?? {}),
       );
     } else {
-      return Module(
-        uid: "uid",
-        name: "name",
-        speciality: "speciality",
-        grade: "grade",
-        numberOfStudents: 0,
-        isActive: false,
-        students: {},
-        attendanceTable: {},
-      );
+      log("Module snapshot does not exist or data is null for ID: ${snapshot.id}");
+      return Module(uid: snapshot.id, name: "N/A", speciality: "N/A", grade: "N/A", numberOfStudents: 0, isActive: false, students: {}, attendanceTable: {});
     }
   }
 
   Teacher _currentTeacherFromSnapshots(DocumentSnapshot snapshot) {
-    if (snapshot.exists) {
+    if (snapshot.exists && snapshot.data() != null) {
       Map<String, dynamic> doc = snapshot.data() as Map<String, dynamic>;
-
-      List<String>? modules = (doc["modules"] as List<dynamic>?)
-              ?.map(
-                (e) => e.toString(),
-              )
-              .toList() ??
-          [];
-
+      List<String> modules = (doc["modules"] as List<dynamic>?)
+                              ?.map((e) => e.toString())
+                              .toList() ?? [];
       return Teacher(
-        userName: doc["username"] ?? 'username',
-        userType: doc["userType"] ?? "usertype",
-        uid: doc["uid"] ?? 'uid',
-        email: doc["email"] ?? "email",
-        photoURL: doc["photoURL"] ?? "photoURL",
-        modules: modules,
+        userName: doc["username"] ?? 'N/A', userType: doc["userType"] ?? "teacher",
+        uid: doc["uid"] ?? snapshot.id, email: doc["email"] ?? "N/A",
+        photoURL: doc["photoURL"] ?? "", modules: modules,
       );
     } else {
-      return Teacher(
-        userName: 'username',
-        userType: "usertype",
-        uid: 'uid',
-        email: "email",
-        photoURL: "photoURL",
-        modules: [],
-      );
+       log("Teacher snapshot does not exist or data is null for ID: ${snapshot.id}");
+      return Teacher(userName: 'N/A', userType: "teacher", uid: snapshot.id, email: "N/A", photoURL: "", modules: []);
     }
   }
 
   Stream<Teacher> getTeacherDataStream(String teacherId) {
-    return teacherColl
-        .doc(teacherId)
-        .snapshots()
-        .map(_currentTeacherFromSnapshots);
+    return teacherColl.doc(teacherId).snapshots().map(_currentTeacherFromSnapshots);
   }
-
   Stream<AttendifyUser> getUserDataStream(String userId) {
     return userColl.doc(userId).snapshots().map(_currentUserFromSnapshots);
   }
-
   Stream<Student> getStudentDataStream(String userId) {
-    return studentColl
-        .doc(userId)
-        .snapshots()
-        .map(_currentStudentFromSnapshots);
+    return studentColl.doc(userId).snapshots().map(_currentStudentFromSnapshots);
   }
 
   Stream<List<Student>> getStudentsList(List<String> studentUIDs) {
-    studentUIDs = studentUIDs.isNotEmpty ? studentUIDs : ["stuentdUid"];
+    if (studentUIDs.isEmpty) return Stream.value([]);
     return studentColl
         .where(FieldPath.documentId, whereIn: studentUIDs)
         .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return _currentStudentFromSnapshots(doc);
-      }).toList();
-    });
+        .map((snapshot) => snapshot.docs.map(_currentStudentFromSnapshots).toList())
+        .handleError((error) {
+          log("Error in getStudentsList stream: $error");
+          return <Student>[];
+        });
   }
 
   Stream<Module> getModuleStream(String moduleId) {
-    return modulesColl
-        .doc(moduleId)
-        .snapshots()
-        .map(_currentModuleFromSnapshots);
+    return modulesColl.doc(moduleId).snapshots().map(_currentModuleFromSnapshots);
   }
 
-  Stream<List<Module>> getModuleByGradeSpeciality(
-    String grade,
-    String speciality,
-  ) {
+  Stream<List<Module>> getModuleByGradeSpecialityStream(String grade, String speciality) {
     return modulesColl
         .where('grade', isEqualTo: grade)
         .where('speciality', isEqualTo: speciality)
         .snapshots()
-        .asyncMap(
-      (snapshot) async {
-        if (snapshot.docs.isNotEmpty) {
-          List<Module> modules = [];
-          for (var doc in snapshot.docs) {
-            Module module = _currentModuleFromSnapshots(doc);
-            modules.add(module);
+        .map((snapshot) {
+          if (snapshot.docs.isNotEmpty) {
+            return snapshot.docs.map(_currentModuleFromSnapshots).toList();
+          } else {
+            return <Module>[];
           }
-          return modules;
-        } else {
-          return [
-            Module(
-              uid: "uid",
-              name: "names",
-              speciality: "speciality",
-              grade: "grade",
-              numberOfStudents: 0,
-              isActive: false,
-              students: {},
-              attendanceTable: {},
-            ),
-          ];
-        }
-      },
-    );
+        })
+        .handleError((error) {
+          log("Error in getModuleByGradeSpecialityStream: $error");
+          return <Module>[];
+        });
   }
 
-  Stream<List<Module>> getModuleDataStream(String moduleID) {
-    return modulesColl.doc(moduleID).snapshots().asyncMap(
-      (snapshot) async {
-        return [
-          _currentModuleFromSnapshots(snapshot),
-        ];
-      },
-    );
-  }
-
-  Stream<List<Module>> getModulesOfTeacher(List<String> moduleUIDs) {
-    moduleUIDs =
-        moduleUIDs.isNotEmpty ? moduleUIDs : ["grade_speciality_module_index"];
-    return modulesColl
-        .where(FieldPath.documentId, whereIn: moduleUIDs)
-        .snapshots()
-        .asyncMap((snapshot) async {
-      List<Module> modules = [];
-      for (var doc in snapshot.docs) {
-        Module module = _currentModuleFromSnapshots(doc);
-        modules.add(module);
-      }
-      if (modules.length == 1 && modules[0].uid == "uid") {
-        modules = [];
-      }
-      return modules;
+  Stream<List<Module>> getModuleDataListStream(String moduleID) {
+    return modulesColl.doc(moduleID).snapshots().map(
+      (snapshot) => [if(snapshot.exists) _currentModuleFromSnapshots(snapshot)]
+    ).handleError((error) {
+      log("Error in getModuleDataListStream for $moduleID: $error");
+      return <Module>[];
     });
   }
 
-  Stream<List<Module>> getModulesOfTeacherFromAdmin(
-      List<String> moduleUIDs) async* {
-    moduleUIDs =
-        moduleUIDs.isNotEmpty ? moduleUIDs : ["grade_speciality_module_index"];
+  Stream<List<Module>> getModulesOfTeacher(List<String> moduleUIDs) {
+    if (moduleUIDs.isEmpty) return Stream.value([]);
+    return modulesColl
+        .where(FieldPath.documentId, whereIn: moduleUIDs)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map(_currentModuleFromSnapshots).toList();
+        })
+        .handleError((error) {
+          log("Error in getModulesOfTeacher stream: $error");
+          return <Module>[];
+        });
+  }
+
+  Stream<List<Module>> getModulesOfTeacherFromAdmin(List<String> moduleUIDs) {
+    if (moduleUIDs.isEmpty) return Stream.value([]);
 
     List<Stream<List<Module>>> streams = [];
     for (var i = 0; i < moduleUIDs.length; i += 30) {
@@ -706,70 +646,70 @@ class DatabaseService {
 
       streams.add(
         modulesColl.where(FieldPath.documentId, whereIn: slice).snapshots().map(
-          (snapshot) {
-            return snapshot.docs
-                .map((doc) => _currentModuleFromSnapshots(doc))
-                .toList();
-          },
-        ),
+          (snapshot) => snapshot.docs.map(_currentModuleFromSnapshots).toList(),
+        ).handleError((error) {
+           log("Error in getModulesOfTeacherFromAdmin sub-stream: $error");
+           return <Module>[];
+        }),
       );
     }
-
-    yield* StreamGroup.merge(streams);
+    return StreamGroup.merge(streams);
   }
 
-  Future<void> removeTeacherById(String id) async {
-    await teacherColl.doc(id).delete();
+  Future<bool> removeTeacherById(String id) async {
+    try { await teacherColl.doc(id).delete(); return true; }
+    catch (e) { log("Error removing teacher $id: $e"); return false; }
   }
-
-  Future<void> removeStudentById(String id) async {
-    await studentColl.doc(id).delete();
+  Future<bool> removeStudentById(String id) async {
+    try { await studentColl.doc(id).delete(); return true; }
+    catch (e) { log("Error removing student $id: $e"); return false; }
   }
-
-  Future<void> removeModuleById(String id) async {
-    await modulesColl.doc(id).delete();
+  Future<bool> removeModuleById(String id) async {
+    try { await modulesColl.doc(id).delete(); return true; }
+    catch (e) { log("Error removing module $id: $e"); return false; }
   }
 
   Future<List<Module>> getAllModules() async {
-    QuerySnapshot querySnapshot = await modulesColl.get();
-    return querySnapshot.docs
-        .map((doc) => _currentModuleFromSnapshots(doc))
-        .toList();
+    try { QuerySnapshot querySnapshot = await modulesColl.get();
+      return querySnapshot.docs.map(_currentModuleFromSnapshots).toList();
+    } catch (e) { log("Error in getAllModules: $e"); return [];}
   }
-
   Future<List<Student>> getAllStudents() async {
-    QuerySnapshot querySnapshot = await studentColl.get();
-    return querySnapshot.docs
-        .map((doc) => _currentStudentFromSnapshots(doc))
-        .toList();
+    try { QuerySnapshot querySnapshot = await studentColl.get();
+      return querySnapshot.docs.map(_currentStudentFromSnapshots).toList();
+    } catch (e) { log("Error in getAllStudents: $e"); return [];}
   }
-
   Future<List<Teacher>> getAllTeachers() async {
-    QuerySnapshot querySnapshot = await teacherColl.get();
-    return querySnapshot.docs
-        .map((doc) => _currentTeacherFromSnapshots(doc))
-        .toList();
+    try { QuerySnapshot querySnapshot = await teacherColl.get();
+      return querySnapshot.docs.map(_currentTeacherFromSnapshots).toList();
+    } catch (e) { log("Error in getAllTeachers: $e"); return [];}
   }
 
   Future<List<String>> getAllTeachersEmails() async {
     try {
-      List<String> emails = [];
-      await teacherEmailsColl.doc("TeacherEmails").get().then((value) =>
-          emails = (value.get("emails") as List<dynamic>).cast<String>());
-      return emails;
-    } on Exception catch (_) {
-      throw Exception("not-authenticated-teacher");
+      DocumentSnapshot snapshot = await teacherEmailsColl.doc("TeacherEmails").get();
+      if (snapshot.exists && snapshot.data() != null) {
+        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+        return List<String>.from(data['emails'] as List<dynamic>? ?? []);
+      }
+      return [];
+    } catch (e) {
+      log("Error in getAllTeachersEmails: $e");
+      return [];
     }
   }
 
   Future<List<String>> getAllAdminsEmails() async {
-    try {
-      List<String> emails = [];
-      await adminEmailsColl.doc("AdminEmails").get().then((value) =>
-          emails = (value.get("emails") as List<dynamic>).cast<String>());
-      return emails;
-    } on Exception catch (_) {
-      throw Exception("not-authenticated-admin");
+     try {
+      DocumentSnapshot snapshot = await adminEmailsColl.doc("AdminEmails").get();
+      if (snapshot.exists && snapshot.data() != null) {
+         Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+        return List<String>.from(data['emails'] as List<dynamic>? ?? []);
+      }
+      return [];
+    } catch (e) {
+      log("Error in getAllAdminsEmails: $e");
+      return [];
     }
   }
 
@@ -778,7 +718,8 @@ class DatabaseService {
       List<String> allTeacherEmails = await getAllTeachersEmails();
       return allTeacherEmails.contains(email);
     } catch (e) {
-      throw Exception("Database error: $e");
+      log("Error in isTeacherEmailRegistered for $email: $e");
+      return false;
     }
   }
 
@@ -787,17 +728,19 @@ class DatabaseService {
       List<String> allAdminEmails = await getAllAdminsEmails();
       return allAdminEmails.contains(email);
     } catch (e) {
-      throw Exception("Database error: $e");
+      log("Error in isAdminEmailRegistered for $email: $e");
+      return false;
     }
   }
 
   Future<Map<String, dynamic>> getAllTeachersAndEmails() async {
-    final List<Teacher> teachers = await getAllTeachers();
-    final List<String> emails = await getAllTeachersEmails();
-
-    return {
-      'teachers': teachers,
-      'emails': emails,
-    };
+    try {
+      final List<Teacher> teachers = await getAllTeachers();
+      final List<String> emails = await getAllTeachersEmails();
+      return {'teachers': teachers, 'emails': emails};
+    } catch (e) {
+      log("Error in getAllTeachersAndEmails: $e");
+      return {'teachers': [], 'emails': []};
+    }
   }
 }

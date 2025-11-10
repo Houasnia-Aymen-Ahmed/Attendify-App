@@ -46,48 +46,54 @@ class _RegisterState extends State<Register> {
           _gradeVal,
           _specialityVal,
         );
-        if (result == null) {
-          setState(() {
+
+        // Successful sign-up is handled by the auth stream listener in Wrapper/main.dart
+        // We only need to handle errors here.
+        if (result is Map) { // Check if it's an AuthError map
+          String errorCode = result['error_code'] ?? 'unknown_error';
+          String errorMessage = result['message'] ?? "An unknown error occurred.";
+
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+              if (errorCode == "not-hns-email") {
+                _error = "You must use an HNS-RE2SD account.";
+              } else if (errorCode == "no-email") {
+                _error = "You must select an email account to sign up.";
+              } else if (errorCode == "not-hns-teacher") {
+                _error = "Sorry, you don't have permission to register as a teacher. Please contact the administration.";
+              } else if (errorCode == "not-hns-admin") {
+                _error = "Sorry, you don't have permission to register as an admin. Please contact the administration.";
+              } else {
+                _error = errorMessage; // Display the message from AuthService
+              }
+            });
+          }
+        } else if (result == null) {
+           // This case might occur if AuthService returns null for some other reason
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+              _error = "Couldn't register with those credentials. Please try again.";
+            });
+          }
+        }
+        // If result is UserHandler, it's a success, Stream listener will navigate.
+        // If sign-up is successful, _isLoading should also be reset.
+        else if (mounted && result != null) { // result is UserHandler
+           setState(() {
             _isLoading = false;
-            _error =
-                "Couldn't Register with those Credientials, Please try again";
+            // _error remains empty
           });
         }
-      } on Exception catch (e) {
-        if (e.toString().contains("not-hns-email")) {
+
+      } catch (e) { // Catch-all for truly unexpected errors
+        if (mounted) {
           setState(() {
             _isLoading = false;
-            _error = "You must use an HNS-RE2SD account";
-          });
-        } else if (e.toString().contains("no-email")) {
-          setState(() {
-            _isLoading = false;
-            _error = "You must have select an email";
-          });
-        } else if (e.toString().contains("not-hns-teacher")) {
-          setState(() {
-            _isLoading = false;
-            _error =
-                "Sorry, you don't have permission to register as a teacher, please contact the administration";
-          });
-        } else if (e.toString().contains("not-hns-admin")) {
-          setState(() {
-            _isLoading = false;
-            _error =
-                "Sorry, you don't have permission to register as an admin, please contact the administration";
-          });
-        } else {
-          setState(() {
-            _isLoading = false;
-            _error = "An error occured while registering, Please try again\n$e";
+            _error = "A client-side error occurred during registration. Please try again.";
           });
         }
-      } catch (e) {
-        setState(() {
-          _isLoading = false;
-          _error =
-              "An server error occured while registering, Please try again";
-        });
       }
     }
   }
