@@ -43,11 +43,7 @@ Future removeConfirmationDialog(
             ),
             ElevatedButton(
               onPressed: () {
-                if (itemType == "teacher") {
-                  removeItem();
-                } else {
-                  removeItem();
-                }
+                removeItem;
                 Navigator.pop(context, true);
               },
               child: const Text("Delete"),
