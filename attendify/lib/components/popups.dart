@@ -190,7 +190,7 @@ void showOverlay(
   Overlay.of(context).insert(overlayEntry);
 }
 
-Future<bool?> infoTost(String msg) async {
+Future<bool?> infoToast(String msg) async {
   Fluttertoast.showToast(
     msg: msg,
     toastLength: Toast.LENGTH_LONG,
