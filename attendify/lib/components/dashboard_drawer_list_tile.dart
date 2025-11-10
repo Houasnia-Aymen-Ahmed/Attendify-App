@@ -6,7 +6,7 @@ class DashboardDrawerListTile extends StatelessWidget {
   final IconData icon;
   final bool selected;
   final VoidCallback? onTap;
-  final VoidCallback? onLongTap;
+  final VoidCallback? onLongPress;
 
   const DashboardDrawerListTile({
     super.key,
@@ -15,7 +15,7 @@ class DashboardDrawerListTile extends StatelessWidget {
     required this.icon,
     required this.selected,
     this.onTap,
-    this.onLongTap,
+    this.onLongPress,
   });
 
   @override
@@ -55,8 +55,9 @@ class DashboardDrawerListTile extends StatelessWidget {
           ),
         ),
         onTap: onTap,
-        onLongPress: onLongTap,
+        onLongPress,
       ),
     );
   }
 }
+
