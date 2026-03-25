@@ -16,10 +16,8 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# VS Code workspace files are local editor state and should not be tracked.
+.vscode/
 
 # Flutter/Dart/Pub related
 **/doc/api/
@@ -30,6 +28,8 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+!/lib/
+!/lib/**
 /lib/firebase_options.dart
 
 # Symbolication related
