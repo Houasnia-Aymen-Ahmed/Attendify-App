@@ -1,13 +1,14 @@
 import 'dart:ui';
-import 'package:attendify/views/auth/signin_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sign_in_button/sign_in_button.dart';
+
 import '../../shared/constants.dart';
+import 'signin_controller.dart';
 
 class SignIn extends ConsumerWidget {
-  final Function toggleView;
+  final VoidCallback toggleView;
   const SignIn({
     super.key,
     required this.toggleView,
@@ -17,17 +18,9 @@ class SignIn extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final signInState = ref.watch(signInControllerProvider);
     final signInController = ref.read(signInControllerProvider.notifier);
-
-    ref.listen<SignInState>(signInControllerProvider, (previous, next) {
-      if (next == SignInState.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(signInController.error ?? "An unknown error occurred."),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    });
+    final errorText = signInState == SignInState.error
+        ? signInController.error ?? ""
+        : "";
 
     return Container(
       alignment: Alignment.center,
@@ -72,24 +65,35 @@ class SignIn extends ConsumerWidget {
                           color: Colors.white,
                         ),
                       ),
-                      if (signInState == SignInState.loading)
-                        const CircularProgressIndicator()
-                      else
-                        Transform.scale(
-                          scale: 1.25,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 50),
-                            child: SignInButton(
-                              Buttons.google,
-                              padding: const EdgeInsets.all(5.0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              text: "Sign in with HNS-RE2SD",
-                              onPressed: () => signInController.signIn(),
+                      Transform.scale(
+                        scale: 1.25,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 50),
+                          child: SignInButton(
+                            Buttons.google,
+                            padding: const EdgeInsets.all(5.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            text: "Sign in with HNS-RE2SD",
+                            onPressed: signInController.signIn,
+                          ),
+                        ),
+                      ),
+                      if (errorText.isNotEmpty)
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 275),
+                          child: Text(
+                            errorText,
+                            style: TextStyle(
+                              color: Colors.red[900],
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
+                      if (signInState == SignInState.loading)
+                        const CircularProgressIndicator(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -105,7 +109,10 @@ class SignIn extends ConsumerWidget {
                                 Colors.white.withOpacity(0.1),
                               ),
                             ),
-                            onPressed: () => toggleView(),
+                            onPressed: () {
+                              signInController.reset();
+                              toggleView();
+                            },
                             child: Text(
                               "Create one",
                               style: txt().copyWith(

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/user.dart';
 import 'auth.dart';
 import 'databases.dart';
 
@@ -11,7 +12,7 @@ final databaseServiceProvider = Provider<DatabaseService>((ref) {
   return DatabaseService();
 });
 
-final authStateProvider = StreamProvider((ref) {
+final authStateProvider = StreamProvider<UserHandler?>((ref) {
   return ref.watch(authServiceProvider).user;
 });
 

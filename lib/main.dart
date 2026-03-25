@@ -1,9 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' show ProviderScope;
 
 import 'firebase_options.dart';
 import 'responsive/responsive_layout_screen.dart';
+import 'routes/routes.dart';
 import 'views/wrappers/wrapper.dart';
 
 void main() async {
@@ -26,6 +27,7 @@ class Attentdify extends StatelessWidget {
       title: "Attendify",
       theme: ThemeData.light(),
       home: const ResponsiveLayout(mobileScreenLayout: Wrapper()),
+      routes: generateRoutes(),
     );
   }
 }

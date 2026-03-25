@@ -1,13 +1,15 @@
 import 'dart:ui';
-import 'package:attendify/views/auth/register_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sign_in_button/sign_in_button.dart';
+
+import '../../components/custom_dropdown_btn.dart';
 import '../../shared/constants.dart';
+import 'register_controller.dart';
 
 class Register extends ConsumerStatefulWidget {
-  final Function toggleView;
+  final VoidCallback toggleView;
   const Register({
     super.key,
     required this.toggleView,
@@ -18,23 +20,39 @@ class Register extends ConsumerStatefulWidget {
 }
 
 class _RegisterState extends ConsumerState<Register> {
+  String _validationError = "";
+  bool _isDisabled = true, _isGradeDisabled = true;
   String? _typeVal, _gradeVal, _specialityVal;
+
+  Future<void> buttonController() async {
+    final registerController = ref.read(registerControllerProvider.notifier);
+
+    if (_typeVal == null) {
+      setState(() {
+        _validationError = "Please make sure to select a type";
+      });
+    } else if (_typeVal == "student" &&
+        (_gradeVal == null || _specialityVal == null)) {
+      setState(() {
+        _validationError = "Please make sure to select a 'Grade' & a 'Speciality'";
+      });
+    } else {
+      setState(() {
+        _validationError = "";
+      });
+      await registerController.signUp(_typeVal!, _gradeVal, _specialityVal);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final registerState = ref.watch(registerControllerProvider);
     final registerController = ref.read(registerControllerProvider.notifier);
-
-    ref.listen<RegisterState>(registerControllerProvider, (previous, next) {
-      if (next == RegisterState.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(registerController.error ?? "An unknown error occurred."),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    });
+    final errorText = _validationError.isNotEmpty
+        ? _validationError
+        : registerState == RegisterState.error
+            ? registerController.error ?? ""
+            : "";
 
     return Container(
       alignment: Alignment.center,
@@ -94,7 +112,15 @@ class _RegisterState extends ConsumerState<Register> {
                                 typeVal: _typeVal,
                                 textColor: Colors.white,
                                 onChanged: (String? newValue) {
+                                  registerController.reset();
                                   setState(() {
+                                    if (newValue != "student") {
+                                      _isGradeDisabled = true;
+                                      _isDisabled = true;
+                                    } else {
+                                      _isGradeDisabled = false;
+                                    }
+                                    _validationError = "";
                                     _typeVal = newValue;
                                     _gradeVal = null;
                                     _specialityVal = null;
@@ -116,16 +142,21 @@ class _RegisterState extends ConsumerState<Register> {
                               child: CustomDrowdownBtn(
                                 hint: "Choose grade",
                                 type: "grade",
-                                isDisabled: _typeVal != 'student',
+                                isDisabled: _isGradeDisabled,
                                 gradeVal: _gradeVal,
                                 isExpanded: true,
                                 textColor: Colors.white,
-                                onChanged: (String? newValue) {
-                                  setState(() {
-                                    _gradeVal = newValue;
-                                    _specialityVal = null;
-                                  });
-                                },
+                                onChanged: _isGradeDisabled
+                                    ? null
+                                    : (String? newValue) {
+                                        registerController.reset();
+                                        setState(() {
+                                          _isDisabled = false;
+                                          _validationError = "";
+                                          _gradeVal = newValue;
+                                          _specialityVal = null;
+                                        });
+                                      },
                               ),
                             ),
                           ),
@@ -138,47 +169,54 @@ class _RegisterState extends ConsumerState<Register> {
                               child: CustomDrowdownBtn(
                                 hint: "Choose speciality",
                                 type: "speciality",
-                                isDisabled: _gradeVal == null,
+                                isDisabled: _isDisabled,
                                 gradeVal: _gradeVal,
                                 specialityVal: _specialityVal,
                                 isExpanded: true,
                                 textColor: Colors.white,
-                                onChanged: (String? newValue) {
-                                  setState(() => _specialityVal = newValue);
-                                },
+                                onChanged: _isDisabled
+                                    ? null
+                                    : (String? newValue) {
+                                        registerController.reset();
+                                        setState(() {
+                                          _validationError = "";
+                                          _specialityVal = newValue;
+                                        });
+                                      },
                               ),
                             ),
                           ),
                         ],
                       ),
-                      if (registerState == RegisterState.loading)
-                        const CircularProgressIndicator()
-                      else
-                        Transform.scale(
-                          scale: 1.25,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 50),
-                            child: SignInButton(
-                              Buttons.google,
-                              padding: const EdgeInsets.all(5.0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              text: "Sign up with HNS-RE2SD",
-                              onPressed: () {
-                                if (_typeVal == null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please select a user type")));
-                                  return;
-                                }
-                                if (_typeVal == "student" && (_gradeVal == null || _specialityVal == null)) {
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please select a grade and speciality")));
-                                  return;
-                                }
-                                registerController.signUp(_typeVal!, _gradeVal, _specialityVal);
-                              },
+                      Transform.scale(
+                        scale: 1.25,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 50),
+                          child: SignInButton(
+                            Buttons.google,
+                            padding: const EdgeInsets.all(5.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            text: "Sign up with HNS-RE2SD",
+                            onPressed: buttonController,
+                          ),
+                        ),
+                      ),
+                      if (errorText.isNotEmpty)
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 275),
+                          child: Text(
+                            errorText,
+                            style: TextStyle(
+                              color: Colors.red[900],
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
+                      if (registerState == RegisterState.loading)
+                        const CircularProgressIndicator(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -194,7 +232,10 @@ class _RegisterState extends ConsumerState<Register> {
                                 Colors.white.withOpacity(0.1),
                               ),
                             ),
-                            onPressed: () => widget.toggleView(),
+                            onPressed: () {
+                              registerController.reset();
+                              widget.toggleView();
+                            },
                             child: Text(
                               "Sign In",
                               style: txt().copyWith(

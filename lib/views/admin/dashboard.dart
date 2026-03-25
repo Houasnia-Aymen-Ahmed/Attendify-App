@@ -4,14 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../components/drawer_footer.dart';
+import '../../components/image_item.dart';
+import '../../components/user_account_drawer_header.dart';
+import '../../models/module_model.dart';
 import '../../models/user_of_attendify.dart';
 import '../../shared/constants.dart';
 import '../../utils/shared_prefs_helper.dart';
 import 'add_item.dart';
 import 'all_modules_view.dart';
 import 'all_teachers_view.dart';
-import 'search_page.dart';
 import 'dashboard_stats_summary_view.dart';
+import 'search_page.dart';
 
 class Dashboard extends ConsumerStatefulWidget {
   final AttendifyUser admin;
@@ -25,9 +29,8 @@ class Dashboard extends ConsumerStatefulWidget {
 
 class _DashboardState extends ConsumerState<Dashboard> {
   int index = 1, _selectedListTileIndex = -1;
-
   final List<String> itemTypes = ["module", "teacher email"];
-  final List<String> itemsTypes = ["teacher", "module", "student"];
+  final List<String> itemsTypes = ["teacher", "module"];
   final navigationKey = GlobalKey<CurvedNavigationBarState>();
 
   final imageItems = <Widget>[
@@ -68,16 +71,14 @@ class _DashboardState extends ConsumerState<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final databaseService = ref.watch(databaseServiceProvider);
     final authService = ref.watch(authServiceProvider);
-    final modulesAsyncValue = ref.watch(allModulesProvider);
-    final studentsAsyncValue = ref.watch(allStudentsProvider);
-    final teachersAsyncValue = ref.watch(allTeachersAndEmailsProvider);
-
+    final databaseService = ref.watch(databaseServiceProvider);
+    final modulesAsync = ref.watch(allModulesProvider);
+    final studentsAsync = ref.watch(allStudentsProvider);
+    final teachersAsync = ref.watch(allTeachersAndEmailsProvider);
     Size screenSize = MediaQuery.of(context).size;
     double screenSizeWidth = screenSize.width,
         screenSizeHeight = screenSize.height;
-
     return SafeArea(
       top: false,
       child: Scaffold(
@@ -94,15 +95,8 @@ class _DashboardState extends ConsumerState<Dashboard> {
                 Icons.search,
               ),
               onPressed: () async {
-                dynamic currentAllItems;
-                if (index == 0) {
-                  currentAllItems = teachersAsyncValue.value?['teachers'] ?? [];
-                } else if (index == 1) {
-                  currentAllItems = modulesAsyncValue.value ?? [];
-                } else {
-                  currentAllItems = studentsAsyncValue.value ?? [];
-                }
-
+                final loadedModules = modulesAsync.value ?? <Module>[];
+                final loadedTeachers = teachersAsync.value?['teachers'] ?? <dynamic>[];
                 showSearch(
                   // ignore: use_build_context_synchronously
                   context: context,
@@ -112,7 +106,9 @@ class _DashboardState extends ConsumerState<Dashboard> {
                         await SharedPrefsHelper.getLastAccessedItems(
                       itemsTypes[index],
                     ),
-                    allItems: currentAllItems,
+                    allItems: index == 0
+                        ? loadedTeachers
+                        : loadedModules,
                     searchLabel: "Search for a ${itemsTypes[index]}",
                   ),
                 );
@@ -131,59 +127,54 @@ class _DashboardState extends ConsumerState<Dashboard> {
             color: const Color(0xFF153C77),
             animationCurve: Curves.easeInOut,
             animationDuration: const Duration(milliseconds: 250),
-            onTap: (newIndex) => setState(() => this.index = newIndex),
+            onTap: (index) => setState(() => this.index = index),
           ),
         ),
-        body: modulesAsyncValue.when(
-          data: (modules) => studentsAsyncValue.when(
-            data: (students) => teachersAsyncValue.when(
+        body: modulesAsync.when(
+          data: (modules) => studentsAsync.when(
+            data: (students) => teachersAsync.when(
               data: (teachersAndEmails) {
-                int totalModules = modules.length;
-                int activeModules = modules.where((m) => m.isActive).length;
-                int inactiveModules = totalModules - activeModules;
-                int totalTeachers = (teachersAndEmails['teachers'] as List).length;
-                int totalStudents = students.length;
+                final activeModules = modules.where((module) => module.isActive).length;
+                final inactiveModules = modules.length - activeModules;
+                final totalTeachers =
+                    (teachersAndEmails['teachers'] as List<dynamic>).length;
 
                 Widget screen;
                 switch (index) {
                   case 0:
                     screen = AllTeachersView(
                       dataTeachers: teachersAndEmails,
+                      databaseService: databaseService,
                     );
                     break;
                   case 1:
                     screen = AllModulesView(dataModules: modules);
                     break;
-                  case 2:
-                    screen = AllStudentsView(dataStudents: students);
-                    break;
                   default:
-                    screen = Container();
+                    screen = const SizedBox.shrink();
                 }
 
                 return Column(
                   children: [
                     AdminDashboardStatsSummaryView(
-                      totalModules: totalModules,
+                      totalModules: modules.length,
                       activeModules: activeModules,
                       inactiveModules: inactiveModules,
                       totalTeachers: totalTeachers,
-                      totalStudents: totalStudents,
+                      totalStudents: students.length,
                     ),
-                    Expanded(
-                      child: screen,
-                    ),
+                    Expanded(child: screen),
                   ],
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text(error.toString())),
+              error: (error, stackTrace) => Center(child: Text(error.toString())),
             ),
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(child: Text(error.toString())),
+            error: (error, stackTrace) => Center(child: Text(error.toString())),
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(child: Text(error.toString())),
+          error: (error, stackTrace) => Center(child: Text(error.toString())),
         ),
         drawer: Drawer(
           backgroundColor: Colors.blue[100],
@@ -197,26 +188,14 @@ class _DashboardState extends ConsumerState<Dashboard> {
                       email: authService.currentUsr?.email ?? "email",
                       profileURL: widget.admin.photoURL,
                       hasLogout: true,
-                      onLogout: () async {
-                        final bool success = await authService.logout();
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(success
-                                  ? "Logged out successfully"
-                                  : "Error logging out. Please try again."),
-                              backgroundColor: success ? Colors.green : Colors.red,
-                            ),
-                          );
-                        }
-                      },
+                      onLogout: () => authService.logout(context),
                     ),
                     const SizedBox(height: 10),
                     ...dashboardDrawerList(
                       context: context,
                       selectedIndex: _selectedListTileIndex,
-                      onTap: (idx) => _onItemTapped(
-                        idx,
+                      onTap: (index) => _onItemTapped(
+                        index,
                         screenSizeWidth,
                         screenSizeHeight,
                       ),

@@ -1,28 +1,31 @@
-import 'package:attendify/services/providers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../components/custom_dropdown_btn.dart';
 import '../../../components/popups.dart';
 import '../../../models/attendify_teacher.dart';
 import '../../../models/module_model.dart';
-import '../../../shared/constants.dart';
+import '../../../services/auth.dart';
+import '../../../services/databases.dart';
 import '../../../shared/school_data.dart';
 
-class SelectModule extends ConsumerStatefulWidget {
+class SelectModule extends StatefulWidget {
   final Teacher teacher;
   final List<Module>? modules;
+  final DatabaseService databaseService;
+  final AuthService authService;
   const SelectModule({
     super.key,
     required this.teacher,
     required this.modules,
+    required this.databaseService,
+    required this.authService,
   });
 
   @override
-  ConsumerState<SelectModule> createState() => _SelectModuleState();
+  State<SelectModule> createState() => _SelectModuleState();
 }
 
-class _SelectModuleState extends ConsumerState<SelectModule> {
+class _SelectModuleState extends State<SelectModule> {
   final List<String> _addedModules = [], _selectedModules = [];
   late List<Module> _selectedModulesModel;
   String? _gradeVal, _specialityVal;
@@ -62,8 +65,6 @@ class _SelectModuleState extends ConsumerState<SelectModule> {
 
   @override
   Widget build(BuildContext context) {
-    final authService = ref.watch(authServiceProvider);
-    final databaseService = ref.watch(databaseServiceProvider);
     List<String>? modules = [];
     if (modulesMap.containsKey(_gradeVal) &&
         modulesMap[_gradeVal]?.containsKey(_specialityVal) == true) {
@@ -79,27 +80,11 @@ class _SelectModuleState extends ConsumerState<SelectModule> {
         actions: [
           IconButton(
             onPressed: () {
-              authService.logout();
+              widget.authService.logout(context);
             },
             icon: const Icon(Icons.logout_rounded),
           )
         ],
-      ),
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            userAccountDrawerHeader(
-              username: widget.teacher.userName,
-              email:
-                  authService.currentUsr?.email ?? "user@hns-re2sd.dz",
-              profileURL: authService.currentUsr?.photoURL ?? "url",
-            ),
-            ListTile(
-              title: Text(widget.teacher.userName),
-            ),
-            drawerFooter(),
-          ],
-        ),
       ),
       body: Column(
         children: [
@@ -240,7 +225,7 @@ class _SelectModuleState extends ConsumerState<SelectModule> {
                                   moduleInfo[3].toString().padLeft(2, '0'));
                               String moduleName =
                                   modulesMap[grade]![speciality]![moduleIndex];
-                              await databaseService
+                              await widget.databaseService
                                   .updateModuleSpecificData(
                                 uid: module,
                                 name: moduleName,
@@ -256,7 +241,7 @@ class _SelectModuleState extends ConsumerState<SelectModule> {
                                 false,
                               );
                             }
-                            await databaseService
+                            await widget.databaseService
                                 .updateTeacherSpecificData(
                               modules: _addedModules,
                             );

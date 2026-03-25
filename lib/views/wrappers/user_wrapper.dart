@@ -1,30 +1,32 @@
-import 'package:attendify/services/providers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/attendify_student.dart';
 import '../../models/attendify_teacher.dart';
 import '../../models/user.dart';
 import '../../models/user_of_attendify.dart';
+import '../../services/auth.dart';
+import '../../services/databases.dart';
 import '../../shared/error_pages.dart';
 import '../../shared/loading.dart';
 import '../admin/dashboard.dart';
 import '../home/student/student_view.dart';
 import '../home/teacher/teacher_view.dart';
 
-class UserWrapper extends ConsumerWidget {
+class UserWrapper extends StatelessWidget {
   final UserHandler user;
+  final DatabaseService databaseService;
+  final AuthService authService;
   const UserWrapper({
     super.key,
     required this.user,
+    required this.databaseService,
+    required this.authService,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final databaseService = ref.watch(databaseServiceProvider);
-
+  Widget build(BuildContext context) {
     return StreamBuilder<AttendifyUser>(
-      stream: databaseService.getUserDataStream(user.uid!),
+      stream: databaseService.getUserDataStream(authService.currentUsr!.uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Loading();
@@ -39,32 +41,34 @@ class UserWrapper extends ConsumerWidget {
             message: "No user data available",
           );
         } else {
-          AttendifyUser userData = snapshot.data!;
-          if (userData.userType == "admin") {
-            return Dashboard(
-              admin: userData,
-            );
-          } else if (userData.userType == 'teacher') {
+          AttendifyUser user = snapshot.data!;
+          if (user.userType == "admin") {
+            return Dashboard(admin: user);
+          } else if (user.userType == 'teacher') {
             Teacher teacher = Teacher(
-              userName: userData.userName,
-              userType: userData.userType,
-              uid: userData.uid,
-              email: userData.email,
-              photoURL: userData.photoURL,
+              userName: user.userName,
+              userType: user.userType,
+              uid: user.uid,
+              email: user.email,
+              photoURL: user.photoURL,
             );
             return TeacherView(
               teacher: teacher,
+              databaseService: databaseService,
+              authService: authService,
             );
           } else {
             Student student = Student(
-              userName: userData.userName,
-              userType: userData.userType,
-              uid: userData.uid,
-              email: userData.email,
-              photoURL: userData.photoURL,
+              userName: user.userName,
+              userType: user.userType,
+              uid: user.uid,
+              email: user.email,
+              photoURL: user.photoURL,
             );
             return StudentView(
               student: student,
+              databaseService: databaseService,
+              authService: authService,
             );
           }
         }

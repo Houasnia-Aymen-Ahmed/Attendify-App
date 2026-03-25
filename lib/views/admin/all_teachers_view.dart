@@ -1,26 +1,31 @@
-import 'package:attendify/services/providers.dart';
-import 'package:attendify/shared/constants.dart';
+import 'package:attendify/services/databases.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../components/popups.dart';
 import '../../models/attendify_teacher.dart';
 
-class AllTeachersView extends ConsumerStatefulWidget {
-  const AllTeachersView({super.key});
+class AllTeachersView extends StatefulWidget {
+  final Map<String, dynamic> dataTeachers;
+  final DatabaseService databaseService;
+  const AllTeachersView(
+      {super.key, required this.dataTeachers, required this.databaseService});
 
   @override
-  ConsumerState<AllTeachersView> createState() => _AllTeachersViewState();
+  State<AllTeachersView> createState() => _AllTeachersViewState();
 }
 
-class _AllTeachersViewState extends ConsumerState<AllTeachersView>
+class _AllTeachersViewState extends State<AllTeachersView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  List<Teacher> allTeachers = [], teachers = [];
+  List<String> allEmails = [];
 
   @override
   void initState() {
     super.initState();
+    allTeachers = widget.dataTeachers['teachers'] as List<Teacher>;
+    allEmails = widget.dataTeachers['emails'] as List<String>;
     _tabController = TabController(length: 2, vsync: this);
   }
 
@@ -32,59 +37,53 @@ class _AllTeachersViewState extends ConsumerState<AllTeachersView>
 
   @override
   Widget build(BuildContext context) {
-    final teachersAsyncValue = ref.watch(allTeachersAndEmailsProvider);
-    return teachersAsyncValue.when(
-      data: (teachersAndEmails) {
-        final allTeachers = teachersAndEmails['teachers'] as List<Teacher>;
-        final allEmails = teachersAndEmails['emails'] as List<String>;
-        return Column(
-          children: <Widget>[
-            TabBar(
-              indicatorPadding: const EdgeInsets.all(5.0),
-              padding: const EdgeInsets.all(10.0),
-              labelPadding: const EdgeInsets.all(5.0),
-              indicatorColor: Colors.blue[900],
-              labelColor: Colors.blue[900],
-              unselectedLabelColor: Colors.blue[400],
-              dividerColor: Colors.blue[100],
-              dividerHeight: 2,
-              controller: _tabController,
-              tabs: const [
-                Column(
-                  children: [
-                    Icon(FontAwesomeIcons.personChalkboard),
-                    Text(
-                      "Teachers",
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ],
-                ),
-                Column(
-                  children: [
-                    Icon(Icons.email_rounded),
-                    Text(
-                      "Emails",
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ],
+    if (teachers.isEmpty) {
+      teachers = allTeachers;
+    }
+    return Column(
+      children: <Widget>[
+        TabBar(
+          indicatorPadding: const EdgeInsets.all(5.0),
+          padding: const EdgeInsets.all(10.0),
+          labelPadding: const EdgeInsets.all(5.0),
+          indicatorColor: Colors.blue[900],
+          labelColor: Colors.blue[900],
+          unselectedLabelColor: Colors.blue[400],
+          dividerColor: Colors.blue[100],
+          dividerHeight: 2,
+          controller: _tabController,
+          tabs: const [
+            Column(
+              children: [
+                Icon(FontAwesomeIcons.personChalkboard),
+                Text(
+                  "Teachers",
+                  style: TextStyle(fontSize: 16),
                 ),
               ],
             ),
-            Expanded(
-              flex: 10,
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  listViewBuilder(context, allTeachers, "teachers"),
-                  listViewBuilder(context, allEmails, "emails"),
-                ],
-              ),
+            Column(
+              children: [
+                Icon(Icons.email_rounded),
+                Text(
+                  "Emails",
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
             ),
           ],
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text(error.toString())),
+        ),
+        Expanded(
+          flex: 10,
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              listViewBuilder(context, teachers, "teachers"),
+              listViewBuilder(context, allEmails, "emails"),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -128,14 +127,11 @@ class _AllTeachersViewState extends ConsumerState<AllTeachersView>
                 removeConfirmationDialog(
                   context,
                   itemsType == "teachers" ? "teacher" : "email",
-                  () {
-                    final databaseService = ref.read(databaseServiceProvider);
-                    if (itemsType == "teachers") {
-                      databaseService.removeTeacherById(items[index].uid);
-                    } else {
-                      databaseService.removeTeacherEmail(items[index]);
-                    }
-                  },
+                  itemsType == "teachers"
+                      ? () => widget.databaseService
+                          .removeTeacherById(items[index].uid)
+                      : () => widget.databaseService
+                          .removeTeacherEmail(items[index]),
                 );
               },
             ),
