@@ -5,11 +5,14 @@ import '../../../models/module_model.dart';
 import '../../../services/databases.dart';
 import '../../../shared/error_pages.dart';
 import '../../../shared/loading.dart';
+import '../../../theme/attendify_theme.dart';
+import '../../../theme/attendify_ui.dart';
 import 'presence_table.dart';
 
-class ModuleViewFromTeacher extends StatefulWidget {
+class ModuleViewFromTeacher extends StatelessWidget {
   final Module module;
   final DatabaseService databaseService;
+
   const ModuleViewFromTeacher({
     super.key,
     required this.module,
@@ -17,79 +20,69 @@ class ModuleViewFromTeacher extends StatefulWidget {
   });
 
   @override
-  State<ModuleViewFromTeacher> createState() => _ModuleViewFromTeacherState();
-}
-
-class _ModuleViewFromTeacherState extends State<ModuleViewFromTeacher> {
-  @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Student>>(
-      stream: widget.databaseService.getStudentsList(
-        widget.module.students.keys.toList(),
-      ),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+      stream: databaseService.getStudentsList(module.students.keys.toList()),
+      builder: (context, studentsSnapshot) {
+        if (studentsSnapshot.connectionState == ConnectionState.waiting) {
           return const Loading();
-        } else if (snapshot.hasError) {
+        } else if (studentsSnapshot.hasError) {
           return ErrorPages(
             title: "Server Error",
-            message: snapshot.error.toString(),
+            message: studentsSnapshot.error.toString(),
           );
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        } else if (!studentsSnapshot.hasData || studentsSnapshot.data!.isEmpty) {
           return const ErrorPages(
             title: "Error 404: Not Found",
             message: "There are no students for this module",
           );
-        } else {
-          List<Student> students = snapshot.data!;
-          return StreamBuilder<Module>(
-            stream: widget.databaseService.getModuleStream(widget.module.uid),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return ErrorPages(
-                  title: "Server Error",
-                  message: snapshot.error.toString(),
-                );
-              } else if (!snapshot.hasData) {
-                return const Loading();
-              } else {
-                Module module = snapshot.data!;
-                return Scaffold(
-                  appBar: AppBar(
-                    title: Row(
-                      children: [
-                        Text(
-                          module.name,
-                          style: const TextStyle(
-                            fontSize: 17.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                          child: Icon(
-                            Icons.circle_rounded,
-                            size: 15,
-                            color: module.isActive
-                                ? Colors.green
-                                : Colors
-                                    .red,
-                          ),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.blue[200],
-                  ),
-                  body: PresenceTable(
-                    students: students,
-                    module: module,
-                    databaseService: widget.databaseService,
-                  ),
-                );
-              }
-            },
-          );
         }
+
+        final students = studentsSnapshot.data!;
+
+        return StreamBuilder<Module>(
+          stream: databaseService.getModuleStream(module.uid),
+          builder: (context, moduleSnapshot) {
+            if (moduleSnapshot.connectionState == ConnectionState.waiting) {
+              return const Loading();
+            } else if (moduleSnapshot.hasError) {
+              return ErrorPages(
+                title: "Server Error",
+                message: moduleSnapshot.error.toString(),
+              );
+            } else if (!moduleSnapshot.hasData) {
+              return const Loading();
+            }
+
+            final refreshedModule = moduleSnapshot.data!;
+
+            return Scaffold(
+              body: AttendifyScreen(
+                scrollable: false,
+                expandChild: true,
+                leading: const Icon(
+                  Icons.menu_book_rounded,
+                  color: AttendifyPalette.primary,
+                ),
+                title: refreshedModule.name,
+                subtitle:
+                    '${refreshedModule.grade} year • ${refreshedModule.speciality}',
+                actions: [
+                  IconButton(
+                    tooltip: 'Back',
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
+                child: PresenceTable(
+                  students: students,
+                  module: refreshedModule,
+                  databaseService: databaseService,
+                ),
+              ),
+            );
+          },
+        );
       },
     );
   }

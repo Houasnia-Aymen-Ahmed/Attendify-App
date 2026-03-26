@@ -1,143 +1,203 @@
-import 'package:attendify/services/databases.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../components/popups.dart';
 import '../../models/attendify_teacher.dart';
+import '../../services/databases.dart';
+import '../../theme/attendify_theme.dart';
+import '../../theme/attendify_ui.dart';
 
 class AllTeachersView extends StatefulWidget {
   final Map<String, dynamic> dataTeachers;
   final DatabaseService databaseService;
-  const AllTeachersView(
-      {super.key, required this.dataTeachers, required this.databaseService});
+
+  const AllTeachersView({
+    super.key,
+    required this.dataTeachers,
+    required this.databaseService,
+  });
 
   @override
   State<AllTeachersView> createState() => _AllTeachersViewState();
 }
 
-class _AllTeachersViewState extends State<AllTeachersView>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-  List<Teacher> allTeachers = [], teachers = [];
-  List<String> allEmails = [];
+class _AllTeachersViewState extends State<AllTeachersView> {
+  bool showEmails = false;
 
-  @override
-  void initState() {
-    super.initState();
-    allTeachers = widget.dataTeachers['teachers'] as List<Teacher>;
-    allEmails = widget.dataTeachers['emails'] as List<String>;
-    _tabController = TabController(length: 2, vsync: this);
-  }
+  List<Teacher> get _teachers =>
+      (widget.dataTeachers['teachers'] as List<Teacher>)
+        ..sort((left, right) => left.userName.toLowerCase().compareTo(right.userName.toLowerCase()));
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+  List<String> get _emails =>
+      (widget.dataTeachers['emails'] as List<String>)
+        ..sort((left, right) => left.toLowerCase().compareTo(right.toLowerCase()));
 
   @override
   Widget build(BuildContext context) {
-    if (teachers.isEmpty) {
-      teachers = allTeachers;
-    }
+    final teachers = _teachers;
+    final emails = _emails;
+
     return Column(
-      children: <Widget>[
-        TabBar(
-          indicatorPadding: const EdgeInsets.all(5.0),
-          padding: const EdgeInsets.all(10.0),
-          labelPadding: const EdgeInsets.all(5.0),
-          indicatorColor: Colors.blue[900],
-          labelColor: Colors.blue[900],
-          unselectedLabelColor: Colors.blue[400],
-          dividerColor: Colors.blue[100],
-          dividerHeight: 2,
-          controller: _tabController,
-          tabs: const [
-            Column(
-              children: [
-                Icon(FontAwesomeIcons.personChalkboard),
-                Text(
-                  "Teachers",
-                  style: TextStyle(fontSize: 16),
-                ),
-              ],
-            ),
-            Column(
-              children: [
-                Icon(Icons.email_rounded),
-                Text(
-                  "Emails",
-                  style: TextStyle(fontSize: 16),
-                ),
-              ],
-            ),
-          ],
-        ),
-        Expanded(
-          flex: 10,
-          child: TabBarView(
-            controller: _tabController,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AttendifySurface(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              listViewBuilder(context, teachers, "teachers"),
-              listViewBuilder(context, allEmails, "emails"),
+              Text(
+                'Faculty management',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: const Text('Teachers'),
+                    selected: !showEmails,
+                    onSelected: (_) => setState(() => showEmails = false),
+                  ),
+                  ChoiceChip(
+                    label: const Text('Whitelisted emails'),
+                    selected: showEmails,
+                    onSelected: (_) => setState(() => showEmails = true),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: showEmails
+              ? emails.isEmpty
+                  ? const Center(
+                      child: AttendifyEmptyState(
+                        title: 'No teacher emails',
+                        message:
+                            'Add a teacher email from the overview actions to allow a new staff member to register.',
+                      ),
+                    )
+                  : ListView.separated(
+                      itemCount: emails.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final email = emails[index];
+                        return AttendifySurface(
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.verified_user_rounded,
+                                color: AttendifyPalette.secondary,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      email,
+                                      style: Theme.of(context).textTheme.titleMedium,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Whitelisted for teacher registration',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: AttendifyPalette.mutedText,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: 'Remove email',
+                                onPressed: () {
+                                  removeConfirmationDialog(
+                                    context,
+                                    "email",
+                                    () => widget.databaseService.removeTeacherEmail(email),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: AttendifyPalette.error,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    )
+              : teachers.isEmpty
+                  ? const Center(
+                      child: AttendifyEmptyState(
+                        title: 'No teachers yet',
+                        message:
+                            'Once teachers register with an approved email, they will appear here for review.',
+                      ),
+                    )
+                  : ListView.separated(
+                      itemCount: teachers.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final teacher = teachers[index];
+                        final assignedModules = teacher.modules?.length ?? 0;
+                        return AttendifySurface(
+                          child: Row(
+                            children: [
+                              AttendifyUserAvatar(imageUrl: teacher.photoURL),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      teacher.userName,
+                                      style: Theme.of(context).textTheme.titleMedium,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      teacher.email,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: AttendifyPalette.mutedText,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    AttendifyStatusChip(
+                                      label: '$assignedModules assigned modules',
+                                      color: AttendifyPalette.secondary,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: 'Remove teacher',
+                                onPressed: () {
+                                  removeConfirmationDialog(
+                                    context,
+                                    "teacher",
+                                    () => widget.databaseService
+                                        .removeTeacherById(teacher.uid),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: AttendifyPalette.error,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+        ),
       ],
-    );
-  }
-
-  Widget listViewBuilder(
-    BuildContext context,
-    List items,
-    String itemsType,
-  ) {
-    return ListView.builder(
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Card(
-            color: Colors.blue[100],
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15.0),
-            ),
-            child: ListTile(
-              trailing: const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Icon(
-                  Icons.delete_outlined,
-                  color: Colors.red,
-                ),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15.0),
-              ),
-              splashColor: Colors.blue[300],
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 25.0,
-                vertical: 5.0,
-              ),
-              title: Text(
-                itemsType == "teachers" ? items[index].userName : items[index],
-                style: const TextStyle(fontSize: 18),
-              ),
-              titleAlignment: ListTileTitleAlignment.threeLine,
-              onLongPress: () {
-                removeConfirmationDialog(
-                  context,
-                  itemsType == "teachers" ? "teacher" : "email",
-                  itemsType == "teachers"
-                      ? () => widget.databaseService
-                          .removeTeacherById(items[index].uid)
-                      : () => widget.databaseService
-                          .removeTeacherEmail(items[index]),
-                );
-              },
-            ),
-          ),
-        );
-      },
     );
   }
 }

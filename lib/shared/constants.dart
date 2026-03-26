@@ -3,18 +3,19 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../components/dashboard_drawer_list_tile.dart';
+import '../theme/attendify_theme.dart';
 
-TextStyle txt() => GoogleFonts.poppins(
-      color: Colors.white,
+TextStyle txt() => GoogleFonts.inter(
+      color: AttendifyPalette.primary,
       fontSize: 15,
-      fontWeight: FontWeight.bold,
+      fontWeight: FontWeight.w700,
     );
 
 final textInputDecoration = InputDecoration(
   hintText: 'Module Name',
-  hintStyle: GoogleFonts.poppins(
-    fontSize: 15,
-    color: Colors.black38,
+  hintStyle: GoogleFonts.inter(
+    fontSize: 14,
+    color: AttendifyPalette.mutedText,
   ),
   filled: true,
   border: outLineBorder(),
@@ -22,18 +23,17 @@ final textInputDecoration = InputDecoration(
   focusedBorder: outLineBorder(),
 );
 
-var dropDownTextStyle = GoogleFonts.poppins(
-  color: Colors.black,
+var dropDownTextStyle = GoogleFonts.inter(
+  color: AttendifyPalette.text,
   fontSize: 15,
-  fontWeight: FontWeight.w500,
+  fontWeight: FontWeight.w600,
 );
 
 OutlineInputBorder outLineBorder() => OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15),
-      borderSide: BorderSide(
-        color: Colors.blue[900]!,
+      borderRadius: BorderRadius.circular(18),
+      borderSide: const BorderSide(
+        color: AttendifyPalette.outline,
         width: 1.0,
-        style: BorderStyle.solid,
       ),
     );
 

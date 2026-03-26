@@ -94,7 +94,7 @@ class _SelectModuleState extends State<SelectModule> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: CustomDrowdownBtn(
+                  child: CustomDropdownBtn(
                     hint: "Choose grade",
                     type: "grade",
                     gradeVal: _gradeVal,
@@ -111,7 +111,7 @@ class _SelectModuleState extends State<SelectModule> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: CustomDrowdownBtn(
+                  child: CustomDropdownBtn(
                     hint: "Choose speciality",
                     type: "speciality",
                     isDisabled: _isDisabled,

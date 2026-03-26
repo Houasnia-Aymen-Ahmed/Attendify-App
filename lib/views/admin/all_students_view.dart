@@ -1,71 +1,78 @@
 import 'package:flutter/material.dart';
 
 import '../../models/attendify_student.dart';
+import '../../theme/attendify_theme.dart';
+import '../../theme/attendify_ui.dart';
 
-class AllStudentsView extends StatefulWidget {
+class AllStudentsView extends StatelessWidget {
   final List<Student> dataStudents;
-  const AllStudentsView({super.key, required this.dataStudents});
 
-  @override
-  State<AllStudentsView> createState() => _AllStudentsViewState();
-}
-
-class _AllStudentsViewState extends State<AllStudentsView> {
-  List<Student> allStudents = [], students = [], searchHistory = [];
-
-  @override
-  void initState() {
-    super.initState();
-    allStudents = widget.dataStudents;
-  }
+  const AllStudentsView({
+    super.key,
+    required this.dataStudents,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        const Padding(
-          padding: EdgeInsets.all(20.0),
-          child: Text(
-            'All Students',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+    final students = [...dataStudents]
+      ..sort((left, right) => left.userName.toLowerCase().compareTo(right.userName.toLowerCase()));
+
+    if (students.isEmpty) {
+      return const Center(
+        child: AttendifyEmptyState(
+          title: 'No students found',
+          message: 'Student accounts will appear here once registration completes.',
         ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: students.isEmpty ? allStudents.length : students.length,
-            itemBuilder: (context, index) {
-              final student =
-                  students.isEmpty ? allStudents[index] : students[index];
-              return Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Card(
-                  color: Colors.blue[100],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                  child: ListTile(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    splashColor: Colors.blue[300],
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 25.0,
-                      vertical: 5.0,
-                    ),
-                    title: Text(
+      );
+    }
+
+    return ListView.separated(
+      itemCount: students.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final student = students[index];
+        return AttendifySurface(
+          child: Row(
+            children: [
+              AttendifyUserAvatar(imageUrl: student.photoURL),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
                       student.userName,
-                      style: const TextStyle(fontSize: 18),
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                  ),
+                    const SizedBox(height: 4),
+                    Text(
+                      student.email,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AttendifyPalette.mutedText,
+                          ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        AttendifyStatusChip(
+                          label: '${student.grade ?? '-'} year',
+                          color: AttendifyPalette.tertiary,
+                        ),
+                        AttendifyStatusChip(
+                          label: student.speciality ?? 'No speciality',
+                          color: AttendifyPalette.secondary,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              );
-            },
+              ),
+            ],
           ),
-        )
-      ],
+        );
+      },
     );
   }
 }

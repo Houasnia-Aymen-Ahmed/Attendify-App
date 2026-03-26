@@ -7,18 +7,36 @@ import '../../shared/loading.dart';
 import '../auth/authenticate.dart';
 import 'user_wrapper.dart';
 
-class Wrapper extends ConsumerWidget {
+class Wrapper extends ConsumerStatefulWidget {
   const Wrapper({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<Wrapper> createState() => _WrapperState();
+}
+
+class _WrapperState extends ConsumerState<Wrapper> {
+  String? _registeredTokenUserId;
+
+  @override
+  Widget build(BuildContext context) {
     final authService = ref.watch(authServiceProvider);
     final databaseService = ref.watch(databaseServiceProvider);
 
     return ref.watch(authStateProvider).when(
       data: (user) {
         if (user == null) {
+          _registeredTokenUserId = null;
           return const Authenticate();
+        }
+
+        // Register FCM token once per user session
+        if (_registeredTokenUserId != user.uid) {
+          _registeredTokenUserId = user.uid;
+          Future.microtask(
+            () => ref
+                .read(notificationServiceProvider)
+                .registerDeviceToken(user.uid!),
+          );
         }
 
         return UserWrapper(
@@ -28,8 +46,8 @@ class Wrapper extends ConsumerWidget {
         );
       },
       loading: () => const Loading(),
-      error: (error, stackTrace) => ErrorPages(
-        title: "Auth Error",
+      error: (error, _) => ErrorPages(
+        title: 'Auth Error',
         message: error.toString(),
       ),
     );

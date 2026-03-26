@@ -1,11 +1,14 @@
-import 'package:attendify/services/databases.dart';
 import 'package:flutter/material.dart';
 
 import '../models/attendify_student.dart';
 import '../models/attendify_teacher.dart';
 import '../models/module_model.dart';
+import '../services/databases.dart';
+import '../theme/attendify_theme.dart';
+import '../theme/attendify_ui.dart';
+import '../utils/module_metrics.dart';
 
-class ModuleListView extends StatefulWidget {
+class ModuleListView extends StatelessWidget {
   final List<Module> modules;
   final DatabaseService databaseService;
   final String userType;
@@ -21,80 +24,181 @@ class ModuleListView extends StatefulWidget {
     this.teacher,
   });
 
-  @override
-  State<ModuleListView> createState() => _ModuleListViewState();
-}
-
-class _ModuleListViewState extends State<ModuleListView> {
-  dynamic gotoModule(BuildContext context, Module module) {
-    if (widget.userType == "student") {
-      if (module.isActive) {
-        return () => Navigator.pushNamed(
-              context,
-              '/moduleViewFromStudent',
-              arguments: {
-                'module': module,
-                'student': widget.student,
-                'databaseService': widget.databaseService,
-              },
-            );
-      } else {
+  VoidCallback? _gotoModule(BuildContext context, Module module) {
+    if (userType == "student") {
+      if (!module.isActive) {
         return null;
       }
-    } else {
       return () => Navigator.pushNamed(
             context,
-            '/moduleViewFromTeacher',
+            '/moduleViewFromStudent',
             arguments: {
               'module': module,
-              'databaseService': widget.databaseService,
+              'student': student,
+              'databaseService': databaseService,
             },
           );
     }
+
+    return () => Navigator.pushNamed(
+          context,
+          '/moduleViewFromTeacher',
+          arguments: {
+            'module': module,
+            'databaseService': databaseService,
+          },
+        );
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: widget.modules.length,
-      itemBuilder: (BuildContext context, int index) {
-        return Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Card(
-            color: Colors.blue[100],
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15.0),
-            ),
-            child: ListTile(
-              enabled: widget.userType == "student"
-                  ? widget.modules[index].isActive
-                  : true,
-              leading: Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: Icon(
-                  Icons.circle_rounded,
-                  color: widget.modules[index].isActive
-                      ? Colors.green[900]
-                      : Colors.red,
+    if (modules.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final orderedModules = [...modules]
+      ..sort((left, right) => left.name.toLowerCase().compareTo(right.name.toLowerCase()));
+
+    return ListView.separated(
+      itemCount: orderedModules.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 14),
+      itemBuilder: (context, index) {
+        final module = orderedModules[index];
+        final onTap = _gotoModule(context, module);
+        final attendanceRate = moduleAttendancePercentage(module);
+        final studentCount = moduleStudentCount(module);
+
+        return Opacity(
+          opacity: userType == "student" && !module.isActive ? 0.62 : 1,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(24),
+              child: AttendifySurface(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                module.name,
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '${module.grade} year • ${module.speciality}',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: AttendifyPalette.mutedText,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        AttendifyStatusChip(
+                          label: module.isActive ? 'Session active' : 'Inactive',
+                          color: module.isActive
+                              ? AttendifyPalette.secondary
+                              : AttendifyPalette.error,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _ModuleMetric(
+                            label: 'Students',
+                            value: '$studentCount',
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _ModuleMetric(
+                            label: 'Attendance',
+                            value: '${attendanceRate.toStringAsFixed(0)}%',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            userType == "student"
+                                ? module.isActive
+                                    ? 'Open the module to confirm your check-in and review history.'
+                                    : 'This module becomes interactive only while the teacher session is open.'
+                                : 'Open the module to manage today’s session, attendance, and exports.',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AttendifyPalette.mutedText,
+                                ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: AttendifyPalette.surfaceMuted,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: AttendifyPalette.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              trailing: const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Icon(
-                  Icons.arrow_forward_ios_rounded,
-                ),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15.0),
-              ),
-              splashColor: Colors.blue[300],
-              contentPadding: const EdgeInsets.all(5.0),
-              title: Text(widget.modules[index].name),
-              onTap: gotoModule(context, widget.modules[index]),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class _ModuleMetric extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _ModuleMetric({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AttendifyPalette.surfaceMuted,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ],
+      ),
     );
   }
 }

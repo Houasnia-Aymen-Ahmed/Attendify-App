@@ -1,0 +1,182 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function userType() {
+      return get(/databases/$(database)/documents/UserCollection/$(uid())).data.userType;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && userType() == 'admin';
+    }
+
+    function isTeacher() {
+      return isSignedIn() && userType() == 'teacher';
+    }
+
+    function isStudent() {
+      return isSignedIn() && userType() == 'student';
+    }
+
+    function isAdminOrTeacher() {
+      return isAdmin() || isTeacher();
+    }
+
+    // ── UserCollection ─────────────────────────────────────────────────────────
+
+    match /UserCollection/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && uid() == userId;
+    }
+
+    // ── TeacherCollection / StudentCollection ──────────────────────────────────
+
+    match /TeacherCollection/{teacherId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && uid() == teacherId;
+    }
+
+    match /StudentCollection/{studentId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && uid() == studentId;
+    }
+
+    // ── Email whitelists ───────────────────────────────────────────────────────
+
+    match /TeacherEmailsCollection/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /AdminEmailsCollection/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ── Modules ────────────────────────────────────────────────────────────────
+
+    match /Modules/{moduleId} {
+      allow read: if isSignedIn();
+      allow write: if isAdminOrTeacher();
+    }
+
+    // ── LiveSessions ───────────────────────────────────────────────────────────
+
+    match /LiveSessions/{sessionId} {
+      allow read: if isSignedIn();
+
+      allow create: if isAdminOrTeacher()
+        && request.resource.data.teacherId == uid()
+        && request.resource.data.status == 'active';
+
+      // Teachers can update their own sessions (stop, send codes timestamp)
+      allow update: if isAdminOrTeacher()
+        && resource.data.teacherId == uid();
+
+      allow delete: if false;
+    }
+
+    // ── SessionCodes ───────────────────────────────────────────────────────────
+    // Each document ID is {sessionId}_{studentId}.
+    // Students can only read their own code; only teachers/admins write them.
+
+    match /SessionCodes/{codeId} {
+      allow read: if isAdminOrTeacher()
+        || (isStudent() && resource.data.studentId == uid());
+
+      allow write: if isAdminOrTeacher();
+    }
+
+    // ── SessionCheckIns ────────────────────────────────────────────────────────
+
+    match /SessionCheckIns/{checkInId} {
+      allow read: if isAdminOrTeacher()
+        || (isStudent() && resource.data.studentId == uid());
+
+      allow create: if isStudent()
+        && request.resource.data.studentId == uid()
+        && sessionIsActive(request.resource.data.sessionId)
+        && codeIsValid(
+            request.resource.data.sessionId,
+            uid(),
+            request.resource.data.code,
+           )
+        && !alreadyCheckedIn(request.resource.data.sessionId);
+
+      allow update, delete: if false;
+    }
+
+    // ── CodeRequests ───────────────────────────────────────────────────────────
+
+    match /CodeRequests/{requestId} {
+      allow read: if isAdminOrTeacher()
+        || (isStudent() && resource.data.studentId == uid());
+
+      // Student submits a resend request for their own entry
+      allow create: if isStudent()
+        && request.resource.data.studentId == uid()
+        && request.resource.data.status == 'pending';
+
+      // Teacher/admin resolves the request (marks sent/rejected)
+      allow update: if isAdminOrTeacher();
+
+      allow delete: if false;
+    }
+
+    // ── NotificationDevices ────────────────────────────────────────────────────
+    // Stores FCM tokens. Each user owns their own document.
+
+    match /NotificationDevices/{userId} {
+      allow read, write: if isSignedIn() && uid() == userId;
+    }
+
+    // ── AppNotifications ───────────────────────────────────────────────────────
+
+    match /AppNotifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == uid();
+      allow create: if isAdminOrTeacher();
+      allow update: if isAdmin()
+        || (isSignedIn() && resource.data.userId == uid());
+      allow delete: if false;
+    }
+
+    // ── AttendanceWaivers ──────────────────────────────────────────────────────
+
+    match /AttendanceWaivers/{waiverId} {
+      allow read: if isAdminOrTeacher()
+        || (isStudent() && resource.data.studentId == uid());
+      allow create: if isStudent()
+        && request.resource.data.studentId == uid();
+      allow update: if isAdminOrTeacher();
+      allow delete: if false;
+    }
+
+    // ── Rule helpers ───────────────────────────────────────────────────────────
+
+    function sessionIsActive(sessionId) {
+      return get(/databases/$(database)/documents/LiveSessions/$(sessionId))
+               .data.status == 'active';
+    }
+
+    function codeIsValid(sessionId, studentId, code) {
+      let doc = get(/databases/$(database)/documents/SessionCodes/$(sessionId + '_' + studentId)).data;
+      return doc.code == code
+        && request.time < doc.issuedAt + duration.value(60, 's');
+    }
+
+    function alreadyCheckedIn(sessionId) {
+      return exists(/databases/$(database)/documents/SessionCheckIns/$(uid() + '_' + sessionId));
+    }
+  }
+}

@@ -1,155 +1,266 @@
 import 'package:flutter/material.dart';
 
-import '../../components/custom_dropdown_btn.dart';
 import '../../models/module_model.dart';
-import '../statistics/all/all_stats.dart';
+import '../../theme/attendify_theme.dart';
+import '../../theme/attendify_ui.dart';
+import '../../utils/module_metrics.dart';
 import '../statistics/module_stats.dart';
 
 class AllModulesView extends StatefulWidget {
   final List<Module> dataModules;
-  const AllModulesView({super.key, required this.dataModules});
+
+  const AllModulesView({
+    super.key,
+    required this.dataModules,
+  });
 
   @override
   State<AllModulesView> createState() => _AllModulesViewState();
 }
 
 class _AllModulesViewState extends State<AllModulesView> {
-  List<Module> allModules = [], modules = [];
-  String? gradeVal, specialityVal;
-  bool isDisabled = true;
+  String? gradeVal;
+  String? specialityVal;
 
-  List<Module> filterModulesByGradeAndSpeciality(
-    List<Module> modules,
-    String grade,
-    String speciality,
-  ) {
-    return modules.where((module) {
-      return module.grade == grade && module.speciality == speciality;
-    }).toList();
+  List<String> get _grades =>
+      widget.dataModules.map((module) => module.grade).toSet().toList()..sort();
+
+  List<String> get _specialities {
+    final source = gradeVal == null
+        ? widget.dataModules
+        : widget.dataModules.where((module) => module.grade == gradeVal).toList();
+    return source.map((module) => module.speciality).toSet().toList()..sort();
   }
 
-  List<Module> filterModulesByGrade(
-    List<Module> modules,
-    String grade,
-  ) {
-    return modules.where((module) {
-      return module.grade == grade;
-    }).toList();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    allModules = widget.dataModules;
+  List<Module> get _filteredModules {
+    return widget.dataModules.where((module) {
+      final gradeMatches = gradeVal == null || module.grade == gradeVal;
+      final specialityMatches =
+          specialityVal == null || module.speciality == specialityVal;
+      return gradeMatches && specialityMatches;
+    }).toList()
+      ..sort((left, right) => left.name.toLowerCase().compareTo(right.name.toLowerCase()));
   }
 
   @override
   Widget build(BuildContext context) {
+    final modules = _filteredModules;
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: CustomDrowdownBtn(
-                  hint: "Choose a grade",
-                  type: "grade",
-                  gradeVal: gradeVal,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      isDisabled = false;
-                      gradeVal = newValue;
-                      specialityVal = null;
-                      modules = filterModulesByGrade(
-                        allModules,
-                        gradeVal!,
-                      );
-                    });
-                  },
-                ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: CustomDrowdownBtn(
-                  hint: "Choose a speciality",
-                  type: "speciality",
-                  isDisabled: isDisabled,
-                  gradeVal: gradeVal,
-                  specialityVal: specialityVal,
-                  onChanged: isDisabled
-                      ? null
-                      : (String? newValue) {
-                          setState(() {
-                            specialityVal = newValue;
-                            modules = filterModulesByGradeAndSpeciality(
-                              allModules,
-                              gradeVal!,
-                              specialityVal!,
-                            );
-                          });
-                        },
-                ),
-              ),
-            ),
-          ],
-        ),
-        const AllStats(statType: "modules"),
-        Expanded(
-          child: ListView.builder(
-            itemCount: modules.isEmpty ? allModules.length : modules.length,
-            itemBuilder: (context, index) {
-              final module =
-                  modules.isEmpty ? allModules[index] : modules[index];
-              return Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Card(
-                  color: Colors.blue[100],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15.0),
+        AttendifySurface(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Academic catalogue',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ),
-                  child: ListTile(
-                    trailing: const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Icon(
-                        Icons.arrow_forward_ios_rounded,
-                      ),
+                  if (gradeVal != null || specialityVal != null)
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          gradeVal = null;
+                          specialityVal = null;
+                        });
+                      },
+                      child: const Text('Clear filters'),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    splashColor: Colors.blue[300],
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 25.0,
-                      vertical: 5.0,
-                    ),
-                    title: Text(
-                      module.name,
-                      style: const TextStyle(fontSize: 18),
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ModuleStats(
-                            moduleId: module.uid,
-                            moduleName: module.name,
-                            students: module.students,
-                            numberOfStudents: module.numberOfStudents,
-                          ),
-                        ),
-                      );
+                ],
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: const Text('All grades'),
+                    selected: gradeVal == null,
+                    onSelected: (_) {
+                      setState(() {
+                        gradeVal = null;
+                        specialityVal = null;
+                      });
                     },
                   ),
+                  ..._grades.map(
+                    (grade) => ChoiceChip(
+                      label: Text('$grade year'),
+                      selected: gradeVal == grade,
+                      onSelected: (_) {
+                        setState(() {
+                          gradeVal = grade;
+                          specialityVal = null;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              if (_specialities.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ChoiceChip(
+                      label: const Text('All specialities'),
+                      selected: specialityVal == null,
+                      onSelected: (_) => setState(() => specialityVal = null),
+                    ),
+                    ..._specialities.map(
+                      (speciality) => ChoiceChip(
+                        label: Text(speciality),
+                        selected: specialityVal == speciality,
+                        onSelected: (_) =>
+                            setState(() => specialityVal = speciality),
+                      ),
+                    ),
+                  ],
                 ),
-              );
-            },
+              ],
+            ],
           ),
-        )
+        ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: modules.isEmpty
+              ? const Center(
+                  child: AttendifyEmptyState(
+                    title: 'No matching modules',
+                    message:
+                        'Try another grade or speciality filter to surface the relevant academic catalogue.',
+                  ),
+                )
+              : ListView.separated(
+                  itemCount: modules.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final module = modules[index];
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ModuleStats(
+                                moduleId: module.uid,
+                                moduleName: module.name,
+                                students: module.students,
+                                numberOfStudents: module.numberOfStudents,
+                              ),
+                            ),
+                          );
+                        },
+                        child: AttendifySurface(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          module.name,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleLarge,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          '${module.grade} year • ${module.speciality}',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: AttendifyPalette.mutedText,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  AttendifyStatusChip(
+                                    label: module.isActive ? 'Active' : 'Inactive',
+                                    color: module.isActive
+                                        ? AttendifyPalette.secondary
+                                        : AttendifyPalette.error,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 18),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _ModuleInfoTile(
+                                      label: 'Students',
+                                      value: '${moduleStudentCount(module)}',
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _ModuleInfoTile(
+                                      label: 'Attendance',
+                                      value:
+                                          '${moduleAttendancePercentage(module).toStringAsFixed(0)}%',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
       ],
+    );
+  }
+}
+
+class _ModuleInfoTile extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _ModuleInfoTile({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AttendifyPalette.surfaceMuted,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ],
+      ),
     );
   }
 }

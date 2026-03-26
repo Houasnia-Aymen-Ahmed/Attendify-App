@@ -194,7 +194,7 @@ LineChartBarData lineChartBarData(
       dotData: const FlDotData(show: false),
       belowBarData: BarAreaData(
         show: true,
-        color: Colors.white.withOpacity(0.3),
+        color: Colors.white.withValues(alpha: 0.3),
       ),
       spots: chartData(sortedEntries),
     );

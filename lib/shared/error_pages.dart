@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+import '../theme/attendify_theme.dart';
+import '../theme/attendify_ui.dart';
 
 class ErrorPages extends StatelessWidget {
   final String title;
@@ -9,19 +11,19 @@ class ErrorPages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        backgroundColor: Colors.red[900],
-        foregroundColor: Colors.white,
-      ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            message,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 30,
+          padding: const EdgeInsets.all(20.0),
+          child: AttendifyEmptyState(
+            title: title,
+            message: message,
+            action: TextButton.icon(
+              onPressed: () => Navigator.of(context).maybePop(),
+              icon: const Icon(Icons.arrow_back_rounded),
+              label: const Text('Go back'),
+              style: TextButton.styleFrom(
+                foregroundColor: AttendifyPalette.primary,
+              ),
             ),
           ),
         ),

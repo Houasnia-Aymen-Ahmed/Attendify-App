@@ -21,7 +21,7 @@ class CustomBarChart extends StatefulWidget {
 class CustomBarChartState extends State<CustomBarChart> {
   int touchedIndex = -1;
   final double maxPercentage = 100;
-  final Color barBackgroundColor = Colors.white.withOpacity(0.3);
+  final Color barBackgroundColor = Colors.white.withValues(alpha: 0.3);
   final Color barColor = Colors.deepPurple.shade300;
   final Color touchedBarColor = Colors.deepPurple.shade900;
   late List<String> names;
@@ -225,15 +225,15 @@ class CustomBarChartState extends State<CustomBarChart> {
       fontWeight: FontWeight.bold,
       fontSize: 14,
     );
-    final List<String> splitedNames = names.map((names) {
+    final List<String> splitNames = names.map((names) {
       return names.split(" ").join('\n');
     }).toList();
-    if (value.toInt() >= 0 && value.toInt() < splitedNames.length) {
+    if (value.toInt() >= 0 && value.toInt() < splitNames.length) {
       return SideTitleWidget(
         axisSide: meta.axisSide,
         space: 1,
         child: Text(
-          splitedNames[value.toInt()],
+          splitNames[value.toInt()],
           style: style,
           textAlign: TextAlign.center,
         ),

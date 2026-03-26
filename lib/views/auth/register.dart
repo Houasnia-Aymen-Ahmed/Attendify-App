@@ -1,15 +1,14 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:sign_in_button/sign_in_button.dart';
 
 import '../../components/custom_dropdown_btn.dart';
-import '../../shared/constants.dart';
+import '../../theme/attendify_theme.dart';
+import '../../theme/attendify_ui.dart';
 import 'register_controller.dart';
 
 class Register extends ConsumerStatefulWidget {
   final VoidCallback toggleView;
+
   const Register({
     super.key,
     required this.toggleView,
@@ -21,27 +20,26 @@ class Register extends ConsumerStatefulWidget {
 
 class _RegisterState extends ConsumerState<Register> {
   String _validationError = "";
-  bool _isDisabled = true, _isGradeDisabled = true;
-  String? _typeVal, _gradeVal, _specialityVal;
+  bool _isDisabled = true;
+  String _typeVal = "student";
+  String? _gradeVal, _specialityVal;
 
   Future<void> buttonController() async {
     final registerController = ref.read(registerControllerProvider.notifier);
 
-    if (_typeVal == null) {
+    if (_typeVal == "student" && (_gradeVal == null || _specialityVal == null)) {
       setState(() {
-        _validationError = "Please make sure to select a type";
+        _validationError =
+            "Please make sure to select both a grade and a speciality.";
       });
-    } else if (_typeVal == "student" &&
-        (_gradeVal == null || _specialityVal == null)) {
-      setState(() {
-        _validationError = "Please make sure to select a 'Grade' & a 'Speciality'";
-      });
-    } else {
-      setState(() {
-        _validationError = "";
-      });
-      await registerController.signUp(_typeVal!, _gradeVal, _specialityVal);
+      return;
     }
+
+    setState(() {
+      _validationError = "";
+    });
+
+    await registerController.signUp(_typeVal, _gradeVal, _specialityVal);
   }
 
   @override
@@ -54,203 +52,150 @@ class _RegisterState extends ConsumerState<Register> {
             ? registerController.error ?? ""
             : "";
 
-    return Container(
-      alignment: Alignment.center,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(25),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: AspectRatio(
-              aspectRatio: 3 / 4,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomRight,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.blue[700]!,
-                      Colors.blue[100]!,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(25),
-                  border: Border.all(
-                    width: 2,
-                    color: Colors.transparent,
-                  ),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+        child: AttendifySurface(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const AttendifySectionHeader(
+                eyebrow: "Create access",
+                title: "Prepare your account",
+                subtitle:
+                    "Pick your role, complete the student details if needed, then continue with your HNS Google account.",
+              ),
+              const SizedBox(height: 22),
+              Text(
+                "Role",
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: ["student", "teacher", "admin"].map((role) {
+                  final isSelected = _typeVal == role;
+                  return ChoiceChip(
+                    label: Text(role[0].toUpperCase() + role.substring(1)),
+                    selected: isSelected,
+                    onSelected: (_) {
+                      registerController.reset();
+                      setState(() {
+                        _typeVal = role;
+                        _validationError = "";
+                        _gradeVal = null;
+                        _specialityVal = null;
+                        _isDisabled = true;
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+              if (_typeVal == "student") ...[
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomDropdownBtn(
+                        hint: "Choose grade",
+                        type: "grade",
+                        isDisabled: false,
+                        gradeVal: _gradeVal,
+                        isExpanded: true,
+                        onChanged: (String? newValue) {
+                          registerController.reset();
+                          setState(() {
+                            _isDisabled = false;
+                            _validationError = "";
+                            _gradeVal = newValue;
+                            _specialityVal = null;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: CustomDropdownBtn(
+                        hint: "Choose speciality",
+                        type: "speciality",
+                        isDisabled: _isDisabled,
+                        gradeVal: _gradeVal,
+                        specialityVal: _specialityVal,
+                        isExpanded: true,
+                        onChanged: _isDisabled
+                            ? null
+                            : (String? newValue) {
+                                registerController.reset();
+                                setState(() {
+                                  _validationError = "";
+                                  _specialityVal = newValue;
+                                });
+                              },
+                      ),
+                    ),
+                  ],
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 15.0,
-                    horizontal: 0.0,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: <Widget>[
-                      Text(
-                        "Sign up",
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 50,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                left: 20.0,
-                                right: 20.0,
-                              ),
-                              child: CustomDrowdownBtn(
-                                hint: "Choose type",
-                                type: "type",
-                                isExpanded: true,
-                                typeVal: _typeVal,
-                                textColor: Colors.white,
-                                onChanged: (String? newValue) {
-                                  registerController.reset();
-                                  setState(() {
-                                    if (newValue != "student") {
-                                      _isGradeDisabled = true;
-                                      _isDisabled = true;
-                                    } else {
-                                      _isGradeDisabled = false;
-                                    }
-                                    _validationError = "";
-                                    _typeVal = newValue;
-                                    _gradeVal = null;
-                                    _specialityVal = null;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 9.0,
-                                vertical: 8.0,
-                              ),
-                              child: CustomDrowdownBtn(
-                                hint: "Choose grade",
-                                type: "grade",
-                                isDisabled: _isGradeDisabled,
-                                gradeVal: _gradeVal,
-                                isExpanded: true,
-                                textColor: Colors.white,
-                                onChanged: _isGradeDisabled
-                                    ? null
-                                    : (String? newValue) {
-                                        registerController.reset();
-                                        setState(() {
-                                          _isDisabled = false;
-                                          _validationError = "";
-                                          _gradeVal = newValue;
-                                          _specialityVal = null;
-                                        });
-                                      },
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 9.0,
-                                vertical: 8.0,
-                              ),
-                              child: CustomDrowdownBtn(
-                                hint: "Choose speciality",
-                                type: "speciality",
-                                isDisabled: _isDisabled,
-                                gradeVal: _gradeVal,
-                                specialityVal: _specialityVal,
-                                isExpanded: true,
-                                textColor: Colors.white,
-                                onChanged: _isDisabled
-                                    ? null
-                                    : (String? newValue) {
-                                        registerController.reset();
-                                        setState(() {
-                                          _validationError = "";
-                                          _specialityVal = newValue;
-                                        });
-                                      },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Transform.scale(
-                        scale: 1.25,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxHeight: 50),
-                          child: SignInButton(
-                            Buttons.google,
-                            padding: const EdgeInsets.all(5.0),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            text: "Sign up with HNS-RE2SD",
-                            onPressed: buttonController,
-                          ),
-                        ),
-                      ),
-                      if (errorText.isNotEmpty)
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 275),
-                          child: Text(
-                            errorText,
-                            style: TextStyle(
-                              color: Colors.red[900],
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      if (registerState == RegisterState.loading)
-                        const CircularProgressIndicator(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Already have an account?",
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                            ),
-                          ),
-                          TextButton(
-                            style: ButtonStyle(
-                              overlayColor: MaterialStateProperty.all(
-                                Colors.white.withOpacity(0.1),
-                              ),
-                            ),
-                            onPressed: () {
-                              registerController.reset();
-                              widget.toggleView();
-                            },
-                            child: Text(
-                              "Sign In",
-                              style: txt().copyWith(
-                                fontSize: 14.0,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+              ],
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AttendifyPalette.surfaceMuted,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Text(
+                  _typeVal == "student"
+                      ? "Student registration links your Google account to your grade, speciality, and modules."
+                      : "Teacher and admin registration still require approved institution emails. Attendify validates that after Google sign-in.",
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
-            ),
+              const SizedBox(height: 20),
+              AttendifyPrimaryButton(
+                label: "Continue with Google",
+                icon: Icons.arrow_forward_rounded,
+                isLoading: registerState == RegisterState.loading,
+                onPressed: buttonController,
+              ),
+              if (errorText.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AttendifyPalette.error.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Text(
+                    errorText,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AttendifyPalette.error,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Already registered?",
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      registerController.reset();
+                      widget.toggleView();
+                    },
+                    child: const Text("Sign in"),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),

@@ -9,6 +9,7 @@
 .history
 .svn/
 migrate_working_dir/
+node_modules
 
 # IntelliJ related
 *.iml
@@ -42,3 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local machine-specific Android SDK configuration
+android/local.properties
+
+# Browser automation test artifacts
+.playwright-cli/

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../components/custom_dropdown_btn.dart';
 import '../../../models/attendify_teacher.dart';
 import '../../../models/module_model.dart';
 import '../../../services/auth.dart';
@@ -8,12 +7,14 @@ import '../../../services/databases.dart';
 import '../../../shared/error_pages.dart';
 import '../../../shared/loading.dart';
 import '../../../shared/module_list_view.dart';
-import '../drawer.dart';
+import '../../../theme/attendify_ui.dart';
+import '../../../utils/module_metrics.dart';
 
 class TeacherView extends StatefulWidget {
   final Teacher teacher;
   final DatabaseService databaseService;
   final AuthService authService;
+
   const TeacherView({
     super.key,
     required this.teacher,
@@ -26,19 +27,61 @@ class TeacherView extends StatefulWidget {
 }
 
 class _TeacherViewState extends State<TeacherView> {
-  String? gradeVal, specialityVal;
-  bool isDisabled = true, showAll = false;
-  List<Module> modulesData = [];
+  String? gradeVal;
+  String? specialityVal;
 
-  List<Module> filterModulesByGradeAndSpeciality(
-    List<Module> modules,
-    String grade,
-    String speciality,
-  ) {
-    return modules
-        .where((module) =>
-            module.grade == grade && module.speciality == speciality)
-        .toList();
+  List<Module> _filterModules(List<Module> modules) {
+    return modules.where((module) {
+      final gradeMatches = gradeVal == null || module.grade == gradeVal;
+      final specialityMatches =
+          specialityVal == null || module.speciality == specialityVal;
+      return gradeMatches && specialityMatches;
+    }).toList();
+  }
+
+  List<String> _availableGrades(List<Module> modules) {
+    final values = modules.map((module) => module.grade).toSet().toList()..sort();
+    return values;
+  }
+
+  List<String> _availableSpecialities(List<Module> modules) {
+    final filteredByGrade = gradeVal == null
+        ? modules
+        : modules.where((module) => module.grade == gradeVal).toList();
+    final values =
+        filteredByGrade.map((module) => module.speciality).toSet().toList()..sort();
+    return values;
+  }
+
+  double _averageAttendance(List<Module> modules) {
+    if (modules.isEmpty) {
+      return 0;
+    }
+    final total = modules.fold<double>(
+      0,
+      (sum, module) => sum + moduleAttendancePercentage(module),
+    );
+    return total / modules.length;
+  }
+
+  int _totalStudents(List<Module> modules) {
+    return modules.fold<int>(
+      0,
+      (sum, module) => sum + moduleStudentCount(module),
+    );
+  }
+
+  void _openSelectModule(Teacher teacher, List<Module> modules) {
+    Navigator.pushNamed(
+      context,
+      '/selectModule',
+      arguments: {
+        'modules': modules,
+        'teacher': teacher,
+        'databaseService': widget.databaseService,
+        'authService': widget.authService,
+      },
+    );
   }
 
   @override
@@ -46,223 +89,249 @@ class _TeacherViewState extends State<TeacherView> {
     return StreamBuilder<Teacher>(
       stream: widget.databaseService
           .getTeacherDataStream(widget.authService.currentUsr!.uid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+      builder: (context, teacherSnapshot) {
+        if (teacherSnapshot.connectionState == ConnectionState.waiting) {
           return const Loading();
-        } else if (snapshot.hasError) {
+        } else if (teacherSnapshot.hasError) {
           return ErrorPages(
             title: "Server Error",
-            message: snapshot.error.toString(),
+            message: teacherSnapshot.error.toString(),
           );
-        } else if (!snapshot.hasData) {
+        } else if (!teacherSnapshot.hasData) {
           return const ErrorPages(
             title: "Error 404: Not Found",
             message: "No module data available for teacher",
           );
-        } else {
-          final Teacher teacher = snapshot.data!;
-          List<String> moduleUIDs = teacher.modules!;
-          return StreamBuilder<List<Module>>(
-            stream: widget.databaseService.getModulesOfTeacher(moduleUIDs),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return ErrorPages(
-                  title: "Server Error",
-                  message: snapshot.error.toString(),
-                );
-              } else if (!snapshot.hasData) {
-                return const Loading();
-              } else {
-                modulesData = snapshot.data!;
-                List<Module> filteredModules =
-                    filterModulesByGradeAndSpeciality(
-                  modulesData,
-                  gradeVal ?? "5th",
-                  specialityVal ?? "",
-                );
-                if (showAll) {
-                  filteredModules = modulesData;
-                }
-                return Scaffold(
-                  appBar: AppBar(
-                    title: const Text("Attendify"),
-                    backgroundColor: Colors.blue[200],
-                    actions: [
-                      IconButton(
-                        onPressed: () => widget.authService.logout(context),
-                        icon: const Icon(Icons.logout_rounded),
-                      )
-                    ],
+        }
+
+        final teacher = teacherSnapshot.data!;
+        final moduleIds = teacher.modules ?? <String>[];
+
+        return StreamBuilder<List<Module>>(
+          stream: widget.databaseService.getModulesOfTeacher(moduleIds),
+          builder: (context, modulesSnapshot) {
+            if (modulesSnapshot.connectionState == ConnectionState.waiting) {
+              return const Loading();
+            } else if (modulesSnapshot.hasError) {
+              return ErrorPages(
+                title: "Server Error",
+                message: modulesSnapshot.error.toString(),
+              );
+            } else if (!modulesSnapshot.hasData) {
+              return const Loading();
+            }
+
+            final modulesData = modulesSnapshot.data!;
+            final filteredModules = _filterModules(modulesData);
+            final activeModules = modulesData.where((module) => module.isActive).length;
+            final grades = _availableGrades(modulesData);
+            final specialities = _availableSpecialities(modulesData);
+
+            return Scaffold(
+              body: AttendifyScreen(
+                scrollable: false,
+                expandChild: true,
+                leading: AttendifyUserAvatar(imageUrl: teacher.photoURL),
+                title: "Managed courses",
+                subtitle:
+                    '${modulesData.length} assigned modules • $activeModules currently active',
+                actions: [
+                  IconButton(
+                    tooltip: 'Log out',
+                    onPressed: () => widget.authService.logout(context),
+                    icon: const Icon(Icons.logout_rounded),
                   ),
-                  drawer: BuildDrawer(
-                    authService: widget.authService,
-                    databaseService: widget.databaseService,
-                    userType: "teacher",
-                    teacher: teacher,
-                    modules: modulesData,
-                  ),
-                  body: Column(
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: CustomDrowdownBtn(
-                                hint: "Choose your grade",
-                                type: "grade",
-                                gradeVal: gradeVal,
-                                onChanged: (String? newValue) {
+                ],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final wide = constraints.maxWidth > 700;
+                        final itemWidth = wide
+                            ? (constraints.maxWidth - 24) / 3
+                            : constraints.maxWidth;
+                        return Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            SizedBox(
+                              width: itemWidth,
+                              child: AttendifyMetricCard(
+                                label: 'Active sessions',
+                                value: '$activeModules',
+                                helper:
+                                    '${modulesData.length - activeModules} courses are currently idle',
+                                icon: Icons.play_circle_rounded,
+                                emphasized: true,
+                              ),
+                            ),
+                            SizedBox(
+                              width: itemWidth,
+                              child: AttendifyMetricCard(
+                                label: 'Covered students',
+                                value: '${_totalStudents(modulesData)}',
+                                helper: 'Across your assigned module roster',
+                                icon: Icons.groups_2_rounded,
+                              ),
+                            ),
+                            SizedBox(
+                              width: itemWidth,
+                              child: AttendifyMetricCard(
+                                label: 'Average attendance',
+                                value: '${_averageAttendance(modulesData).toStringAsFixed(0)}%',
+                                helper: 'Calculated from historical session records',
+                                icon: Icons.insights_rounded,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 18),
+                    AttendifySurface(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Filter your portfolio',
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
+                              ),
+                              if (gradeVal != null || specialityVal != null)
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      gradeVal = null;
+                                      specialityVal = null;
+                                    });
+                                  },
+                                  child: const Text('Reset'),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              ChoiceChip(
+                                label: const Text('All grades'),
+                                selected: gradeVal == null,
+                                onSelected: (_) {
                                   setState(() {
-                                    isDisabled = false;
-                                    showAll = false;
-                                    gradeVal = newValue;
+                                    gradeVal = null;
                                     specialityVal = null;
                                   });
                                 },
                               ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: CustomDrowdownBtn(
-                                hint: "Choose your speciality",
-                                type: "speciality",
-                                isDisabled: isDisabled,
-                                gradeVal: gradeVal,
-                                specialityVal: specialityVal,
-                                onChanged: isDisabled
-                                    ? null
-                                    : (String? newValue) {
-                                        setState(
-                                          () => specialityVal = newValue,
-                                        );
-                                      },
+                              ...grades.map(
+                                (grade) => ChoiceChip(
+                                  label: Text('$grade year'),
+                                  selected: gradeVal == grade,
+                                  onSelected: (_) {
+                                    setState(() {
+                                      gradeVal = grade;
+                                      specialityVal = null;
+                                    });
+                                  },
+                                ),
                               ),
+                            ],
+                          ),
+                          if (specialities.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                ChoiceChip(
+                                  label: const Text('All specialities'),
+                                  selected: specialityVal == null,
+                                  onSelected: (_) =>
+                                      setState(() => specialityVal = null),
+                                ),
+                                ...specialities.map(
+                                  (speciality) => ChoiceChip(
+                                    label: Text(speciality),
+                                    selected: specialityVal == speciality,
+                                    onSelected: (_) {
+                                      setState(() => specialityVal = speciality);
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _openSelectModule(teacher, modulesData),
+                              icon: const Icon(Icons.add_chart_rounded),
+                              label: const Text('Select or add modules'),
                             ),
                           ),
                         ],
                       ),
-                      if (modulesData.isEmpty)
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
                         Expanded(
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  constraints:
-                                      const BoxConstraints(maxWidth: 250),
-                                  child: Text(
-                                    "You haven't select any modules",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 25.0,
-                                      color: Colors.red[700],
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      '/selectModule',
-                                      arguments: {
-                                        'modules': modulesData,
-                                        'teacher': teacher,
-                                        'databaseService':
-                                            widget.databaseService,
-                                        'authService': widget.authService,
-                                      },
-                                    );
-                                  },
-                                  child: Text(
-                                    "click to add modules",
-                                    style: TextStyle(color: Colors.red[900]),
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        )
-                      else
-                        filteredModules.isNotEmpty
-                            ? const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Modules',
-                                  style: TextStyle(
-                                    fontSize: 25,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              )
-                            : gradeVal == null
-                                ? Expanded(
-                                    child: Center(
-                                      child: Container(
-                                        constraints:
-                                            const BoxConstraints(maxWidth: 250),
-                                        child: const Text(
-                                          "Please select a grade and a speciality to show your modules",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 25.0,
-                                            color: Colors.blueGrey,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : Expanded(
-                                    child: Center(
-                                      child: Container(
-                                        constraints:
-                                            const BoxConstraints(maxWidth: 250),
-                                        child: const Text(
-                                          "No modules available for this grade & speciality",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 25.0,
-                                            color: Colors.red,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                      if (filteredModules.isNotEmpty) const SizedBox(width: 10),
-                      if (filteredModules.isNotEmpty) ...[
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: ModuleListView(
-                            modules: filteredModules,
-                            userType: "teacher",
-                            teacher: widget.teacher,
-                            databaseService: widget.databaseService,
+                          child: Text(
+                            filteredModules.isEmpty && modulesData.isNotEmpty
+                                ? 'No modules match the current filters'
+                                : 'Course portfolio',
+                            style: Theme.of(context).textTheme.titleLarge,
                           ),
                         ),
+                        if (filteredModules.isNotEmpty)
+                          Text(
+                            '${filteredModules.length} shown',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
                       ],
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            showAll = true;
-                            gradeVal = null;
-                            specialityVal = null;
-                          });
-                        },
-                        child: const Text("Show all modules"),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                  ),
-                );
-              }
-            },
-          );
-        }
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: modulesData.isEmpty
+                          ? Center(
+                              child: AttendifyEmptyState(
+                                title: 'No assigned modules yet',
+                                message:
+                                    'Start by selecting the courses you manage. They will appear here with session and attendance summaries.',
+                                action: ElevatedButton.icon(
+                                  onPressed: () => _openSelectModule(teacher, modulesData),
+                                  icon: const Icon(Icons.add_rounded),
+                                  label: const Text('Select modules'),
+                                ),
+                              ),
+                            )
+                          : filteredModules.isEmpty
+                              ? const Center(
+                                  child: AttendifyEmptyState(
+                                    title: 'No matching courses',
+                                    message:
+                                        'Try another grade or speciality filter to bring matching courses back into view.',
+                                  ),
+                                )
+                              : ModuleListView(
+                                  modules: filteredModules,
+                                  userType: "teacher",
+                                  teacher: teacher,
+                                  databaseService: widget.databaseService,
+                                ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
       },
     );
   }

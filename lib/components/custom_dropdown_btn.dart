@@ -3,9 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../shared/constants.dart';
 import '../shared/school_data.dart';
+import '../theme/attendify_theme.dart';
 import '../utils/functions.dart';
 
-class CustomDrowdownBtn extends StatefulWidget {
+class CustomDropdownBtn extends StatefulWidget {
   final String hint;
   final String type;
   final bool isDisabled;
@@ -18,7 +19,7 @@ class CustomDrowdownBtn extends StatefulWidget {
   final void Function(String?)? onChanged;
   final String? Function(String?)? validator;
 
-  const CustomDrowdownBtn({
+  const CustomDropdownBtn({
     super.key,
     required this.hint,
     required this.type,
@@ -34,10 +35,10 @@ class CustomDrowdownBtn extends StatefulWidget {
   });
 
   @override
-  State<CustomDrowdownBtn> createState() => _CustomDrowdownBtnState();
+  State<CustomDropdownBtn> createState() => _CustomDropdownBtnState();
 }
 
-class _CustomDrowdownBtnState extends State<CustomDrowdownBtn> {
+class _CustomDropdownBtnState extends State<CustomDropdownBtn> {
   @override
   Widget build(BuildContext context) {
     final List<String> items = widget.type == "type"
@@ -47,22 +48,28 @@ class _CustomDrowdownBtnState extends State<CustomDrowdownBtn> {
             : modulesMap[widget.gradeVal]?.keys.toList() ?? ['item'];
 
     return DropdownButtonFormField<String>(
-      padding: const EdgeInsets.all(8.0),
-      elevation: 16,
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      elevation: 8,
       isExpanded: widget.isExpanded ?? false,
-      dropdownColor: Colors.blue[100],
-      borderRadius: BorderRadius.circular(15),
-      value: widget.type == "type"
+      dropdownColor: AttendifyPalette.surface,
+      borderRadius: BorderRadius.circular(18),
+      initialValue: widget.type == "type"
           ? widget.typeVal
           : widget.type == "grade"
               ? widget.gradeVal
               : widget.specialityVal,
       decoration: InputDecoration(
-        filled: widget.filled,
+        filled: true,
+        fillColor: widget.isDisabled
+            ? AttendifyPalette.surfaceStrong
+            : AttendifyPalette.surfaceMuted,
         hintText: widget.hint,
-        hintStyle: GoogleFonts.poppins(
-          fontSize: 15,
-          color: widget.isDisabled ? Colors.black38 : Colors.blue[900],
+        hintStyle: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: widget.isDisabled
+              ? AttendifyPalette.mutedText
+              : AttendifyPalette.primary,
         ),
         border: outLineBorder(),
         focusedBorder: outLineBorder(),
@@ -70,7 +77,7 @@ class _CustomDrowdownBtnState extends State<CustomDrowdownBtn> {
         alignLabelWithHint: true,
       ),
       style: const TextStyle(backgroundColor: Colors.transparent),
-      onChanged: widget.onChanged,
+      onChanged: widget.isDisabled ? null : widget.onChanged,
       validator: widget.validator,
       items: items.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
@@ -78,10 +85,10 @@ class _CustomDrowdownBtnState extends State<CustomDrowdownBtn> {
           child: Text(
             capitalizeFirst(value),
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-              color: widget.textColor ?? Colors.black,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: widget.textColor ?? AttendifyPalette.text,
             ),
           ),
         );

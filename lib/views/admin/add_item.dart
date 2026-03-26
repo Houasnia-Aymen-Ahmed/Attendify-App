@@ -115,7 +115,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CustomDrowdownBtn(
+          CustomDropdownBtn(
             hint: "Choose your grade",
             type: "grade",
             gradeVal: gradeVal,
@@ -136,7 +136,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
               });
             },
           ),
-          CustomDrowdownBtn(
+          CustomDropdownBtn(
             hint: "Choose your speciality",
             type: "speciality",
             isDisabled: isDisabled,
