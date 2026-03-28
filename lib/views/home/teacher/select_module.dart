@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../theme/attendify_theme.dart';
+
 import '../../../components/custom_dropdown_btn.dart';
 import '../../../components/popups.dart';
 import '../../../models/attendify_teacher.dart';
@@ -76,7 +78,6 @@ class _SelectModuleState extends State<SelectModule> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Select modules"),
-        backgroundColor: Colors.blue[200],
         actions: [
           IconButton(
             onPressed: () {
@@ -137,7 +138,9 @@ class _SelectModuleState extends State<SelectModule> {
                       "Unselect new selected modules",
                       style: TextStyle(
                         fontSize: 17.5,
-                        color: _hasSelected ? Colors.black : Colors.blueGrey,
+                        color: _hasSelected
+                            ? AttendifyPalette.text
+                            : AttendifyPalette.mutedText,
                       ),
                     ),
                   ),
@@ -158,7 +161,7 @@ class _SelectModuleState extends State<SelectModule> {
                           : null,
                       icon: const Icon(
                         Icons.unpublished_rounded,
-                        color: Colors.blueGrey,
+                        color: AttendifyPalette.mutedText,
                       ),
                     ),
                   )
@@ -168,7 +171,7 @@ class _SelectModuleState extends State<SelectModule> {
                 height: 20,
                 indent: 16,
                 endIndent: 16,
-                color: Colors.blueGrey,
+                color: AttendifyPalette.outline,
               )
             ],
           ),

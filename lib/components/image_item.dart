@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/attendify_theme.dart';
+
 class ImageItem extends StatelessWidget {
   final IconData icon;
   const ImageItem({super.key, required this.icon});
@@ -10,7 +12,7 @@ class ImageItem extends StatelessWidget {
       padding: const EdgeInsets.all(15.0),
       child: Icon(
         icon,
-        color: Colors.blue[100],
+        color: AttendifyPalette.tertiary,
         size: 25,
       ),
     );

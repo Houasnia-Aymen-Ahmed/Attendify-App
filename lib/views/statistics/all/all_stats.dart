@@ -63,12 +63,7 @@ class AllStats extends StatelessWidget {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[900],
               elevation: 5,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              foregroundColor: Colors.blue[100],
               padding: const EdgeInsets.symmetric(
                 horizontal: 20,
                 vertical: 10,

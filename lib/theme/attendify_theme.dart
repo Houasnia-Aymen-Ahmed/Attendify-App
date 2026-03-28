@@ -14,6 +14,15 @@ class AttendifyPalette {
   static const Color mutedText = Color(0xFF5C6F86);
   static const Color outline = Color(0xFFD6DEE8);
   static const Color error = Color(0xFFB93815);
+
+  // ── Statistics chart tokens ─────────────────────────────────────────────
+  // Changing these updates all four chart widgets at once.
+  static const Color chartGradientTop = Color(0xFFBDD8F0);
+  static const Color chartGradientBottom = Color(0xFF1E5C8A);
+  static const Color chartBar = secondary;
+  static const Color chartBarTouched = primary;
+  static const Color chartLine = tertiary;
+  static const Color chartBorder = primary;
 }
 
 class AttendifyTheme {

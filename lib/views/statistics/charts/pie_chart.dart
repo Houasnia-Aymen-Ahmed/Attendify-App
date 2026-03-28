@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../../components/popups.dart';
+import '../../../theme/attendify_theme.dart';
 
 class CustomPieChart extends StatefulWidget {
   final Map<double, List<String>> data;
@@ -40,10 +41,10 @@ class _CustomPieChartState extends State<CustomPieChart> {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15.0),
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [
-                  Colors.deepPurple.shade100,
-                  Colors.deepPurple.shade300,
+                  AttendifyPalette.chartGradientTop,
+                  AttendifyPalette.chartGradientBottom,
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -133,15 +134,13 @@ class _CustomPieChartState extends State<CustomPieChart> {
   }
 
   Color getColor(int index) {
-    const double saturation = 0.75;
-    const double value = 0.75;
-
-    if (index == 0) {
-      return const HSVColor.fromAHSV(1.0, 255.0, saturation, value * 0.75)
-          .toColor();
-    } else {
-      return const HSVColor.fromAHSV(1.0, 260.0, saturation, value).toColor();
-    }
+    const colors = [
+      AttendifyPalette.chartBar,
+      AttendifyPalette.chartLine,
+      AttendifyPalette.chartBarTouched,
+      AttendifyPalette.secondary,
+    ];
+    return colors[index % colors.length];
   }
 }
 

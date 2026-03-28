@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/attendify_theme.dart';
+
 class DrawerFooter extends StatelessWidget {
   const DrawerFooter({super.key});
 
@@ -14,7 +16,7 @@ class DrawerFooter extends StatelessWidget {
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontWeight: FontWeight.w500,
-            color: Colors.black,
+            color: AttendifyPalette.mutedText,
           ),
         ),
       ),

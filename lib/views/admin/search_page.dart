@@ -1,6 +1,8 @@
 import 'package:attendify/shared/error_pages.dart';
 import 'package:flutter/material.dart';
 
+import '../../theme/attendify_theme.dart';
+
 import '../../utils/shared_prefs_helper.dart';
 import '../statistics/module_stats.dart';
 
@@ -22,16 +24,17 @@ class SearchPage extends SearchDelegate {
   @override
   ThemeData appBarTheme(BuildContext context) {
     return ThemeData(
-      appBarTheme: AppBarTheme(
-        backgroundColor: Colors.blue[200],
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AttendifyPalette.primary,
+        foregroundColor: Colors.white,
       ),
       inputDecorationTheme: const InputDecorationTheme(
         border: InputBorder.none,
       ),
-      textSelectionTheme: TextSelectionThemeData(
-        cursorColor: Colors.blue[900],
+      textSelectionTheme: const TextSelectionThemeData(
+        cursorColor: AttendifyPalette.tertiary,
         selectionColor: Colors.white,
-        selectionHandleColor: Colors.blue[900],
+        selectionHandleColor: AttendifyPalette.tertiary,
       ),
     );
   }

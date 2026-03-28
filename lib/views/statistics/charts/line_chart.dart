@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../components/popups.dart';
+import '../../../theme/attendify_theme.dart';
 
 class LineData {
   List<MapEntry<String, int>> sortedEntries;
@@ -32,10 +33,10 @@ class CustomLineChart extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15.0),
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [
-                  Colors.deepPurple.shade100,
-                  Colors.deepPurple.shade300,
+                  AttendifyPalette.chartGradientTop,
+                  AttendifyPalette.chartGradientBottom,
                 ],
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
@@ -164,9 +165,9 @@ SideTitles bottomTitles(List<MapEntry<String, int>> sortedEntries) =>
 
 FlBorderData get borderData => FlBorderData(
       show: true,
-      border: Border(
+      border: const Border(
         bottom: BorderSide(
-          color: Colors.deepPurple[900]!,
+          color: AttendifyPalette.chartBorder,
           width: 4,
         ),
       ),
@@ -188,7 +189,7 @@ LineChartBarData lineChartBarData(
 ) =>
     LineChartBarData(
       isCurved: true,
-      color: Colors.deepPurple,
+      color: AttendifyPalette.chartLine,
       barWidth: 2,
       preventCurveOverShooting: true,
       dotData: const FlDotData(show: false),

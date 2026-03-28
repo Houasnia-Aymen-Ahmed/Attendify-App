@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../../theme/attendify_theme.dart';
+
 import '../../components/drawer_footer.dart';
 import '../../components/drawer_list_grade_specialty.dart';
 import '../../components/user_account_drawer_header.dart';
@@ -37,7 +39,7 @@ class BuildDrawer extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
         child: Drawer(
-          backgroundColor: Colors.blue[100],
+          backgroundColor: AttendifyPalette.surface,
           elevation: 10,
           child: Column(
             children: [

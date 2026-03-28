@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../../components/popups.dart';
+import '../../../theme/attendify_theme.dart';
 
 class CustomBarChart extends StatefulWidget {
   final Map<String, double> data;
@@ -22,8 +23,8 @@ class CustomBarChartState extends State<CustomBarChart> {
   int touchedIndex = -1;
   final double maxPercentage = 100;
   final Color barBackgroundColor = Colors.white.withValues(alpha: 0.3);
-  final Color barColor = Colors.deepPurple.shade300;
-  final Color touchedBarColor = Colors.deepPurple.shade900;
+  final Color barColor = AttendifyPalette.chartBar;
+  final Color touchedBarColor = AttendifyPalette.chartBarTouched;
   late List<String> names;
   late List<double> values;
   @override
@@ -49,10 +50,10 @@ class CustomBarChartState extends State<CustomBarChart> {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15.0),
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [
-                  Colors.deepPurple.shade100,
-                  Colors.deepPurple.shade300,
+                  AttendifyPalette.chartGradientTop,
+                  AttendifyPalette.chartGradientBottom,
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -102,7 +103,7 @@ class CustomBarChartState extends State<CustomBarChart> {
                 ),
           width: width,
           borderSide: isTouched
-              ? BorderSide(color: Colors.deepPurple.shade300)
+              ? const BorderSide(color: AttendifyPalette.chartBar)
               : const BorderSide(width: 0),
           backDrawRodData: BackgroundBarChartRodData(
             show: true,
@@ -142,7 +143,7 @@ class CustomBarChartState extends State<CustomBarChart> {
       baselineY: 0,
       barTouchData: BarTouchData(
         touchTooltipData: BarTouchTooltipData(
-          tooltipBgColor: Colors.deepPurple.shade300,
+          tooltipBgColor: AttendifyPalette.chartBar,
           fitInsideHorizontally: true,
           fitInsideVertically: true,
           tooltipHorizontalAlignment: FLHorizontalAlignment.right,

@@ -17,13 +17,13 @@ void main() async {
   await NotificationService().initialize();
   runApp(
     const ProviderScope(
-      child: Attentdify(),
+      child: Attendify(),
     ),
   );
 }
 
-class Attentdify extends StatelessWidget {
-  const Attentdify({super.key});
+class Attendify extends StatelessWidget {
+  const Attendify({super.key});
 
   @override
   Widget build(BuildContext context) {

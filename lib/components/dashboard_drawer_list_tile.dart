@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/attendify_theme.dart';
+
 class DashboardDrawerListTile extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -34,24 +36,26 @@ class DashboardDrawerListTile extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
-        splashColor: Colors.blue[700],
-        tileColor: selected ? Colors.blue[700] : Colors.blue[300],
+        splashColor: AttendifyPalette.primaryStrong,
+        tileColor: selected ? AttendifyPalette.primary : AttendifyPalette.surfaceMuted,
         leading: Icon(
           icon,
-          color: selected ? Colors.white : Colors.blue[900],
+          color: selected ? Colors.white : AttendifyPalette.text,
           size: 30,
         ),
         title: Text(
           title,
           style: TextStyle(
             fontSize: 19,
-            color: selected ? Colors.white : Colors.blue[900],
+            color: selected ? Colors.white : AttendifyPalette.text,
           ),
         ),
         subtitle: Text(
           subtitle,
           style: TextStyle(
-            color: selected ? Colors.white54 : Colors.blueGrey,
+            color: selected
+                ? Colors.white.withValues(alpha: 0.6)
+                : AttendifyPalette.mutedText,
           ),
         ),
         onTap: onTap,

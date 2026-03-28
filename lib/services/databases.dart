@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:async/async.dart';
 
 import '../models/attendify_student.dart';
+import '../theme/attendify_theme.dart';
 import '../models/attendify_teacher.dart';
 import '../models/module_model.dart';
 import '../models/user_of_attendify.dart';
@@ -347,12 +348,12 @@ class DatabaseService {
         SnackBar(
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(20.0),
-          backgroundColor: Colors.red,
+          backgroundColor: AttendifyPalette.error,
           dismissDirection: DismissDirection.startToEnd,
           elevation: 20.0,
           content: Text(e.toString()),
           action: SnackBarAction(
-            textColor: Colors.blue[100],
+            textColor: AttendifyPalette.surfaceMuted,
             label: 'OK',
             onPressed: () {},
           ),

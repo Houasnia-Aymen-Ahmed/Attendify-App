@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+import '../theme/attendify_theme.dart';
+
 Future showLoadingDialog(
   BuildContext context,
   String content,
@@ -70,7 +72,7 @@ Future showDialogBox(
         title: Text(
           title,
           style: TextStyle(
-            color: isError ? Colors.red : Colors.green,
+            color: isError ? AttendifyPalette.error : AttendifyPalette.secondary,
           ),
         ),
         content: Text(
@@ -146,7 +148,7 @@ void showOverlay(
         child: Card(
           color: Colors.white,
           elevation: 10,
-          shadowColor: Colors.black,
+          shadowColor: AttendifyPalette.primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
@@ -200,7 +202,7 @@ Future<bool?> infoTost(String msg) async {
     toastLength: Toast.LENGTH_LONG,
     gravity: ToastGravity.CENTER,
     fontSize: 20.0,
-    backgroundColor: Colors.blue[700],
+    backgroundColor: AttendifyPalette.primary,
     textColor: Colors.white,
   );
   return null;

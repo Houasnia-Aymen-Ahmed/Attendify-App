@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/attendify_theme.dart';
+
 import '../../components/custom_dropdown_btn.dart';
 import '../../services/databases.dart';
 import '../../shared/constants.dart';
@@ -89,20 +91,20 @@ class _AddItemDialogState extends State<AddItemDialog> {
           style: TextStyle(
             fontSize: 18,
             color: isLoading
-                ? Colors.blue[900]
+                ? AttendifyPalette.primary
                 : isError
-                    ? Colors.red
-                    : Colors.green,
+                    ? AttendifyPalette.error
+                    : AttendifyPalette.secondary,
           ),
         ),
         const SizedBox(width: 25),
         if (isLoading)
-          SizedBox(
+          const SizedBox(
             width: 25,
             height: 25,
             child: CircularProgressIndicator(
               strokeWidth: 2.0,
-              color: Colors.blue[900],
+              color: AttendifyPalette.primary,
             ),
           ),
       ],

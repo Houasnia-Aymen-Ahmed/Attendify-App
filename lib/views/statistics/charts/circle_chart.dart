@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
 import '../../../components/popups.dart';
+import '../../../theme/attendify_theme.dart';
 
 class CustomCircleChart extends StatelessWidget {
   final Map<String, int> attendanceData;
@@ -30,10 +31,10 @@ class CustomCircleChart extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15.0),
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [
-                  Colors.deepPurple.shade100,
-                  Colors.deepPurple.shade300,
+                  AttendifyPalette.chartGradientTop,
+                  AttendifyPalette.chartGradientBottom,
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -55,15 +56,15 @@ class CustomCircleChart extends StatelessWidget {
                   fontSize: 25.0,
                   fontWeight: FontWeight.w900,
                   color: Color.lerp(
-                    Colors.deepPurple.shade300,
-                    Colors.deepPurple.shade900,
+                    AttendifyPalette.chartBar,
+                    AttendifyPalette.chartBarTouched,
                     percentage / 100,
                   ),
                 ),
               ),
               progressColor: Color.lerp(
-                Colors.deepPurple.shade200,
-                Colors.deepPurple.shade900,
+                AttendifyPalette.chartLine,
+                AttendifyPalette.chartBarTouched,
                 percentage / 100,
               ),
               circularStrokeCap: CircularStrokeCap.round,

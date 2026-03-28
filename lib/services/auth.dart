@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/user.dart';
+import '../theme/attendify_theme.dart';
 import '../utils/functions.dart';
 import 'databases.dart';
 
@@ -242,7 +243,7 @@ class AuthService {
           elevation: 20.0,
           content: Text(text),
           action: SnackBarAction(
-            textColor: Colors.blue[100],
+            textColor: AttendifyPalette.surfaceMuted,
             label: 'OK',
             onPressed: () {},
           ),
@@ -254,9 +255,9 @@ class AuthService {
       await _auth.signOut();
     } catch (e) {
       if (!context.mounted) return;
-      showSnackBar(e.toString(), Colors.red[900]!);
+      showSnackBar(e.toString(), AttendifyPalette.error);
     }
     if (!context.mounted) return;
-    showSnackBar("Logged out successfully", Colors.blue[900]!);
+    showSnackBar("Logged out successfully", AttendifyPalette.primary);
   }
 }

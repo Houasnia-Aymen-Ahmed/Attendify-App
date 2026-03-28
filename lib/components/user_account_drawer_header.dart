@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../index.dart';
 import '../shared/loading.dart';
+import '../theme/attendify_theme.dart';
 
 class UserAccountDrawerHeader extends StatelessWidget {
   final String username;
@@ -26,7 +27,7 @@ class UserAccountDrawerHeader extends StatelessWidget {
       children: [
         UserAccountsDrawerHeader(
           currentAccountPicture: CircleAvatar(
-            backgroundColor: Colors.blue[100],
+            backgroundColor: AttendifyPalette.surfaceMuted,
             child: ClipOval(
               child: CachedNetworkImage(
                 imageUrl: profileURL,
@@ -56,35 +57,35 @@ class UserAccountDrawerHeader extends StatelessWidget {
             ),
           ),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               colors: [
-                Colors.blue[700]!,
-                Colors.blue[100]!,
+                AttendifyPalette.primary,
+                AttendifyPalette.tertiary,
               ],
               tileMode: TileMode.decal,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(15),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Colors.black,
-                blurRadius: 0.5,
+                color: AttendifyPalette.primary.withValues(alpha: 0.3),
+                blurRadius: 8,
                 blurStyle: BlurStyle.normal,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               )
             ],
           ),
-          arrowColor: Colors.black,
+          arrowColor: Colors.white,
         ),
         if (hasLogout)
           Positioned(
             top: 16.0,
             right: 16.0,
             child: IconButton(
-              icon: Icon(
+              icon: const Icon(
                 Icons.logout,
-                color: Colors.blue[900]!,
+                color: Colors.white,
               ),
               onPressed: onLogout,
             ),
