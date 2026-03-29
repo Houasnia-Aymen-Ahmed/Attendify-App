@@ -1,4 +1,5 @@
 import 'package:attendify/services/auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -49,7 +50,7 @@ void main() {
     });
 
     test('should log out the user', () {
-      authService.logout(context);
+      authService.logout(context as BuildContext);
       expect(authService.currentUsr, isNull);
     });
   });

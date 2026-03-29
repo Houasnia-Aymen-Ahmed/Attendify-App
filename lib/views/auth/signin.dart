@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../theme/attendify_theme.dart';
-import '../../theme/attendify_ui.dart';
-import 'signin_controller.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_ui.dart';
+import 'package:attendify/views/auth/signin_controller.dart';
 
 class SignIn extends ConsumerWidget {
   final VoidCallback toggleView;
@@ -15,10 +15,10 @@ class SignIn extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final signInState = ref.watch(signInControllerProvider);
-    final signInController = ref.read(signInControllerProvider.notifier);
+    final signInState = ref.watch<SignInState>(signInControllerProvider);
+    final signInController = ref.read<SignInController>(signInControllerProvider.notifier);
     final errorText =
-        signInState == SignInState.error ? signInController.error ?? "" : "";
+        signInState == SignInState.error ? signInController.error ?? '' : '';
 
     return Center(
       child: Padding(
@@ -29,24 +29,24 @@ class SignIn extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const AttendifySectionHeader(
-                eyebrow: "Welcome back",
-                title: "Access your dashboard",
+                eyebrow: 'Welcome back',
+                title: 'Access your dashboard',
                 subtitle:
-                    "Continue with your HNS Google account to reach your student, teacher, or admin space.",
+                    'Continue with your HNS Google account to reach your student, teacher, or admin space.',
               ),
               const SizedBox(height: 20),
               const Wrap(
                 spacing: 10,
                 runSpacing: 10,
                 children: [
-                  _AuthFactChip(label: "HNS-only access"),
-                  _AuthFactChip(label: "Google sign-in"),
-                  _AuthFactChip(label: "Role-aware dashboard"),
+                  _AuthFactChip(label: 'HNS-only access'),
+                  _AuthFactChip(label: 'Google sign-in'),
+                  _AuthFactChip(label: 'Role-aware dashboard'),
                 ],
               ),
               const SizedBox(height: 24),
               AttendifyPrimaryButton(
-                label: "Continue with Google",
+                label: 'Continue with Google',
                 icon: Icons.arrow_forward_rounded,
                 isLoading: signInState == SignInState.loading,
                 onPressed: signInController.signIn,
@@ -81,12 +81,12 @@ class SignIn extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "How access works",
+                      'How access works',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      "Use your `@hns-re2sd.dz` account. If you are already registered, Attendify routes you directly to the correct role area.",
+                      'Use your `@hns-re2sd.dz` account. If you are already registered, Attendify routes you directly to the correct role area.',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -97,7 +97,7 @@ class SignIn extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Need first-time access?",
+                    'Need first-time access?',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   TextButton(
@@ -105,7 +105,7 @@ class SignIn extends ConsumerWidget {
                       signInController.reset();
                       toggleView();
                     },
-                    child: const Text("Create your account"),
+                    child: const Text('Create your account'),
                   ),
                 ],
               ),

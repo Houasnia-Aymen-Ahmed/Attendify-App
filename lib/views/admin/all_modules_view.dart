@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../models/module_model.dart';
-import '../../theme/attendify_theme.dart';
-import '../../theme/attendify_ui.dart';
-import '../../utils/module_metrics.dart';
-import '../statistics/module_stats.dart';
+import 'package:attendify/models/module_model.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_ui.dart';
+import 'package:attendify/utils/module_metrics.dart';
+import 'package:attendify/views/statistics/module_stats.dart';
 
 class AllModulesView extends StatefulWidget {
   final List<Module> dataModules;
@@ -50,7 +50,8 @@ class _AllModulesViewState extends State<AllModulesView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AttendifySurface(
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -126,6 +127,7 @@ class _AllModulesViewState extends State<AllModulesView> {
               ],
             ],
           ),
+          ),
         ),
         const SizedBox(height: 16),
         Expanded(
@@ -149,7 +151,7 @@ class _AllModulesViewState extends State<AllModulesView> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            MaterialPageRoute<void>(
                               builder: (context) => ModuleStats(
                                 moduleId: module.uid,
                                 moduleName: module.name,

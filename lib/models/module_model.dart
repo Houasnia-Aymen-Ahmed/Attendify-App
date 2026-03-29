@@ -18,11 +18,11 @@ class Module extends ChangeNotifier {
   }
 
   Module({
-    this.uid = "uid",
-    this.name = "name",
+    this.uid = 'uid',
+    this.name = 'name',
     this.isActive = false,
-    this.speciality = "speciality",
-    this.grade = "grade",
+    this.speciality = 'speciality',
+    this.grade = 'grade',
     this.numberOfStudents = 0,
     this.students = const {},
     this.attendanceTable = const {},
@@ -43,14 +43,14 @@ class Module extends ChangeNotifier {
 
   factory Module.fromJson(Map<String, dynamic> json) {
     return Module(
-      uid: json['uid'],
-      name: json['name'],
-      isActive: json['isActive'],
-      speciality: json['speciality'],
-      grade: json['grade'],
-      numberOfStudents: json['numberOfStudents'],
-      students: json['students'].cast<String, String>(),
-      attendanceTable: json['attendanceTable'],
+      uid: json['uid'] as String,
+      name: json['name'] as String,
+      isActive: json['isActive'] as bool,
+      speciality: json['speciality'] as String,
+      grade: json['grade'] as String,
+      numberOfStudents: json['numberOfStudents'] as int,
+      students: Map<String, String>.from(json['students'] as Map),
+      attendanceTable: Map<String, dynamic>.from(json['attendanceTable'] as Map),
     );
   }
 }

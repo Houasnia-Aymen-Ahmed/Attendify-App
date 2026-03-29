@@ -47,5 +47,12 @@ app.*.map.json
 # Local machine-specific Android SDK configuration
 android/local.properties
 
+# Firebase sensitive config
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# Build logs (may contain paths/env info)
+app.log
+
 # Browser automation test artifacts
 .playwright-cli/

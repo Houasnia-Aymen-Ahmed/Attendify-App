@@ -4,18 +4,18 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../models/attendify_student.dart';
-import '../../../models/live_session.dart';
-import '../../../models/module_model.dart';
-import '../../../models/session_check_in.dart';
-import '../../../models/session_code.dart';
-import '../../../services/databases.dart';
-import '../../../services/providers.dart';
-import '../../../shared/error_pages.dart';
-import '../../../shared/loading.dart';
-import '../../../theme/attendify_theme.dart';
-import '../../../theme/attendify_ui.dart';
-import '../../../utils/module_metrics.dart';
+import 'package:attendify/models/attendify_student.dart';
+import 'package:attendify/models/live_session.dart';
+import 'package:attendify/models/module_model.dart';
+import 'package:attendify/models/session_check_in.dart';
+import 'package:attendify/models/session_code.dart';
+import 'package:attendify/services/databases.dart';
+import 'package:attendify/services/providers.dart';
+import 'package:attendify/shared/error_pages.dart';
+import 'package:attendify/shared/loading.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_ui.dart';
+import 'package:attendify/utils/module_metrics.dart';
 
 // Tracks where the student is in the check-in flow
 enum _CheckInPhase {
@@ -210,7 +210,7 @@ class _ModuleViewFromStudentState
             return checkInAsync.when(
               data: (currentCheckIn) {
                 final hasCheckedIn = currentCheckIn != null;
-                final sessionCode = sessionCodeAsync.valueOrNull;
+                final sessionCode = sessionCodeAsync.asData?.value;
 
                 // Auto-reset to idle once check-in confirmed
                 if (hasCheckedIn && _phase != _CheckInPhase.idle) {

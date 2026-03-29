@@ -2,10 +2,10 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/attendify_student.dart';
-import '../models/attendify_teacher.dart';
-import '../models/module_model.dart';
-import 'functions.dart';
+import 'package:attendify/models/attendify_student.dart';
+import 'package:attendify/models/attendify_teacher.dart';
+import 'package:attendify/models/module_model.dart';
+import 'package:attendify/utils/functions.dart';
 
 class SharedPrefsHelper {
   static Future<void> saveLastAccessedItems(
@@ -39,7 +39,8 @@ class SharedPrefsHelper {
     if (itemsJson == null) return [];
 
     return itemsJson.map((itemJson) {
-      Map<String, dynamic> itemMap = json.decode(itemJson);
+      Map<String, dynamic> itemMap =
+          json.decode(itemJson) as Map<String, dynamic>;
       switch (itemType) {
         case 'module':
           return Module.fromJson(itemMap);

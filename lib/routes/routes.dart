@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../models/attendify_student.dart';
-import '../models/module_model.dart';
-import '../services/auth.dart';
-import '../services/databases.dart';
-import '../models/attendify_teacher.dart';
-import '../views/home/student/module_from_student.dart';
-import '../views/home/student/student_view.dart';
-import '../views/home/teacher/teacher_view.dart';
-import '../views/home/teacher/module_from_teacher.dart';
-import '../views/home/teacher/select_module.dart';
+import 'package:attendify/models/attendify_student.dart';
+import 'package:attendify/models/module_model.dart';
+import 'package:attendify/services/auth.dart';
+import 'package:attendify/services/databases.dart';
+import 'package:attendify/models/attendify_teacher.dart';
+import 'package:attendify/views/home/student/module_from_student.dart';
+import 'package:attendify/views/home/student/student_view.dart';
+import 'package:attendify/views/home/teacher/teacher_view.dart';
+import 'package:attendify/views/home/teacher/module_from_teacher.dart';
+import 'package:attendify/views/home/teacher/select_module.dart';
 
 enum ViewType {
   student,

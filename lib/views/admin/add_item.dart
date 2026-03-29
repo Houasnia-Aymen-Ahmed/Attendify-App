@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 
-import '../../components/custom_dropdown_btn.dart';
-import '../../services/databases.dart';
-import '../../shared/constants.dart';
+import 'package:attendify/components/custom_dropdown_btn.dart';
+import 'package:attendify/services/databases.dart';
+import 'package:attendify/shared/constants.dart';
 
 class AddItemDialog extends StatefulWidget {
   final DatabaseService databaseService;
@@ -22,15 +22,15 @@ class AddItemDialog extends StatefulWidget {
 class _AddItemDialogState extends State<AddItemDialog> {
   final _formKey = GlobalKey<FormState>();
   bool isSaving = false, isDone = false, isError = false, isDisabled = true;
-  String? gradeVal, specialityVal, moduleName = "", _newTeacherEmail = "";
+  String? gradeVal, specialityVal, moduleName = '', _newTeacherEmail = '';
   int? numberOfStudents = 0;
-  String feedbackMsg = "";
+  String feedbackMsg = '';
 
   void submitController() async {
     if (_formKey.currentState!.validate()) {
       try {
-        setFeedbackState(true, false, "Saving ${widget.itemType} ...");
-        if (widget.itemType == "module") {
+        setFeedbackState(true, false, 'Saving ${widget.itemType} ...');
+        if (widget.itemType == 'module') {
           String uid = '${gradeVal}_${specialityVal}_module_';
           await widget.databaseService.updateModuleData(
             uid: uid,
@@ -46,18 +46,18 @@ class _AddItemDialogState extends State<AddItemDialog> {
         } else {
           await widget.databaseService.addTeacherEmail(_newTeacherEmail!);
         }
-        setFeedbackState(false, true, "${widget.itemType} added successfully");
+        setFeedbackState(false, true, '${widget.itemType} added successfully');
         _formKey.currentState!.reset();
         setState(() {
           gradeVal = specialityVal = null;
-          moduleName = _newTeacherEmail = "";
+          moduleName = _newTeacherEmail = '';
           numberOfStudents = 0;
         });
       } catch (e) {
         setFeedbackState(
           false,
           true,
-          "Error saving ${widget.itemType}",
+          'Error saving ${widget.itemType}',
           isError: true,
         );
       }
@@ -79,7 +79,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
   }
 
   Row showFeedback({
-    String feedbackMsg = "",
+    String feedbackMsg = '',
     bool isLoading = false,
     bool isError = false,
   }) {
@@ -118,14 +118,14 @@ class _AddItemDialogState extends State<AddItemDialog> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CustomDropdownBtn(
-            hint: "Choose your grade",
-            type: "grade",
+            hint: 'Choose your grade',
+            type: 'grade',
             gradeVal: gradeVal,
             isExpanded: true,
             filled: true,
             validator: (value) {
               if (gradeVal == null) {
-                return "Please select a grade";
+                return 'Please select a grade';
               } else {
                 return null;
               }
@@ -139,8 +139,8 @@ class _AddItemDialogState extends State<AddItemDialog> {
             },
           ),
           CustomDropdownBtn(
-            hint: "Choose your speciality",
-            type: "speciality",
+            hint: 'Choose your speciality',
+            type: 'speciality',
             isDisabled: isDisabled,
             gradeVal: gradeVal,
             specialityVal: specialityVal,
@@ -148,7 +148,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
             filled: true,
             validator: (value) {
               if (gradeVal == null) {
-                return "Please select a speciality";
+                return 'Please select a speciality';
               } else {
                 return null;
               }
@@ -167,8 +167,8 @@ class _AddItemDialogState extends State<AddItemDialog> {
               enableSuggestions: true,
               keyboardType: TextInputType.name,
               validator: (value) {
-                if ((value?.trim() ?? "").isEmpty) {
-                  return "Please enter the module name";
+                if ((value?.trim() ?? '').isEmpty) {
+                  return 'Please enter the module name';
                 } else {
                   return null;
                 }
@@ -188,7 +188,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value?.trim().isEmpty ?? true) {
-                  return "Please enter the maximum\nnumber of students";
+                  return 'Please enter the maximum\nnumber of students';
                 } else {
                   return null;
                 }
@@ -199,7 +199,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
                 });
               },
               decoration: textInputDecoration.copyWith(
-                hintText: "Number of students",
+                hintText: 'Number of students',
               ),
             ),
           ),
@@ -221,9 +221,9 @@ class _AddItemDialogState extends State<AddItemDialog> {
             });
           },
           validator: (value) {
-            if (value!.isEmpty || !value.contains("@")) {
-              return "Please enter a valid email";
-            } else if (!value.endsWith("@hns-re2sd.dz")) {
+            if (value!.isEmpty || !value.contains('@')) {
+              return 'Please enter a valid email';
+            } else if (!value.endsWith('@hns-re2sd.dz')) {
               return 'The email should end with "@hns-re2sd.dz"';
             } else {
               return null;
@@ -243,13 +243,13 @@ class _AddItemDialogState extends State<AddItemDialog> {
       title: Text('Add a ${widget.itemType}'),
       contentPadding: const EdgeInsets.all(16.0),
       children: [
-        if (widget.itemType == "module")
+        if (widget.itemType == 'module')
           shownModuleWidgets()
         else
           shownTeacherWidgets(),
         if (isSaving)
           showFeedback(
-              feedbackMsg: "Saving ${widget.itemType} ...", isLoading: true)
+              feedbackMsg: 'Saving ${widget.itemType} ...', isLoading: true)
         else if (isDone)
           showFeedback(
             feedbackMsg: feedbackMsg,
@@ -267,7 +267,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
             ),
             ElevatedButton(
               onPressed: submitController,
-              child: const Text("Add"),
+              child: const Text('Add'),
             ),
           ],
         ),

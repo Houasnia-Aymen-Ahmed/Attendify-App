@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
-import '../models/attendance_waiver.dart';
-import 'auth.dart';
+import 'package:attendify/models/attendance_waiver.dart';
+import 'package:attendify/services/auth.dart';
 
 class WaiverService {
   final FirebaseFirestore _firestore;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../utils/calculate_stats.dart';
-import '../charts/bar_chart.dart';
-import '../charts/pie_chart.dart';
+import 'package:attendify/utils/calculate_stats.dart';
+import 'package:attendify/views/statistics/charts/bar_chart.dart';
+import 'package:attendify/views/statistics/charts/pie_chart.dart';
 
 class AllModulesStats extends StatefulWidget {
   const AllModulesStats({super.key});
@@ -26,7 +26,7 @@ class _AllModulesStatsState extends State<AllModulesStats> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("All modules Stats"),
+        title: const Text('All modules Stats'),
       ),
       body: RefreshIndicator(
         onRefresh: () async {

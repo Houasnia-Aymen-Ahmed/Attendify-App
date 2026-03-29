@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../components/popups.dart';
-import '../../models/attendify_teacher.dart';
-import '../../services/databases.dart';
-import '../../theme/attendify_theme.dart';
-import '../../theme/attendify_ui.dart';
+import 'package:attendify/components/popups.dart';
+import 'package:attendify/models/attendify_teacher.dart';
+import 'package:attendify/services/databases.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_ui.dart';
 
 class AllTeachersView extends StatefulWidget {
   final Map<String, dynamic> dataTeachers;
@@ -117,7 +117,7 @@ class _AllTeachersViewState extends State<AllTeachersView> {
                                 onPressed: () {
                                   removeConfirmationDialog(
                                     context,
-                                    "email",
+                                    'email',
                                     () => widget.databaseService.removeTeacherEmail(email),
                                   );
                                 },
@@ -181,7 +181,7 @@ class _AllTeachersViewState extends State<AllTeachersView> {
                                 onPressed: () {
                                   removeConfirmationDialog(
                                     context,
-                                    "teacher",
+                                    'teacher',
                                     () => widget.databaseService
                                         .removeTeacherById(teacher.uid),
                                   );

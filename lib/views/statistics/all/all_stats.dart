@@ -16,7 +16,7 @@ class AllStats extends StatelessWidget {
         children: <Widget>[
           Expanded(
             child: Text(
-              "All $statType statistics ",
+              'All $statType statistics ',
               style: GoogleFonts.roboto(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
@@ -26,26 +26,26 @@ class AllStats extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               switch (statType) {
-                case "modules":
+                case 'modules':
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (context) => const AllModulesStats(),
                     ),
                   );
                   break;
-                case "teachers":
+                case 'teachers':
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (context) => Container(),
                     ),
                   );
                   break;
-                case "students":
+                case 'students':
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (context) => Container(),
                     ),
                   );
@@ -53,10 +53,10 @@ class AllStats extends StatelessWidget {
                 default:
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (context) => const ErrorPages(
-                        title: "Error 404: Not Found",
-                        message: "No Statistic data available for this type",
+                        title: 'Error 404: Not Found',
+                        message: 'No Statistic data available for this type',
                       ),
                     ),
                   );
@@ -69,7 +69,7 @@ class AllStats extends StatelessWidget {
                 vertical: 10,
               ),
             ),
-            child: const Text("Show"),
+            child: const Text('Show'),
           ),
         ],
       ),

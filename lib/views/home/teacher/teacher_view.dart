@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../models/attendify_teacher.dart';
-import '../../../models/module_model.dart';
-import '../../../services/auth.dart';
-import '../../../services/databases.dart';
-import '../../../shared/error_pages.dart';
-import '../../../shared/loading.dart';
-import '../../../shared/module_list_view.dart';
-import '../../../theme/attendify_ui.dart';
-import '../../../utils/module_metrics.dart';
+import 'package:attendify/models/attendify_teacher.dart';
+import 'package:attendify/models/module_model.dart';
+import 'package:attendify/services/auth.dart';
+import 'package:attendify/services/databases.dart';
+import 'package:attendify/shared/error_pages.dart';
+import 'package:attendify/shared/loading.dart';
+import 'package:attendify/shared/module_list_view.dart';
+import 'package:attendify/theme/attendify_ui.dart';
+import 'package:attendify/utils/module_metrics.dart';
 
 class TeacherView extends StatefulWidget {
   final Teacher teacher;
@@ -94,13 +94,13 @@ class _TeacherViewState extends State<TeacherView> {
           return const Loading();
         } else if (teacherSnapshot.hasError) {
           return ErrorPages(
-            title: "Server Error",
+            title: 'Server Error',
             message: teacherSnapshot.error.toString(),
           );
         } else if (!teacherSnapshot.hasData) {
           return const ErrorPages(
-            title: "Error 404: Not Found",
-            message: "No module data available for teacher",
+            title: 'Error 404: Not Found',
+            message: 'No module data available for teacher',
           );
         }
 
@@ -114,7 +114,7 @@ class _TeacherViewState extends State<TeacherView> {
               return const Loading();
             } else if (modulesSnapshot.hasError) {
               return ErrorPages(
-                title: "Server Error",
+                title: 'Server Error',
                 message: modulesSnapshot.error.toString(),
               );
             } else if (!modulesSnapshot.hasData) {
@@ -132,7 +132,7 @@ class _TeacherViewState extends State<TeacherView> {
                 scrollable: false,
                 expandChild: true,
                 leading: AttendifyUserAvatar(imageUrl: teacher.photoURL),
-                title: "Managed courses",
+                title: 'Managed courses',
                 subtitle:
                     '${modulesData.length} assigned modules • $activeModules currently active',
                 actions: [
@@ -321,7 +321,7 @@ class _TeacherViewState extends State<TeacherView> {
                                 )
                               : ModuleListView(
                                   modules: filteredModules,
-                                  userType: "teacher",
+                                  userType: 'teacher',
                                   teacher: teacher,
                                   databaseService: widget.databaseService,
                                 ),

@@ -1,12 +1,15 @@
+import 'package:attendify/models/attendify_student.dart';
+import 'package:attendify/models/attendify_teacher.dart';
+import 'package:attendify/models/module_model.dart';
 import 'package:attendify/shared/error_pages.dart';
 import 'package:flutter/material.dart';
 
-import '../../theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 
-import '../../utils/shared_prefs_helper.dart';
-import '../statistics/module_stats.dart';
+import 'package:attendify/utils/shared_prefs_helper.dart';
+import 'package:attendify/views/statistics/module_stats.dart';
 
-class SearchPage extends SearchDelegate {
+class SearchPage extends SearchDelegate<dynamic> {
   final String itemType;
   final String searchLabel;
   final List<dynamic> allItems;
@@ -16,7 +19,7 @@ class SearchPage extends SearchDelegate {
     required this.itemType,
     required this.allItems,
     required this.lastAccessedItems,
-    this.searchLabel = "Search",
+    this.searchLabel = 'Search',
   });
 
   bool get isPerson => itemType != 'module';
@@ -47,7 +50,7 @@ class SearchPage extends SearchDelegate {
     return [
       IconButton(
         onPressed: () {
-          query = "";
+          query = '';
         },
         icon: const Icon(Icons.close),
       ),
@@ -68,14 +71,14 @@ class SearchPage extends SearchDelegate {
     return isPerson
         ? items
             .where(
-              (element) => element.userName.toLowerCase().contains(
+              (element) => (element.userName as String).toLowerCase().contains(
                     query.toLowerCase(),
                   ),
             )
             .toList()
         : items
             .where(
-              (element) => element.name.toLowerCase().contains(
+              (element) => (element.name as String).toLowerCase().contains(
                     query.toLowerCase(),
                   ),
             )
@@ -121,7 +124,7 @@ class SearchPage extends SearchDelegate {
         itemBuilder: (context, index) {
           dynamic result = items[index];
           return ListTile(
-            title: Text(isPerson ? items[index].userName : items[index].name),
+            title: Text(isPerson ? (result.userName as String) : (result.name as String)),
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () {
               SharedPrefsHelper.saveLastAccessedItems(
@@ -140,35 +143,38 @@ class SearchPage extends SearchDelegate {
   void navigateToStats(BuildContext context, dynamic result) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (context) {
           switch (itemType) {
-            case "module":
+            case 'module':
+              final module = result as Module;
               return ModuleStats(
-                moduleId: result.uid,
-                moduleName: result.name,
-                students: result.students,
-                numberOfStudents: result.numberOfStudents,
+                moduleId: module.uid,
+                moduleName: module.name,
+                students: module.students,
+                numberOfStudents: module.numberOfStudents,
               );
-            case "teacher":
+            case 'teacher':
+              final teacher = result as Teacher;
               return ModuleStats(
-                moduleId: result.uid,
-                moduleName: result.name,
-                students: result.students,
-                numberOfStudents: result.numberOfStudents,
+                moduleId: teacher.uid,
+                moduleName: teacher.userName,
+                students: const {}, // Teacher might not have students directly like this
+                numberOfStudents: 0,
               );
-            case "student":
+            case 'student':
+              final student = result as Student;
               return ModuleStats(
-                moduleId: result.uid,
-                moduleName: result.name,
-                students: result.students,
-                numberOfStudents: result.numberOfStudents,
+                moduleId: student.uid,
+                moduleName: student.userName,
+                students: const {},
+                numberOfStudents: 0,
               );
             default:
               return const ErrorPages(
-                title: "Server Error",
+                title: 'Server Error',
                 message:
-                    "Not statistics found as the type is invalid\n(Please select a module, teacher or a student)",
+                    'Not statistics found as the type is invalid\n(Please select a module, teacher or a student)',
               );
           }
         },

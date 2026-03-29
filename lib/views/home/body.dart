@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../models/attendify_student.dart';
-import '../../models/module_model.dart';
-import '../../services/auth.dart';
-import '../../services/databases.dart';
-import '../../shared/error_pages.dart';
-import '../../shared/loading.dart';
-import '../../shared/module_list_view.dart';
-import '../../theme/attendify_theme.dart';
-import '../../theme/attendify_ui.dart';
+import 'package:attendify/models/attendify_student.dart';
+import 'package:attendify/models/module_model.dart';
+import 'package:attendify/services/auth.dart';
+import 'package:attendify/services/databases.dart';
+import 'package:attendify/shared/error_pages.dart';
+import 'package:attendify/shared/loading.dart';
+import 'package:attendify/shared/module_list_view.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_ui.dart';
 
 class BuildBody extends StatelessWidget {
   final Student student;
@@ -34,13 +34,13 @@ class BuildBody extends StatelessWidget {
           return const Loading();
         } else if (snapshot.hasError) {
           return ErrorPages(
-            title: "Server Error",
+            title: 'Server Error',
             message: snapshot.error.toString(),
           );
         } else if (!snapshot.hasData) {
           return const ErrorPages(
-            title: "Error 404: Not Found",
-            message: "No module data available for student",
+            title: 'Error 404: Not Found',
+            message: 'No module data available for student',
           );
         }
 
@@ -52,7 +52,7 @@ class BuildBody extends StatelessWidget {
             scrollable: false,
             expandChild: true,
             leading: AttendifyUserAvatar(imageUrl: student.photoURL),
-            title: "Attendance overview",
+            title: 'Attendance overview',
             subtitle:
                 '${student.grade} year • ${student.speciality} • ${modules.length} modules in your track',
             actions: [
@@ -129,7 +129,7 @@ class BuildBody extends StatelessWidget {
                         )
                       : ModuleListView(
                           modules: modules,
-                          userType: "student",
+                          userType: 'student',
                           student: student,
                           databaseService: databaseService,
                         ),

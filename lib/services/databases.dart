@@ -2,12 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:async/async.dart';
 
-import '../models/attendify_student.dart';
-import '../theme/attendify_theme.dart';
-import '../models/attendify_teacher.dart';
-import '../models/module_model.dart';
-import '../models/user_of_attendify.dart';
-import 'auth.dart';
+import 'package:attendify/models/attendify_student.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/models/attendify_teacher.dart';
+import 'package:attendify/models/module_model.dart';
+import 'package:attendify/models/user_of_attendify.dart';
+import 'package:attendify/services/auth.dart';
 
 class DatabaseService {
   final AuthService _auth = AuthService();
@@ -17,31 +17,31 @@ class DatabaseService {
   DatabaseService({this.uid});
 
   CollectionReference teacherEmailsColl =
-      FirebaseFirestore.instance.collection("TeacherEmailsCollection");
+      FirebaseFirestore.instance.collection('TeacherEmailsCollection');
   CollectionReference adminEmailsColl =
-      FirebaseFirestore.instance.collection("AdminEmailsCollection");
+      FirebaseFirestore.instance.collection('AdminEmailsCollection');
   CollectionReference userColl =
-      FirebaseFirestore.instance.collection("UserCollection");
+      FirebaseFirestore.instance.collection('UserCollection');
   CollectionReference teacherColl =
-      FirebaseFirestore.instance.collection("TeacherCollection");
+      FirebaseFirestore.instance.collection('TeacherCollection');
   CollectionReference studentColl =
-      FirebaseFirestore.instance.collection("StudentCollection");
+      FirebaseFirestore.instance.collection('StudentCollection');
   CollectionReference modulesColl =
-      FirebaseFirestore.instance.collection("Modules");
+      FirebaseFirestore.instance.collection('Modules');
 
   Future<void> addTeacherEmail(String email) async {
-    teacherEmailsColl.doc("TeacherEmails").update({
+    teacherEmailsColl.doc('TeacherEmails').update({
       'emails': FieldValue.arrayUnion([email])
     });
   }
 
   Future<void> removeTeacherEmail(String email) async {
-    teacherEmailsColl.doc("TeacherEmails").update({
+    teacherEmailsColl.doc('TeacherEmails').update({
       'emails': FieldValue.arrayRemove([email])
     });
   }
 
-  Future updateUserData({
+  Future<void> updateUserData({
     required String userName,
     required String userType,
     required String usrUid,
@@ -58,7 +58,7 @@ class DatabaseService {
     });
 
     switch (userType) {
-      case "teacher":
+      case 'teacher':
         await teacherColl.doc(uid).set({
           'username': userName,
           'userType': userType,
@@ -67,7 +67,7 @@ class DatabaseService {
           'photoURL': photoURL,
         });
         break;
-      case "student":
+      case 'student':
         await studentColl.doc(uid).set({
           'username': userName,
           'userType': userType,
@@ -95,7 +95,7 @@ class DatabaseService {
     }
   }
 
-  Future updateUserSpecificData({
+  Future<void> updateUserSpecificData({
     String? username,
     String? userType,
     String? uid,
@@ -103,17 +103,17 @@ class DatabaseService {
     String? photoURL,
   }) async {
     String usrUid = uid ?? _auth.currentUsr!.uid;
-    Map<String, dynamic> map = {
-      "username": username,
-      "userType": userType,
-      "uid": uid,
-      "email": email,
-      "photoURL": photoURL,
+    Map<String, String?> map = {
+      'username': username,
+      'userType': userType,
+      'uid': uid,
+      'email': email,
+      'photoURL': photoURL,
     };
     for (var entry in map.entries) {
       if (entry.value != null) {
         await userColl.doc(usrUid).update({
-          entry.key.toString(): entry.value,
+          entry.key: entry.value,
         });
       }
     }
@@ -148,24 +148,24 @@ class DatabaseService {
     List<String>? modules,
   }) async {
     String usrUid = uid ?? _auth.currentUsr!.uid;
-    Map<String, dynamic> map = {
-      "username": username,
-      "userType": userType,
-      "uid": uid,
-      "email": email,
+    Map<String, String?> map = {
+      'username': username,
+      'userType': userType,
+      'uid': uid,
+      'email': email,
       'photoURL': photoURL,
     };
     for (var entry in map.entries) {
       if (entry.value != null) {
         await teacherColl.doc(usrUid).update({
-          entry.key.toString(): entry.value,
+          entry.key: entry.value,
         });
       }
     }
 
     if (modules != null) {
       await teacherColl.doc(usrUid).update({
-        "modules": FieldValue.arrayUnion(modules),
+        'modules': FieldValue.arrayUnion(modules),
       });
     }
   }
@@ -202,25 +202,25 @@ class DatabaseService {
     String? speciality,
   }) async {
     String usrUid = uid ?? _auth.currentUsr!.uid;
-    Map<String, dynamic> map = {
-      "username": username,
-      "userType": userType,
-      "uid": uid,
-      "email": email,
+    Map<String, String?> map = {
+      'username': username,
+      'userType': userType,
+      'uid': uid,
+      'email': email,
       'photoURL': photoURL,
-      "grade": grade,
-      "speciality": speciality,
+      'grade': grade,
+      'speciality': speciality,
     };
     for (var entry in map.entries) {
       if (entry.value != null) {
-        await teacherColl.doc(usrUid).update({
-          entry.key.toString(): entry.value,
+        await studentColl.doc(usrUid).update({
+          entry.key: entry.value,
         });
       }
     }
   }
 
-  Future updateModuleData({
+  Future<void> updateModuleData({
     required String uid,
     required String name,
     required bool isActive,
@@ -241,7 +241,7 @@ class DatabaseService {
             .limit(1)
             .get();
         for (var doc in querySnapshot.docs) {
-          String docUid = doc.get('uid');
+          String docUid = doc.get('uid') as String;
           if (docUid.startsWith(uid)) {
             int? currentIndex = int.tryParse(docUid.substring(uid.length));
             if (currentIndex != null && currentIndex >= index) {
@@ -249,19 +249,19 @@ class DatabaseService {
             }
           }
         }
-        uid = '$uid$index';
-        return await modulesColl.doc(uid).set({
-          'uid': uid,
+        String finalUid = '$uid$index';
+        await modulesColl.doc(finalUid).set({
+          'uid': finalUid,
           'name': name,
           'isActive': isActive,
           'speciality': speciality,
           'grade': grade,
           'numberOfStudents': numberOfStudents,
-          'students': {},
-          'attendanceTable': {},
+          'students': <dynamic, dynamic>{},
+          'attendanceTable': <dynamic, dynamic>{},
         });
       } else {
-        return await modulesColl.doc(uid).set({
+        await modulesColl.doc(uid).set({
           'uid': uid,
           'name': name,
           'isActive': isActive,
@@ -275,7 +275,7 @@ class DatabaseService {
     } else {
       DocumentSnapshot document = await modulesColl.doc(uid).get();
       if (!document.exists) {
-        return await modulesColl.doc(uid).set({
+        await modulesColl.doc(uid).set({
           'uid': uid,
           'name': name,
           'isActive': isActive,
@@ -289,7 +289,7 @@ class DatabaseService {
     }
   }
 
-  Future updateModuleSpecificData({
+  Future<void> updateModuleSpecificData({
     String? uid,
     String? name,
     bool? isActive,
@@ -302,13 +302,13 @@ class DatabaseService {
     if (addStudent != null && studentName != null) {
       final moduleDoc = modulesColl.doc(uid);
       final currentStudents = Map<String, String>.from(
-        (await moduleDoc.get()).get("students") ?? {},
+        (await moduleDoc.get()).get('students') as Map? ?? {},
       );
 
       currentStudents[addStudent] = studentName;
       await moduleDoc.update(
         {
-          "students": currentStudents,
+          'students': currentStudents,
         },
       );
     }
@@ -325,7 +325,7 @@ class DatabaseService {
     for (var entry in map.entries) {
       if (entry.value != null) {
         await modulesColl.doc(uid).update({
-          entry.key.toString(): entry.value,
+          entry.key: entry.value,
         });
       }
     }
@@ -377,12 +377,14 @@ class DatabaseService {
   Future<Map<String, int>> fetchModuleAttendanceData(String moduleId) async {
     DocumentSnapshot moduleSnapshot = await modulesColl.doc(moduleId).get();
     Map<String, dynamic> attendanceTable =
-        moduleSnapshot.get('attendanceTable');
+        moduleSnapshot.get('attendanceTable') as Map<String, dynamic>;
     Map<String, int> attendanceData = {};
 
     if (attendanceTable.isNotEmpty) {
       attendanceTable.forEach((date, data) {
-        int presentCount = data.values.where((value) => value == true).length;
+        final attendanceMap = data as Map<dynamic, dynamic>;
+        int presentCount =
+            attendanceMap.values.where((value) => value == true).length;
         attendanceData[date] = presentCount;
       });
     }
@@ -393,17 +395,20 @@ class DatabaseService {
       String moduleId) async {
     DocumentSnapshot moduleSnapshot = await modulesColl.doc(moduleId).get();
     Map<String, dynamic> attendanceTable =
-        moduleSnapshot.get('attendanceTable');
+        moduleSnapshot.get('attendanceTable') as Map<String, dynamic>;
     Map<String, int> studentPresenceCount = {};
 
     if (attendanceTable.isNotEmpty) {
       attendanceTable.forEach((date, data) {
-        data.forEach((student, isPresent) {
-          if (!studentPresenceCount.containsKey(student)) {
-            studentPresenceCount[student] = 0;
+        final attendanceMap = data as Map<dynamic, dynamic>;
+        attendanceMap.forEach((student, isPresent) {
+          final String studentId = student as String;
+          if (!studentPresenceCount.containsKey(studentId)) {
+            studentPresenceCount[studentId] = 0;
           }
-          if (isPresent) {
-            studentPresenceCount[student] = studentPresenceCount[student]! + 1;
+          if (isPresent as bool) {
+            studentPresenceCount[studentId] =
+                studentPresenceCount[studentId]! + 1;
           }
         });
       });
@@ -417,24 +422,27 @@ class DatabaseService {
     DocumentSnapshot moduleSnapshot = await modulesColl.doc(moduleId).get();
     Map<String, dynamic> attendanceTable = moduleSnapshot.get(
       'attendanceTable',
-    );
+    ) as Map<String, dynamic>;
     Map<String, int> attendanceData = {};
     Map<String, double> studentPresenceCount = {};
 
     if (attendanceTable.isNotEmpty) {
       attendanceTable.forEach(
         (date, data) {
-          int presentCount = data.values.where((value) => value == true).length;
+          final attendanceMap = data as Map<dynamic, dynamic>;
+          int presentCount =
+              attendanceMap.values.where((value) => value == true).length;
           attendanceData[date] = presentCount;
 
-          data.forEach(
+          attendanceMap.forEach(
             (student, isPresent) {
-              if (!studentPresenceCount.containsKey(student)) {
-                studentPresenceCount[student] = 0;
+              final String studentId = student as String;
+              if (!studentPresenceCount.containsKey(studentId)) {
+                studentPresenceCount[studentId] = 0;
               }
-              if (isPresent) {
-                studentPresenceCount[student] =
-                    studentPresenceCount[student]! + 1;
+              if (isPresent as bool) {
+                studentPresenceCount[studentId] =
+                    studentPresenceCount[studentId]! + 1;
               }
             },
           );
@@ -488,20 +496,20 @@ class DatabaseService {
       isUserDataExist = true;
       Map<String, dynamic> doc = snapshot.data() as Map<String, dynamic>;
       return AttendifyUser(
-        userName: doc["username"] ?? 'username',
-        userType: doc["userType"] ?? "usertype",
-        uid: doc["uid"] ?? 'uid',
-        email: doc["email"] ?? "email",
-        photoURL: doc["photoURL"] ?? "photoURL",
+        userName: doc['username'] as String? ?? 'username',
+        userType: doc['userType'] as String? ?? 'usertype',
+        uid: doc['uid'] as String? ?? 'uid',
+        email: doc['email'] as String? ?? 'email',
+        photoURL: doc['photoURL'] as String? ?? 'photoURL',
       );
     } else {
       isUserDataExist = false;
       return AttendifyUser(
         userName: 'username',
-        userType: "usertype",
+        userType: 'usertype',
         uid: 'uid',
-        email: "email",
-        photoURL: "photoURL",
+        email: 'email',
+        photoURL: 'photoURL',
       );
     }
   }
@@ -510,21 +518,21 @@ class DatabaseService {
     if (snapshot.exists) {
       Map<String, dynamic> doc = snapshot.data() as Map<String, dynamic>;
       return Student(
-        userName: doc["username"] ?? 'username',
-        userType: doc["userType"] ?? "usertype",
-        uid: doc["uid"] ?? 'uid',
-        email: doc["email"] ?? "email",
-        photoURL: doc["photoURL"] ?? "photoURL",
-        grade: doc["grade"] ?? 'grade',
-        speciality: doc["speciality"] ?? 'speciality',
+        userName: doc['username'] as String? ?? 'username',
+        userType: doc['userType'] as String? ?? 'usertype',
+        uid: doc['uid'] as String? ?? 'uid',
+        email: doc['email'] as String? ?? 'email',
+        photoURL: doc['photoURL'] as String? ?? 'photoURL',
+        grade: doc['grade'] as String? ?? 'grade',
+        speciality: doc['speciality'] as String? ?? 'speciality',
       );
     } else {
       return Student(
         userName: 'username',
-        userType: "usertype",
+        userType: 'usertype',
         uid: 'uid',
-        email: "email",
-        photoURL: "photoURL",
+        email: 'email',
+        photoURL: 'photoURL',
         grade: 'grade',
         speciality: 'speciality',
       );
@@ -536,25 +544,25 @@ class DatabaseService {
       Map<String, dynamic> doc = snapshot.data() as Map<String, dynamic>;
 
       return Module(
-        uid: doc["uid"] ?? 'uid',
-        name: doc["name"] ?? 'name',
-        speciality: doc["speciality"] ?? 'speciality',
-        grade: doc["grade"] ?? "grade",
-        numberOfStudents: doc["numberOfStudents"] ?? 0,
-        isActive: doc["isActive"] ?? false,
+        uid: doc['uid'] as String? ?? 'uid',
+        name: doc['name'] as String? ?? 'name',
+        speciality: doc['speciality'] as String? ?? 'speciality',
+        grade: doc['grade'] as String? ?? 'grade',
+        numberOfStudents: doc['numberOfStudents'] as int? ?? 0,
+        isActive: doc['isActive'] as bool? ?? false,
         students: Map<String, String>.from(
-          doc["students"] ?? {},
+          doc['students'] as Map? ?? {},
         ),
         attendanceTable: Map<String, dynamic>.from(
-          doc["attendanceTable"] ?? {},
+          doc['attendanceTable'] as Map? ?? {},
         ),
       );
     } else {
       return Module(
-        uid: "uid",
-        name: "name",
-        speciality: "speciality",
-        grade: "grade",
+        uid: 'uid',
+        name: 'name',
+        speciality: 'speciality',
+        grade: 'grade',
         numberOfStudents: 0,
         isActive: false,
         students: {},
@@ -567,7 +575,7 @@ class DatabaseService {
     if (snapshot.exists) {
       Map<String, dynamic> doc = snapshot.data() as Map<String, dynamic>;
 
-      List<String>? modules = (doc["modules"] as List<dynamic>?)
+      List<String>? modules = (doc['modules'] as List<dynamic>?)
               ?.map(
                 (e) => e.toString(),
               )
@@ -575,20 +583,20 @@ class DatabaseService {
           [];
 
       return Teacher(
-        userName: doc["username"] ?? 'username',
-        userType: doc["userType"] ?? "usertype",
-        uid: doc["uid"] ?? 'uid',
-        email: doc["email"] ?? "email",
-        photoURL: doc["photoURL"] ?? "photoURL",
+        userName: doc['username'] as String? ?? 'username',
+        userType: doc['userType'] as String? ?? 'usertype',
+        uid: doc['uid'] as String? ?? 'uid',
+        email: doc['email'] as String? ?? 'email',
+        photoURL: doc['photoURL'] as String? ?? 'photoURL',
         modules: modules,
       );
     } else {
       return Teacher(
         userName: 'username',
-        userType: "usertype",
+        userType: 'usertype',
         uid: 'uid',
-        email: "email",
-        photoURL: "photoURL",
+        email: 'email',
+        photoURL: 'photoURL',
         modules: [],
       );
     }
@@ -613,7 +621,7 @@ class DatabaseService {
   }
 
   Stream<List<Student>> getStudentsList(List<String> studentUIDs) {
-    studentUIDs = studentUIDs.isNotEmpty ? studentUIDs : ["stuentdUid"];
+    studentUIDs = studentUIDs.isNotEmpty ? studentUIDs : ['stuentdUid'];
     return studentColl
         .where(FieldPath.documentId, whereIn: studentUIDs)
         .snapshots()
@@ -651,10 +659,10 @@ class DatabaseService {
         } else {
           return [
             Module(
-              uid: "uid",
-              name: "names",
-              speciality: "speciality",
-              grade: "grade",
+              uid: 'uid',
+              name: 'names',
+              speciality: 'speciality',
+              grade: 'grade',
               numberOfStudents: 0,
               isActive: false,
               students: {},
@@ -678,7 +686,7 @@ class DatabaseService {
 
   Stream<List<Module>> getModulesOfTeacher(List<String> moduleUIDs) {
     moduleUIDs =
-        moduleUIDs.isNotEmpty ? moduleUIDs : ["grade_speciality_module_index"];
+        moduleUIDs.isNotEmpty ? moduleUIDs : ['grade_speciality_module_index'];
     return modulesColl
         .where(FieldPath.documentId, whereIn: moduleUIDs)
         .snapshots()
@@ -688,7 +696,7 @@ class DatabaseService {
         Module module = _currentModuleFromSnapshots(doc);
         modules.add(module);
       }
-      if (modules.length == 1 && modules[0].uid == "uid") {
+      if (modules.length == 1 && modules[0].uid == 'uid') {
         modules = [];
       }
       return modules;
@@ -698,7 +706,7 @@ class DatabaseService {
   Stream<List<Module>> getModulesOfTeacherFromAdmin(
       List<String> moduleUIDs) async* {
     moduleUIDs =
-        moduleUIDs.isNotEmpty ? moduleUIDs : ["grade_speciality_module_index"];
+        moduleUIDs.isNotEmpty ? moduleUIDs : ['grade_speciality_module_index'];
 
     List<Stream<List<Module>>> streams = [];
     for (var i = 0; i < moduleUIDs.length; i += 30) {
@@ -755,22 +763,22 @@ class DatabaseService {
   Future<List<String>> getAllTeachersEmails() async {
     try {
       List<String> emails = [];
-      await teacherEmailsColl.doc("TeacherEmails").get().then((value) =>
-          emails = (value.get("emails") as List<dynamic>).cast<String>());
+      await teacherEmailsColl.doc('TeacherEmails').get().then((DocumentSnapshot value) =>
+          emails = (value.get('emails') as List<dynamic>).cast<String>());
       return emails;
     } on Exception catch (_) {
-      throw Exception("not-authenticated-teacher");
+      throw Exception('not-authenticated-teacher');
     }
   }
 
   Future<List<String>> getAllAdminsEmails() async {
     try {
       List<String> emails = [];
-      await adminEmailsColl.doc("AdminEmails").get().then((value) =>
-          emails = (value.get("emails") as List<dynamic>).cast<String>());
+      await adminEmailsColl.doc('AdminEmails').get().then((DocumentSnapshot value) =>
+          emails = (value.get('emails') as List<dynamic>).cast<String>());
       return emails;
     } on Exception catch (_) {
-      throw Exception("not-authenticated-admin");
+      throw Exception('not-authenticated-admin');
     }
   }
 
@@ -779,7 +787,7 @@ class DatabaseService {
       List<String> allTeacherEmails = await getAllTeachersEmails();
       return allTeacherEmails.contains(email);
     } catch (e) {
-      throw Exception("Database error: $e");
+      throw Exception('Database error: $e');
     }
   }
 
@@ -788,7 +796,7 @@ class DatabaseService {
       List<String> allAdminEmails = await getAllAdminsEmails();
       return allAdminEmails.contains(email);
     } catch (e) {
-      throw Exception("Database error: $e");
+      throw Exception('Database error: $e');
     }
   }
 

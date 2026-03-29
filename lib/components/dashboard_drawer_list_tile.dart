@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 
 class DashboardDrawerListTile extends StatelessWidget {
   final String title;
   final String subtitle;
-  final IconData icon;
+  final dynamic icon;
   final bool selected;
   final VoidCallback? onTap;
   final VoidCallback? onLongTap;
@@ -38,11 +39,17 @@ class DashboardDrawerListTile extends StatelessWidget {
         ),
         splashColor: AttendifyPalette.primaryStrong,
         tileColor: selected ? AttendifyPalette.primary : AttendifyPalette.surfaceMuted,
-        leading: Icon(
-          icon,
-          color: selected ? Colors.white : AttendifyPalette.text,
-          size: 30,
-        ),
+        leading: icon is IconData
+            ? Icon(
+                icon as IconData,
+                color: selected ? Colors.white : AttendifyPalette.text,
+                size: 30,
+              )
+            : FaIcon(
+                icon as FaIconData,
+                color: selected ? Colors.white : AttendifyPalette.text,
+                size: 30,
+              ),
         title: Text(
           title,
           style: TextStyle(

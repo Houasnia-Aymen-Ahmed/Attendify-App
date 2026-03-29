@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../components/custom_dropdown_btn.dart';
-import '../../theme/attendify_theme.dart';
-import '../../theme/attendify_ui.dart';
-import 'register_controller.dart';
+import 'package:attendify/components/custom_dropdown_btn.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_ui.dart';
+import 'package:attendify/views/auth/register_controller.dart';
 
 class Register extends ConsumerStatefulWidget {
   final VoidCallback toggleView;
@@ -19,24 +19,24 @@ class Register extends ConsumerStatefulWidget {
 }
 
 class _RegisterState extends ConsumerState<Register> {
-  String _validationError = "";
+  String _validationError = '';
   bool _isDisabled = true;
-  String _typeVal = "student";
+  String _typeVal = 'student';
   String? _gradeVal, _specialityVal;
 
   Future<void> buttonController() async {
-    final registerController = ref.read(registerControllerProvider.notifier);
+    final registerController = ref.read<RegisterController>(registerControllerProvider.notifier);
 
-    if (_typeVal == "student" && (_gradeVal == null || _specialityVal == null)) {
+    if (_typeVal == 'student' && (_gradeVal == null || _specialityVal == null)) {
       setState(() {
         _validationError =
-            "Please make sure to select both a grade and a speciality.";
+            'Please make sure to select both a grade and a speciality.';
       });
       return;
     }
 
     setState(() {
-      _validationError = "";
+      _validationError = '';
     });
 
     await registerController.signUp(_typeVal, _gradeVal, _specialityVal);
@@ -44,13 +44,13 @@ class _RegisterState extends ConsumerState<Register> {
 
   @override
   Widget build(BuildContext context) {
-    final registerState = ref.watch(registerControllerProvider);
-    final registerController = ref.read(registerControllerProvider.notifier);
+    final registerState = ref.watch<RegisterState>(registerControllerProvider);
+    final registerController = ref.read<RegisterController>(registerControllerProvider.notifier);
     final errorText = _validationError.isNotEmpty
         ? _validationError
         : registerState == RegisterState.error
-            ? registerController.error ?? ""
-            : "";
+            ? registerController.error ?? ''
+            : '';
 
     return Center(
       child: Padding(
@@ -61,21 +61,21 @@ class _RegisterState extends ConsumerState<Register> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const AttendifySectionHeader(
-                eyebrow: "Create access",
-                title: "Prepare your account",
+                eyebrow: 'Create access',
+                title: 'Prepare your account',
                 subtitle:
-                    "Pick your role, complete the student details if needed, then continue with your HNS Google account.",
+                    'Pick your role, complete the student details if needed, then continue with your HNS Google account.',
               ),
               const SizedBox(height: 22),
               Text(
-                "Role",
+                'Role',
                 style: Theme.of(context).textTheme.labelSmall,
               ),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
-                children: ["student", "teacher", "admin"].map((role) {
+                children: ['student', 'teacher', 'admin'].map((role) {
                   final isSelected = _typeVal == role;
                   return ChoiceChip(
                     label: Text(role[0].toUpperCase() + role.substring(1)),
@@ -84,7 +84,7 @@ class _RegisterState extends ConsumerState<Register> {
                       registerController.reset();
                       setState(() {
                         _typeVal = role;
-                        _validationError = "";
+                        _validationError = '';
                         _gradeVal = null;
                         _specialityVal = null;
                         _isDisabled = true;
@@ -93,14 +93,14 @@ class _RegisterState extends ConsumerState<Register> {
                   );
                 }).toList(),
               ),
-              if (_typeVal == "student") ...[
+              if (_typeVal == 'student') ...[
                 const SizedBox(height: 20),
                 Row(
                   children: [
                     Expanded(
                       child: CustomDropdownBtn(
-                        hint: "Choose grade",
-                        type: "grade",
+                        hint: 'Choose grade',
+                        type: 'grade',
                         isDisabled: false,
                         gradeVal: _gradeVal,
                         isExpanded: true,
@@ -108,7 +108,7 @@ class _RegisterState extends ConsumerState<Register> {
                           registerController.reset();
                           setState(() {
                             _isDisabled = false;
-                            _validationError = "";
+                            _validationError = '';
                             _gradeVal = newValue;
                             _specialityVal = null;
                           });
@@ -118,8 +118,8 @@ class _RegisterState extends ConsumerState<Register> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: CustomDropdownBtn(
-                        hint: "Choose speciality",
-                        type: "speciality",
+                        hint: 'Choose speciality',
+                        type: 'speciality',
                         isDisabled: _isDisabled,
                         gradeVal: _gradeVal,
                         specialityVal: _specialityVal,
@@ -129,7 +129,7 @@ class _RegisterState extends ConsumerState<Register> {
                             : (String? newValue) {
                                 registerController.reset();
                                 setState(() {
-                                  _validationError = "";
+                                  _validationError = '';
                                   _specialityVal = newValue;
                                 });
                               },
@@ -147,15 +147,15 @@ class _RegisterState extends ConsumerState<Register> {
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Text(
-                  _typeVal == "student"
-                      ? "Student registration links your Google account to your grade, speciality, and modules."
-                      : "Teacher and admin registration still require approved institution emails. Attendify validates that after Google sign-in.",
+                  _typeVal == 'student'
+                      ? 'Student registration links your Google account to your grade, speciality, and modules.'
+                      : 'Teacher and admin registration still require approved institution emails. Attendify validates that after Google sign-in.',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
               const SizedBox(height: 20),
               AttendifyPrimaryButton(
-                label: "Continue with Google",
+                label: 'Continue with Google',
                 icon: Icons.arrow_forward_rounded,
                 isLoading: registerState == RegisterState.loading,
                 onPressed: buttonController,
@@ -183,7 +183,7 @@ class _RegisterState extends ConsumerState<Register> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Already registered?",
+                    'Already registered?',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   TextButton(
@@ -191,7 +191,7 @@ class _RegisterState extends ConsumerState<Register> {
                       registerController.reset();
                       widget.toggleView();
                     },
-                    child: const Text("Sign in"),
+                    child: const Text('Sign in'),
                   ),
                 ],
               ),

@@ -1,17 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/app_notification.dart';
-import '../models/attendance_waiver.dart';
-import '../models/code_request.dart';
-import '../models/live_session.dart';
-import '../models/session_check_in.dart';
-import '../models/session_code.dart';
-import '../models/user.dart';
-import 'auth.dart';
-import 'databases.dart';
-import 'notification_service.dart';
-import 'session_service.dart';
-import 'waiver_service.dart';
+import 'package:attendify/models/app_notification.dart';
+import 'package:attendify/models/attendance_waiver.dart';
+import 'package:attendify/models/code_request.dart';
+import 'package:attendify/models/live_session.dart';
+import 'package:attendify/models/session_check_in.dart';
+import 'package:attendify/models/session_code.dart';
+import 'package:attendify/models/user.dart';
+import 'package:attendify/services/auth.dart';
+import 'package:attendify/services/databases.dart';
+import 'package:attendify/services/notification_service.dart';
+import 'package:attendify/services/session_service.dart';
+import 'package:attendify/services/waiver_service.dart';
 
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService();

@@ -1,8 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import '../../../components/popups.dart';
-import '../../../theme/attendify_theme.dart';
+import 'package:attendify/components/popups.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 
 class CustomBarChart extends StatefulWidget {
   final Map<String, double> data;
@@ -70,8 +70,8 @@ class CustomBarChartState extends State<CustomBarChart> {
                   ),
                   child: BarChart(
                     mainBarData(values, names),
-                    swapAnimationCurve: Curves.easeInOutCubic,
-                    swapAnimationDuration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOutCubic,
+                    duration: const Duration(milliseconds: 250),
                   ),
                 ),
               ),
@@ -143,11 +143,11 @@ class CustomBarChartState extends State<CustomBarChart> {
       baselineY: 0,
       barTouchData: BarTouchData(
         touchTooltipData: BarTouchTooltipData(
-          tooltipBgColor: AttendifyPalette.chartBar,
+          getTooltipColor: (_) => AttendifyPalette.chartBar,
           fitInsideHorizontally: true,
           fitInsideVertically: true,
           tooltipHorizontalAlignment: FLHorizontalAlignment.right,
-          tooltipRoundedRadius: 10,
+          tooltipBorderRadius: BorderRadius.circular(10),
           tooltipMargin: -10,
           tooltipPadding: const EdgeInsets.all(5.0),
           getTooltipItem: (group, groupIndex, rod, rodIndex) {
@@ -160,7 +160,7 @@ class CustomBarChartState extends State<CustomBarChart> {
               ),
               children: <TextSpan>[
                 TextSpan(
-                  text: "${(rod.toY - 1).toStringAsFixed(2)}%",
+                  text: '${(rod.toY - 1).toStringAsFixed(2)}%',
                   style: TextStyle(
                     color: touchedBarColor,
                     fontSize: 14,
@@ -227,11 +227,11 @@ class CustomBarChartState extends State<CustomBarChart> {
       fontSize: 14,
     );
     final List<String> splitNames = names.map((names) {
-      return names.split(" ").join('\n');
+      return names.split(' ').join('\n');
     }).toList();
     if (value.toInt() >= 0 && value.toInt() < splitNames.length) {
       return SideTitleWidget(
-        axisSide: meta.axisSide,
+        meta: meta,
         space: 1,
         child: Text(
           splitNames[value.toInt()],
@@ -241,7 +241,7 @@ class CustomBarChartState extends State<CustomBarChart> {
       );
     } else {
       return SideTitleWidget(
-        axisSide: meta.axisSide,
+        meta: meta,
         space: 16,
         child: const Text('s', style: style),
       );

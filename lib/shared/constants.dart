@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../components/dashboard_drawer_list_tile.dart';
-import '../theme/attendify_theme.dart';
+import 'package:attendify/components/dashboard_drawer_list_tile.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 
 TextStyle txt() => GoogleFonts.inter(
       color: AttendifyPalette.primary,
@@ -40,8 +40,8 @@ OutlineInputBorder outLineBorder() => OutlineInputBorder(
 List<Widget> dashboardDrawerList({
   required BuildContext context,
   required int selectedIndex,
-  required Function(int) onTap,
-  Function(int)? onLongTap,
+  required void Function(int) onTap,
+  void Function(int)? onLongTap,
 }) {
   return [
     DashboardDrawerListTile(

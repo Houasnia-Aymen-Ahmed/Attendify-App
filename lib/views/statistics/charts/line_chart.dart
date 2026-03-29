@@ -2,8 +2,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../components/popups.dart';
-import '../../../theme/attendify_theme.dart';
+import 'package:attendify/components/popups.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 
 class LineData {
   List<MapEntry<String, int>> sortedEntries;
@@ -29,7 +29,7 @@ class CustomLineChart extends StatelessWidget {
           borderRadius: BorderRadius.circular(15.0),
         ),
         child: GestureDetector(
-          onLongPress: () => infoTost("Number of students each session"),
+          onLongPress: () => infoTost('Number of students each session'),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15.0),
@@ -139,13 +139,13 @@ Widget bottomTitleWidgets(
 
   if (index >= 0 && index < sortedEntries.length) {
     text = DateFormat('dd-MM-yy')
-        .format(DateFormat("dd-MM-yy").parse(sortedEntries[index].key));
+        .format(DateFormat('dd-MM-yy').parse(sortedEntries[index].key));
   } else {
     text = '';
   }
 
   return SideTitleWidget(
-    axisSide: meta.axisSide,
+    meta: meta,
     space: 10,
     child: Text(text, style: style),
   );

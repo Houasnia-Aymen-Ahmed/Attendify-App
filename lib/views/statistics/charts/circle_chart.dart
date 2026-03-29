@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
-import '../../../components/popups.dart';
-import '../../../theme/attendify_theme.dart';
+import 'package:attendify/components/popups.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 
 class CustomCircleChart extends StatelessWidget {
   final Map<String, int> attendanceData;
@@ -27,7 +27,7 @@ class CustomCircleChart extends StatelessWidget {
           borderRadius: BorderRadius.circular(15.0),
         ),
         child: GestureDetector(
-          onLongPress: () => infoTost("Percentage of attendance"),
+          onLongPress: () => infoTost('Percentage of attendance'),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15.0),
@@ -51,7 +51,7 @@ class CustomCircleChart extends StatelessWidget {
               percent: percentage / 100,
               backgroundWidth: 12.5,
               center: Text(
-                "${percentage.toStringAsFixed(2)}%",
+                '${percentage.toStringAsFixed(2)}%',
                 style: TextStyle(
                   fontSize: 25.0,
                   fontWeight: FontWeight.w900,

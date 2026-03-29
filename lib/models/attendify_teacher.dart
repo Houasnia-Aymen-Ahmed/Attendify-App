@@ -1,4 +1,4 @@
-import 'user_of_attendify.dart';
+import 'package:attendify/models/user_of_attendify.dart';
 
 class Teacher extends AttendifyUser {
   List<String>? modules = [];
@@ -23,12 +23,12 @@ class Teacher extends AttendifyUser {
 
   factory Teacher.fromJson(Map<String, dynamic> json) {
     return Teacher(
-      uid: json['uid'],
-      email: json['email'],
-      userName: json['userName'],
-      userType: json['userType'],
-      photoURL: json['photoURL'],
-      modules: json['modules'].cast<String>(),
+      uid: json['uid'] as String,
+      email: json['email'] as String,
+      userName: json['userName'] as String,
+      userType: json['userType'] as String,
+      photoURL: json['photoURL'] as String,
+      modules: (json['modules'] as List<dynamic>?)?.cast<String>(),
     );
   }
 }

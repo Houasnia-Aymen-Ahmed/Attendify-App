@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../models/attendify_student.dart';
-import '../models/attendify_teacher.dart';
-import '../models/module_model.dart';
-import '../services/databases.dart';
-import '../theme/attendify_theme.dart';
-import '../theme/attendify_ui.dart';
-import '../utils/module_metrics.dart';
+import 'package:attendify/models/attendify_student.dart';
+import 'package:attendify/models/attendify_teacher.dart';
+import 'package:attendify/models/module_model.dart';
+import 'package:attendify/services/databases.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_ui.dart';
+import 'package:attendify/utils/module_metrics.dart';
 
 class ModuleListView extends StatelessWidget {
   final List<Module> modules;
@@ -25,7 +25,7 @@ class ModuleListView extends StatelessWidget {
   });
 
   VoidCallback? _gotoModule(BuildContext context, Module module) {
-    if (userType == "student") {
+    if (userType == 'student') {
       if (!module.isActive) {
         return null;
       }
@@ -69,7 +69,7 @@ class ModuleListView extends StatelessWidget {
         final studentCount = moduleStudentCount(module);
 
         return Opacity(
-          opacity: userType == "student" && !module.isActive ? 0.62 : 1,
+          opacity: userType == 'student' && !module.isActive ? 0.62 : 1,
           child: Material(
             color: Colors.transparent,
             child: InkWell(
@@ -132,7 +132,7 @@ class ModuleListView extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            userType == "student"
+                            userType == 'student'
                                 ? module.isActive
                                     ? 'Open the module to confirm your check-in and review history.'
                                     : 'This module becomes interactive only while the teacher session is open.'

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/attendify_ui.dart';
+import 'package:attendify/theme/attendify_ui.dart';
 
 class AdminDashboardStatsSummaryView extends StatelessWidget {
   final int totalModules;

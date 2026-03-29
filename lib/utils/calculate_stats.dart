@@ -1,14 +1,15 @@
-import '../shared/school_data.dart';
+import 'package:attendify/shared/school_data.dart';
 
 class CalculateStats {
   static Map<String, num> _calculateTotal(
-    attendanceTable,
-    totalStudents,
-    totalPresent,
+    Map<String, dynamic> attendanceTable,
+    num totalStudents,
+    num totalPresent,
   ) {
     attendanceTable.forEach((date, attendanceMap) {
-      totalStudents += attendanceMap.length;
-      totalPresent += attendanceMap.values
+      final Map<dynamic, dynamic> map = attendanceMap as Map<dynamic, dynamic>;
+      totalStudents += map.length;
+      totalPresent += map.values
           .where(
             (value) => value == true,
           )

@@ -6,8 +6,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import '../firebase_options.dart';
-import '../models/app_notification.dart';
+import 'package:attendify/firebase_options.dart';
+import 'package:attendify/models/app_notification.dart';
 
 // Must be a top-level function — called by the OS when the app is in background/terminated.
 @pragma('vm:entry-point')

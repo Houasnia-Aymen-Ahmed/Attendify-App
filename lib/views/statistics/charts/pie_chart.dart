@@ -1,8 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import '../../../components/popups.dart';
-import '../../../theme/attendify_theme.dart';
+import 'package:attendify/components/popups.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 
 class CustomPieChart extends StatefulWidget {
   final Map<double, List<String>> data;
@@ -37,7 +37,7 @@ class _CustomPieChartState extends State<CustomPieChart> {
           borderRadius: BorderRadius.circular(15.0),
         ),
         child: GestureDetector(
-          onLongPress: () => infoTost("Presence rate for each module"),
+          onLongPress: () => infoTost('Presence rate for each module'),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15.0),

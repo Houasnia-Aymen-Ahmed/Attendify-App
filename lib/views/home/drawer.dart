@@ -2,17 +2,17 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import '../../theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 
-import '../../components/drawer_footer.dart';
-import '../../components/drawer_list_grade_specialty.dart';
-import '../../components/user_account_drawer_header.dart';
-import '../../models/attendify_student.dart';
-import '../../models/attendify_teacher.dart';
-import '../../models/module_model.dart';
-import '../../models/user_of_attendify.dart';
-import '../../services/auth.dart';
-import '../../services/databases.dart';
+import 'package:attendify/components/drawer_footer.dart';
+import 'package:attendify/components/drawer_list_grade_specialty.dart';
+import 'package:attendify/components/user_account_drawer_header.dart';
+import 'package:attendify/models/attendify_student.dart';
+import 'package:attendify/models/attendify_teacher.dart';
+import 'package:attendify/models/module_model.dart';
+import 'package:attendify/models/user_of_attendify.dart';
+import 'package:attendify/services/auth.dart';
+import 'package:attendify/services/databases.dart';
 
 class BuildDrawer extends StatelessWidget {
   final AuthService authService;
@@ -47,24 +47,24 @@ class BuildDrawer extends StatelessWidget {
                 child: ListView(
                   children: [
                     UserAccountDrawerHeader(
-                      username: userType == "admin"
-                          ? admin?.userName ?? "admin"
-                          : userType == "teacher"
-                              ? teacher?.userName ?? "Teacher"
-                              : student?.userName ?? "Student",
+                      username: userType == 'admin'
+                          ? admin?.userName ?? 'admin'
+                          : userType == 'teacher'
+                              ? teacher?.userName ?? 'Teacher'
+                              : student?.userName ?? 'Student',
                       email:
-                          authService.currentUsr?.email ?? "user@hns-re2sd.dz",
-                      profileURL: userType == "admin"
-                          ? admin?.photoURL ?? ""
-                          : userType == "teacher"
-                              ? teacher?.photoURL ?? ""
-                              : student?.photoURL ?? "",
+                          authService.currentUsr?.email ?? 'user@hns-re2sd.dz',
+                      profileURL: userType == 'admin'
+                          ? admin?.photoURL ?? ''
+                          : userType == 'teacher'
+                              ? teacher?.photoURL ?? ''
+                              : student?.photoURL ?? '',
                     ),
-                    if (userType == "student")
+                    if (userType == 'student')
                       DrawerListGradeSpecialty(user: student)
                     else
                       ListTile(
-                        title: const Text("Add a module"),
+                        title: const Text('Add a module'),
                         trailing: const Icon(Icons.arrow_forward_ios_rounded),
                         onTap: () {
                           Navigator.pushNamed(

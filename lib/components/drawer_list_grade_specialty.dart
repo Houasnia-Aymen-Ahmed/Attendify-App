@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../utils/functions.dart';
+import 'package:attendify/utils/functions.dart';
+import 'package:attendify/models/attendify_student.dart';
 
 class DrawerListGradeSpecialty extends StatelessWidget {
-  final dynamic user;
+  final Student? user;
   const DrawerListGradeSpecialty({super.key, required this.user});
 
   @override
@@ -13,19 +14,19 @@ class DrawerListGradeSpecialty extends StatelessWidget {
     );
   }
 
-  List<ListTile> drawerList(dynamic user) {
+  List<ListTile> drawerList(Student? user) {
     return [
       ListTile(
         title: Text(
-          capitalizeFirst(user?.grade ?? "Grade"),
+          capitalizeFirst(user?.grade ?? 'Grade'),
         ),
-        subtitle: const Text("Grade"),
+        subtitle: const Text('Grade'),
       ),
       ListTile(
         title: Text(
-          capitalizeFirst(user?.speciality ?? "Speciality"),
+          capitalizeFirst(user?.speciality ?? 'Speciality'),
         ),
-        subtitle: const Text("Speciality"),
+        subtitle: const Text('Speciality'),
       ),
     ];
   }

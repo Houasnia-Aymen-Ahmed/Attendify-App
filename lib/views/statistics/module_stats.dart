@@ -2,10 +2,10 @@ import 'package:attendify/views/statistics/charts/circle_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../services/databases.dart';
-import '../../shared/loading.dart';
-import 'charts/bar_chart.dart';
-import 'charts/line_chart.dart';
+import 'package:attendify/services/databases.dart';
+import 'package:attendify/shared/loading.dart';
+import 'package:attendify/views/statistics/charts/bar_chart.dart';
+import 'package:attendify/views/statistics/charts/line_chart.dart';
 
 class ModuleStats extends StatefulWidget {
   final String moduleId;
@@ -46,7 +46,7 @@ class _ModuleStatsState extends State<ModuleStats> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
+    return FutureBuilder<Map<String, dynamic>>(
       future: databaseService.fetchModuleStats(widget.moduleId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -55,9 +55,12 @@ class _ModuleStatsState extends State<ModuleStats> {
           return Text('Error: ${snapshot.error}');
         } else {
           final moduleStat = snapshot.data!;
-          final Map<String, int> attendanceData = moduleStat['attendanceData']!;
+          final Map<String, int> attendanceData =
+              moduleStat['attendanceData'] as Map<String, int>;
           final Map<String, double> studentPresenceCount = {
-            for (var entry in moduleStat['studentPresenceCount'].entries)
+            for (var entry
+                in (moduleStat['studentPresenceCount'] as Map<String, double>)
+                    .entries)
               if (widget.students.containsKey(entry.key))
                 widget.students[entry.key]!: entry.value
           };

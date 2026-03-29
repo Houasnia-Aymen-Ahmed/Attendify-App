@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 
 class ImageItem extends StatelessWidget {
   final IconData icon;

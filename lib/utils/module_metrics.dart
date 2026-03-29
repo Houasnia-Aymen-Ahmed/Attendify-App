@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-import '../models/module_model.dart';
+import 'package:attendify/models/module_model.dart';
 
 String todayAttendanceKey([DateTime? dateTime]) {
   return DateFormat('dd-MM-yyyy').format(dateTime ?? DateTime.now());

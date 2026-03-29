@@ -2,17 +2,17 @@ import 'package:attendify/services/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../models/module_model.dart';
-import '../../models/user_of_attendify.dart';
-import '../../shared/error_pages.dart';
-import '../../shared/loading.dart';
-import '../../theme/attendify_theme.dart';
-import '../../theme/attendify_ui.dart';
-import 'add_item.dart';
-import 'all_modules_view.dart';
-import 'all_students_view.dart';
-import 'all_teachers_view.dart';
-import 'dashboard_stats_summary_view.dart';
+import 'package:attendify/models/module_model.dart';
+import 'package:attendify/models/user_of_attendify.dart';
+import 'package:attendify/shared/error_pages.dart';
+import 'package:attendify/shared/loading.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_ui.dart';
+import 'package:attendify/views/admin/add_item.dart';
+import 'package:attendify/views/admin/all_modules_view.dart';
+import 'package:attendify/views/admin/all_students_view.dart';
+import 'package:attendify/views/admin/all_teachers_view.dart';
+import 'package:attendify/views/admin/dashboard_stats_summary_view.dart';
 
 class Dashboard extends ConsumerWidget {
   final AttendifyUser admin;
@@ -27,7 +27,7 @@ class Dashboard extends ConsumerWidget {
     WidgetRef ref,
     String itemType,
   ) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (_) => AddItemDialog(
         databaseService: ref.read(databaseServiceProvider),
@@ -61,7 +61,7 @@ class Dashboard extends ConsumerWidget {
                   scrollable: false,
                   expandChild: true,
                   leading: AttendifyUserAvatar(imageUrl: admin.photoURL),
-                  title: "Institution overview",
+                  title: 'Institution overview',
                   subtitle:
                       'Monitor live attendance health and manage modules, teachers, and students from one place.',
                   actions: [

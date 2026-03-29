@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../theme/attendify_theme.dart';
-import '../theme/attendify_ui.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_ui.dart';
 
 class ErrorPages extends StatelessWidget {
   final String title;

@@ -2,9 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../index.dart';
-import '../shared/loading.dart';
-import '../theme/attendify_theme.dart';
+import 'package:attendify/index.dart';
+import 'package:attendify/shared/loading.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 
 class UserAccountDrawerHeader extends StatelessWidget {
   final String username;

@@ -3,11 +3,11 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-import '../models/code_request.dart';
-import '../models/live_session.dart';
-import '../models/session_check_in.dart';
-import '../models/session_code.dart';
-import 'auth.dart';
+import 'package:attendify/models/code_request.dart';
+import 'package:attendify/models/live_session.dart';
+import 'package:attendify/models/session_check_in.dart';
+import 'package:attendify/models/session_code.dart';
+import 'package:attendify/services/auth.dart';
 
 class SessionService {
   final FirebaseFirestore _firestore;

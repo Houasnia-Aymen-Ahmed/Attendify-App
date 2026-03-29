@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 
-import '../../../components/custom_dropdown_btn.dart';
-import '../../../components/popups.dart';
-import '../../../models/attendify_teacher.dart';
-import '../../../models/module_model.dart';
-import '../../../services/auth.dart';
-import '../../../services/databases.dart';
-import '../../../shared/school_data.dart';
+import 'package:attendify/components/custom_dropdown_btn.dart';
+import 'package:attendify/components/popups.dart';
+import 'package:attendify/models/attendify_teacher.dart';
+import 'package:attendify/models/module_model.dart';
+import 'package:attendify/services/auth.dart';
+import 'package:attendify/services/databases.dart';
+import 'package:attendify/shared/school_data.dart';
 
 class SelectModule extends StatefulWidget {
   final Teacher teacher;
@@ -71,13 +71,13 @@ class _SelectModuleState extends State<SelectModule> {
     if (modulesMap.containsKey(_gradeVal) &&
         modulesMap[_gradeVal]?.containsKey(_specialityVal) == true) {
       modules = modulesMap[_gradeVal]![_specialityVal];
-      if (modules?[0] == "") {
+      if (modules?[0] == '') {
         modules = null;
       }
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Select modules"),
+        title: const Text('Select modules'),
         actions: [
           IconButton(
             onPressed: () {
@@ -96,8 +96,8 @@ class _SelectModuleState extends State<SelectModule> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: CustomDropdownBtn(
-                    hint: "Choose grade",
-                    type: "grade",
+                    hint: 'Choose grade',
+                    type: 'grade',
                     gradeVal: _gradeVal,
                     onChanged: (String? newValue) {
                       setState(() {
@@ -113,8 +113,8 @@ class _SelectModuleState extends State<SelectModule> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: CustomDropdownBtn(
-                    hint: "Choose speciality",
-                    type: "speciality",
+                    hint: 'Choose speciality',
+                    type: 'speciality',
                     isDisabled: _isDisabled,
                     gradeVal: _gradeVal,
                     specialityVal: _specialityVal,
@@ -135,7 +135,7 @@ class _SelectModuleState extends State<SelectModule> {
                   Padding(
                     padding: const EdgeInsets.only(left: 16.0),
                     child: Text(
-                      "Unselect new selected modules",
+                      'Unselect new selected modules',
                       style: TextStyle(
                         fontSize: 17.5,
                         color: _hasSelected
@@ -178,7 +178,7 @@ class _SelectModuleState extends State<SelectModule> {
           Expanded(
             child: modules == null
                 ? const Center(
-                    child: Text("No module availabe"),
+                    child: Text('No module availabe'),
                   )
                 : ListView(
                     children: modules
@@ -186,10 +186,10 @@ class _SelectModuleState extends State<SelectModule> {
                           (module) => CheckboxListTile(
                             title: Text(module),
                             value: _selectedModules.contains(
-                                "${_gradeVal}_${_specialityVal}_module_${modules?.indexOf(module)}"),
+                                '${_gradeVal}_${_specialityVal}_module_${modules?.indexOf(module)}'),
                             onChanged: (newValue) => setState(() {
                               String moduleName =
-                                  "${_gradeVal}_${_specialityVal}_module_${modules?.indexOf(module)}";
+                                  '${_gradeVal}_${_specialityVal}_module_${modules?.indexOf(module)}';
                               if (newValue!) {
                                 _addedModules.add(moduleName);
                                 _selectedModules.add(moduleName);
@@ -216,7 +216,7 @@ class _SelectModuleState extends State<SelectModule> {
                       : () async {
                           showLoadingDialog(
                             context,
-                            "Saving modules ...",
+                            'Saving modules ...',
                           );
                           try {
                             setState(() => isSaving = true);
@@ -253,8 +253,8 @@ class _SelectModuleState extends State<SelectModule> {
                               Navigator.of(context).pop();
                               showDialogBox(
                                 context,
-                                "Success",
-                                "Modules saved successfully",
+                                'Success',
+                                'Modules saved successfully',
                                 false,
                               );
                             }
@@ -265,14 +265,14 @@ class _SelectModuleState extends State<SelectModule> {
                               Navigator.of(context).pop();
                               showDialogBox(
                                 context,
-                                "Error",
-                                "Error saving modules: $e",
+                                'Error',
+                                'Error saving modules: $e',
                                 true,
                               );
                             }
                           }
                         },
-                  child: const Text("Submit"),
+                  child: const Text('Submit'),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -282,7 +282,7 @@ class _SelectModuleState extends State<SelectModule> {
                       Navigator.pop(context);
                     }
                   },
-                  child: const Text("Cancel"),
+                  child: const Text('Cancel'),
                 ),
               ],
             ),

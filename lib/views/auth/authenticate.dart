@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/attendify_theme.dart';
-import 'register.dart';
-import 'signin.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/views/auth/register.dart';
+import 'package:attendify/views/auth/signin.dart';
 
 class Authenticate extends StatefulWidget {
   const Authenticate({
@@ -64,14 +64,14 @@ class _AuthenticateState extends State<Authenticate> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Attendify",
+                                    'Attendify',
                                     style: Theme.of(context)
                                         .textTheme
                                         .headlineSmall
                                         ?.copyWith(fontSize: 30),
                                   ),
                                   Text(
-                                    "Attendance for HNS-RE2SD, redesigned around clarity and speed.",
+                                    'Attendance for HNS-RE2SD, redesigned around clarity and speed.',
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodySmall

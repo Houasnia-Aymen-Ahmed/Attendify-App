@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../../models/attendify_student.dart';
-import '../../../models/module_model.dart';
-import '../../../services/databases.dart';
-import '../../../shared/error_pages.dart';
-import '../../../shared/loading.dart';
-import '../../../theme/attendify_theme.dart';
-import '../../../theme/attendify_ui.dart';
-import 'presence_table.dart';
+import 'package:attendify/models/attendify_student.dart';
+import 'package:attendify/models/module_model.dart';
+import 'package:attendify/services/databases.dart';
+import 'package:attendify/shared/error_pages.dart';
+import 'package:attendify/shared/loading.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_ui.dart';
+import 'package:attendify/views/home/teacher/presence_table.dart';
 
 class ModuleViewFromTeacher extends StatelessWidget {
   final Module module;
@@ -28,13 +28,13 @@ class ModuleViewFromTeacher extends StatelessWidget {
           return const Loading();
         } else if (studentsSnapshot.hasError) {
           return ErrorPages(
-            title: "Server Error",
+            title: 'Server Error',
             message: studentsSnapshot.error.toString(),
           );
         } else if (!studentsSnapshot.hasData || studentsSnapshot.data!.isEmpty) {
           return const ErrorPages(
-            title: "Error 404: Not Found",
-            message: "There are no students for this module",
+            title: 'Error 404: Not Found',
+            message: 'There are no students for this module',
           );
         }
 
@@ -47,7 +47,7 @@ class ModuleViewFromTeacher extends StatelessWidget {
               return const Loading();
             } else if (moduleSnapshot.hasError) {
               return ErrorPages(
-                title: "Server Error",
+                title: 'Server Error',
                 message: moduleSnapshot.error.toString(),
               );
             } else if (!moduleSnapshot.hasData) {

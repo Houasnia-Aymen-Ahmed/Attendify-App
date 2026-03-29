@@ -6,16 +6,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../models/attendify_student.dart';
-import '../../../models/code_request.dart';
-import '../../../models/live_session.dart';
-import '../../../models/session_check_in.dart';
-import '../../../services/databases.dart';
-import '../../../services/providers.dart';
-import '../../../theme/attendify_theme.dart';
-import '../../../theme/attendify_ui.dart';
-import '../../../utils/module_metrics.dart';
-import '../../../models/module_model.dart';
+import 'package:attendify/models/attendify_student.dart';
+import 'package:attendify/models/code_request.dart';
+import 'package:attendify/models/live_session.dart';
+import 'package:attendify/models/session_check_in.dart';
+import 'package:attendify/services/databases.dart';
+import 'package:attendify/services/providers.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_ui.dart';
+import 'package:attendify/utils/module_metrics.dart';
+import 'package:attendify/models/module_model.dart';
 
 class PresenceTable extends ConsumerStatefulWidget {
   final List<Student> students;
@@ -271,7 +271,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
         DataCell(Text(widget.students[index].userName)),
         ...dates.map(
           (date) => DataCell(
-            Text(widget.module.attendanceTable[date]?[studentId] ?? false
+            Text((widget.module.attendanceTable[date] as Map?)?[studentId] as bool? ?? false
                 ? 'Present'
                 : 'Absent'),
           ),
@@ -295,7 +295,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
         return checkInsAsync.when(
           data: (checkIns) {
             final pendingRequests =
-                codeRequestsAsync.valueOrNull ?? <CodeRequest>[];
+                codeRequestsAsync.asData?.value ?? <CodeRequest>[];
 
             final successfulCheckIns = checkIns
                 .where((c) => c.status == SessionCheckInStatus.present)

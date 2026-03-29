@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../shared/constants.dart';
-import '../shared/school_data.dart';
-import '../theme/attendify_theme.dart';
-import '../utils/functions.dart';
+import 'package:attendify/shared/constants.dart';
+import 'package:attendify/shared/school_data.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/utils/functions.dart';
 
 class CustomDropdownBtn extends StatefulWidget {
   final String hint;
@@ -41,9 +41,9 @@ class CustomDropdownBtn extends StatefulWidget {
 class _CustomDropdownBtnState extends State<CustomDropdownBtn> {
   @override
   Widget build(BuildContext context) {
-    final List<String> items = widget.type == "type"
-        ? ["admin", "teacher", "student"]
-        : widget.type == "grade"
+    final List<String> items = widget.type == 'type'
+        ? ['admin', 'teacher', 'student']
+        : widget.type == 'grade'
             ? modulesMap.keys.toList()
             : modulesMap[widget.gradeVal]?.keys.toList() ?? ['item'];
 
@@ -53,9 +53,9 @@ class _CustomDropdownBtnState extends State<CustomDropdownBtn> {
       isExpanded: widget.isExpanded ?? false,
       dropdownColor: AttendifyPalette.surface,
       borderRadius: BorderRadius.circular(18),
-      initialValue: widget.type == "type"
+      initialValue: widget.type == 'type'
           ? widget.typeVal
-          : widget.type == "grade"
+          : widget.type == 'grade'
               ? widget.gradeVal
               : widget.specialityVal,
       decoration: InputDecoration(

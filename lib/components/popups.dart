@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-import '../theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 
-Future showLoadingDialog(
+Future<void> showLoadingDialog(
   BuildContext context,
   String content,
 ) =>
@@ -25,41 +25,41 @@ Future showLoadingDialog(
       },
     );
 
-Future removeConfirmationDialog(
+Future<bool?> removeConfirmationDialog(
   BuildContext context,
   String itemType,
   VoidCallback removeItem,
 ) =>
-    showDialog(
+    showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Delete $itemType"),
-          content: Text("Are you sure you want to delete this $itemType"),
+          title: Text('Delete $itemType'),
+          content: Text('Are you sure you want to delete this $itemType'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context, false);
               },
-              child: const Text("Cancel"),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
-                if (itemType == "teacher") {
-                  removeItem;
+                if (itemType == 'teacher') {
+                  removeItem();
                 } else {
-                  removeItem;
+                  removeItem();
                 }
                 Navigator.pop(context, true);
               },
-              child: const Text("Delete"),
+              child: const Text('Delete'),
             ),
           ],
         );
       },
     );
 
-Future showDialogBox(
+Future<void> showDialogBox(
   BuildContext context,
   String title,
   String content,
@@ -94,8 +94,8 @@ Future showDialogBox(
       ),
     );
 
-Future showCloseConfirmationDialog(BuildContext context) async {
-  return showDialog(
+Future<bool?> showCloseConfirmationDialog(BuildContext context) async {
+  return showDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (BuildContext context) {
@@ -133,7 +133,7 @@ void showOverlay(
   double screenSizeWidth = screenSize.width,
       screenSizeHeight = screenSize.height;
   Size cardSize = Size(screenSizeWidth * 0.85, screenSizeHeight * 0.5);
-  dynamic cardPosition = [
+  List<double> cardPosition = [
     screenSizeWidth / 2 - cardSize.width / 2,
     screenSizeHeight / 2 - cardSize.height / 2,
   ];
@@ -173,7 +173,7 @@ void showOverlay(
                     return Row(
                       children: <Widget>[
                         const Text(
-                          "Enable module presence",
+                          'Enable module presence',
                           style: TextStyle(fontSize: 17.5),
                         ),
                         Switch(

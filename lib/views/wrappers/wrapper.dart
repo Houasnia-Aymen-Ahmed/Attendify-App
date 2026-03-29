@@ -2,10 +2,10 @@ import 'package:attendify/services/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../shared/error_pages.dart';
-import '../../shared/loading.dart';
-import '../auth/authenticate.dart';
-import 'user_wrapper.dart';
+import 'package:attendify/shared/error_pages.dart';
+import 'package:attendify/shared/loading.dart';
+import 'package:attendify/views/auth/authenticate.dart';
+import 'package:attendify/views/wrappers/user_wrapper.dart';
 
 class Wrapper extends ConsumerStatefulWidget {
   const Wrapper({super.key});

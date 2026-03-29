@@ -6,10 +6,10 @@ class AttendifyUser {
   String photoURL;
 
   AttendifyUser({
-    this.userName = "username",
-    this.userType = "usertype",
-    this.uid = "uid",
-    this.email = "email",
-    this.photoURL = "url",
+    this.userName = 'username',
+    this.userType = 'usertype',
+    this.uid = 'uid',
+    this.email = 'email',
+    this.photoURL = 'url',
   });
 }

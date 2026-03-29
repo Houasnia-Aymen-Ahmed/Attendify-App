@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../models/attendify_student.dart';
-import '../../theme/attendify_theme.dart';
-import '../../theme/attendify_ui.dart';
+import 'package:attendify/models/attendify_student.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/theme/attendify_ui.dart';
 
 class AllStudentsView extends StatelessWidget {
   final List<Student> dataStudents;

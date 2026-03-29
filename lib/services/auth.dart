@@ -2,14 +2,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import '../models/user.dart';
-import '../theme/attendify_theme.dart';
-import '../utils/functions.dart';
-import 'databases.dart';
+import 'package:attendify/models/user.dart';
+import 'package:attendify/theme/attendify_theme.dart';
+import 'package:attendify/utils/functions.dart';
+import 'package:attendify/services/databases.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final googleSignIn = GoogleSignIn();
+  final googleSignIn = GoogleSignIn.instance;
 
   UserHandler? _userFromFirebaseUser(User? user) {
     if (user == null) {
@@ -17,7 +17,7 @@ class AuthService {
     }
 
     return UserHandler(
-      userType: "",
+      userType: '',
       uid: user.uid,
       email: user.email,
     );
@@ -33,7 +33,7 @@ class AuthService {
   // * It attempts to sign in the user using the provided email and password.
   // * If successful, it returns the user as a UserHandler object; otherwise, it returns null.
   // * This function is used in the sign in screen.
-  Future signInWithEmailAndPassword(String email, String password) async {
+  Future<UserHandler?> signInWithEmailAndPassword(String email, String password) async {
     try {
       UserCredential result = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
@@ -49,24 +49,21 @@ class AuthService {
   // * If the user is not signed in or their email does not end with "@hns-re2sd.dz", it throws an exception with the message "not-hns".
   // * It then uses the Google authentication credentials to sign in the user and returns the user as a UserHandler object.
   // * This function is used in the sign in screen.
-  Future signInWithGoogleProvider() async {
+  Future<UserHandler?> signInWithGoogleProvider() async {
     await googleSignIn.signOut();
-    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-    if (googleUser == null) {
-      throw Exception("no-email");
-    } else if (!googleUser.email.endsWith("@hns-re2sd.dz")) {
-      throw Exception("not-hns-email");
+    final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
+    if (!googleUser.email.endsWith('@hns-re2sd.dz')) {
+      throw Exception('not-hns-email');
     }
 
     if (!await DatabaseService().isUserRegistered(googleUser.email)) {
-      throw Exception("not-registered");
+      throw Exception('not-registered');
     }
 
-    final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
-    final OAuthCredential credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
+    final clientAuth = await googleUser.authorizationClient.authorizeScopes(['email', 'profile']);
+    final credential = GoogleAuthProvider.credential(
+      accessToken: clientAuth.accessToken,
+      idToken: googleUser.authentication.idToken,
     );
     UserCredential result = await _auth.signInWithCredential(credential);
     User? user = result.user;
@@ -81,41 +78,38 @@ class AuthService {
   // * If the userType is 'teacher', it updates the teacher data; otherwise, it updates the student data and modules with criteria.
   // * Finally, it returns the user from the Firebase user.
 
-  Future signUpWithGoogleProvider(
+  Future<UserHandler?> signUpWithGoogleProvider(
     String userType,
     String? grade,
     String? speciality,
   ) async {
     await googleSignIn.signOut();
-    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-    if (googleUser == null) {
-      throw Exception("no-email");
-    } else if (!googleUser.email.endsWith("@hns-re2sd.dz")) {
-      throw Exception("not-hns-email");
+    final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
+    if (!googleUser.email.endsWith('@hns-re2sd.dz')) {
+      throw Exception('not-hns-email');
     }
 
     if (userType.toLowerCase() == 'teacher' &&
         !await DatabaseService().isTeacherEmailRegistered(
           googleUser.email,
         )) {
-      throw Exception("not-hns-teacher");
+      throw Exception('not-hns-teacher');
     } else if (userType.toLowerCase() == 'admin' &&
         !await DatabaseService().isAdminEmailRegistered(
           googleUser.email,
         )) {
-      throw Exception("not-hns-admin");
+      throw Exception('not-hns-admin');
     }
-    final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
-    final OAuthCredential credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
+    final clientAuth = await googleUser.authorizationClient.authorizeScopes(['email', 'profile']);
+    final credential = GoogleAuthProvider.credential(
+      accessToken: clientAuth.accessToken,
+      idToken: googleUser.authentication.idToken,
     );
     final UserCredential userCredential =
         await _auth.signInWithCredential(credential);
     final User? user = userCredential.user;
     if (userType.toLowerCase() == 'teacher') {
-      String userName = capitalizeWords(user!.displayName) ?? "Username";
+      String userName = capitalizeWords(user!.displayName) ?? 'Username';
       await DatabaseService(uid: user.uid).updateUserData(
         userName: userName,
         userType: userType,
@@ -132,7 +126,7 @@ class AuthService {
         modules: null,
       );
     } else if (userType.toLowerCase() == 'student') {
-      String userName = capitalizeWords(user!.displayName) ?? "Username";
+      String userName = capitalizeWords(user!.displayName) ?? 'Username';
       await DatabaseService(uid: user.uid).updateUserData(
         userName: userName,
         userType: userType,
@@ -156,7 +150,7 @@ class AuthService {
         studentName: userName,
       );
     } else {
-      String userName = capitalizeWords(user!.displayName) ?? "Username";
+      String userName = capitalizeWords(user!.displayName) ?? 'Username';
       await DatabaseService(uid: user.uid).updateUserData(
         userName: userName,
         userType: userType,
@@ -176,7 +170,7 @@ class AuthService {
   // * Finally, it returns the user from the Firebase user.
   // * This function is used in the sign up screen.
 
-  Future signUpWithEmailAndPassword(
+  Future<UserHandler?> signUpWithEmailAndPassword(
     String userName,
     String email,
     String password,
@@ -258,6 +252,6 @@ class AuthService {
       showSnackBar(e.toString(), AttendifyPalette.error);
     }
     if (!context.mounted) return;
-    showSnackBar("Logged out successfully", AttendifyPalette.primary);
+    showSnackBar('Logged out successfully', AttendifyPalette.primary);
   }
 }
