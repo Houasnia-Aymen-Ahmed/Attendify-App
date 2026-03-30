@@ -142,7 +142,7 @@ class _RegisterState extends ConsumerState<Register> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(AttendifySpacing.lg),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AttendifyPalette.surfaceMuted,
                   borderRadius: AttendifyRadius.mdAll,
                 ),
