@@ -54,7 +54,7 @@ class _RegisterState extends ConsumerState<Register> {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+        padding: const EdgeInsets.fromLTRB(AttendifySpacing.xxl, AttendifySpacing.md, AttendifySpacing.xxl, AttendifySpacing.xxl),
         child: AttendifySurface(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -66,7 +66,7 @@ class _RegisterState extends ConsumerState<Register> {
                 subtitle:
                     'Pick your role, complete the student details if needed, then continue with your HNS Google account.',
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: AttendifySpacing.xxl),
               Text(
                 'Role',
                 style: Theme.of(context).textTheme.labelSmall,
@@ -94,7 +94,7 @@ class _RegisterState extends ConsumerState<Register> {
                 }).toList(),
               ),
               if (_typeVal == 'student') ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: AttendifySpacing.xl),
                 Row(
                   children: [
                     Expanded(
@@ -115,7 +115,7 @@ class _RegisterState extends ConsumerState<Register> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AttendifySpacing.md),
                     Expanded(
                       child: CustomDropdownBtn(
                         hint: 'Choose speciality',
@@ -138,13 +138,13 @@ class _RegisterState extends ConsumerState<Register> {
                   ],
                 ),
               ],
-              const SizedBox(height: 20),
+              const SizedBox(height: AttendifySpacing.xl),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AttendifySpacing.lg),
                 decoration: BoxDecoration(
                   color: AttendifyPalette.surfaceMuted,
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: AttendifyRadius.mdAll,
                 ),
                 child: Text(
                   _typeVal == 'student'
@@ -153,7 +153,7 @@ class _RegisterState extends ConsumerState<Register> {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AttendifySpacing.xl),
               AttendifyPrimaryButton(
                 label: 'Continue with Google',
                 icon: Icons.arrow_forward_rounded,
@@ -161,13 +161,13 @@ class _RegisterState extends ConsumerState<Register> {
                 onPressed: buttonController,
               ),
               if (errorText.isNotEmpty) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: AttendifySpacing.lg),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AttendifyPalette.error.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: AttendifyRadius.mdAll,
                   ),
                   child: Text(
                     errorText,
@@ -178,7 +178,7 @@ class _RegisterState extends ConsumerState<Register> {
                   ),
                 ),
               ],
-              const SizedBox(height: 18),
+              const SizedBox(height: AttendifySpacing.lg),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

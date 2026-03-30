@@ -224,17 +224,14 @@ class _ModuleViewFromStudentState
                     title: module.name,
                     subtitle:
                         '${module.grade} year • ${module.speciality}',
-                    leading: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: AttendifyPalette.primary,
-                    ),
-                    actions: [
-                      IconButton(
-                        tooltip: 'Back',
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close_rounded),
+                    leading: IconButton(
+                      tooltip: 'Back',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: AttendifyPalette.primary,
                       ),
-                    ],
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -249,18 +246,18 @@ class _ModuleViewFromStudentState
                           ),
                         ),
 
-                        const SizedBox(height: 18),
+                        const SizedBox(height: AttendifySpacing.lg),
 
                         // ── Metric cards ───────────────────────────────────
                         LayoutBuilder(
                           builder: (context, constraints) {
                             final wide = constraints.maxWidth > 560;
                             final itemWidth = wide
-                                ? (constraints.maxWidth - 12) / 2
+                                ? (constraints.maxWidth - AttendifySpacing.md) / 2
                                 : constraints.maxWidth;
                             return Wrap(
-                              spacing: 12,
-                              runSpacing: 12,
+                              spacing: AttendifySpacing.md,
+                              runSpacing: AttendifySpacing.md,
                               children: [
                                 SizedBox(
                                   width: itemWidth,
@@ -294,14 +291,14 @@ class _ModuleViewFromStudentState
                           },
                         ),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: AttendifySpacing.xl),
 
                         // ── Attendance history ─────────────────────────────
                         Text(
                           'Attendance history',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AttendifySpacing.sm),
                         Text(
                           'Your synced session history appears below after each live session closes.',
                           style: Theme.of(context)
@@ -309,7 +306,7 @@ class _ModuleViewFromStudentState
                               .bodyMedium
                               ?.copyWith(color: AttendifyPalette.mutedText),
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: AttendifySpacing.lg),
 
                         if (attendanceDates.isEmpty)
                           const AttendifyEmptyState(
@@ -326,20 +323,20 @@ class _ModuleViewFromStudentState
                               entryDate,
                             );
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.only(bottom: AttendifySpacing.md),
                               child: AttendifySurface(
                                 child: Row(
                                   children: [
                                     Container(
                                       width: 68,
                                       padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                        horizontal: 10,
+                                        vertical: AttendifySpacing.md,
+                                        horizontal: AttendifySpacing.sm,
                                       ),
-                                      decoration: BoxDecoration(
+                                      decoration: const BoxDecoration(
                                         color: AttendifyPalette.surfaceMuted,
                                         borderRadius:
-                                            BorderRadius.circular(18),
+                                            AttendifyRadius.mdAll,
                                       ),
                                       child: Column(
                                         children: [
@@ -349,7 +346,7 @@ class _ModuleViewFromStudentState
                                                 .textTheme
                                                 .titleMedium,
                                           ),
-                                          const SizedBox(height: 4),
+                                          const SizedBox(height: AttendifySpacing.xs),
                                           Text(
                                             entryDate.substring(3),
                                             style: Theme.of(context)
@@ -360,7 +357,7 @@ class _ModuleViewFromStudentState
                                         ],
                                       ),
                                     ),
-                                    const SizedBox(width: 14),
+                                    const SizedBox(width: AttendifySpacing.md),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -372,7 +369,7 @@ class _ModuleViewFromStudentState
                                                 .textTheme
                                                 .titleMedium,
                                           ),
-                                          const SizedBox(height: 4),
+                                          const SizedBox(height: AttendifySpacing.xs),
                                           Text(
                                             isPresent
                                                 ? 'Attendance confirmed successfully for this session.'
@@ -388,7 +385,7 @@ class _ModuleViewFromStudentState
                                         ],
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(width: AttendifySpacing.md),
                                     AttendifyStatusChip(
                                       label: isPresent ? 'Present' : 'Absent',
                                       color: isPresent
@@ -440,7 +437,7 @@ class _ModuleViewFromStudentState
               .labelSmall
               ?.copyWith(color: Colors.white70),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AttendifySpacing.md),
 
         // ── Heading ────────────────────────────────────────────────────────
         Text(
@@ -454,7 +451,7 @@ class _ModuleViewFromStudentState
               .headlineSmall
               ?.copyWith(color: Colors.white),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AttendifySpacing.sm),
         Text(
           activeSession == null
               ? 'The teacher has not started a live session for this module yet.'
@@ -466,13 +463,13 @@ class _ModuleViewFromStudentState
               .bodyMedium
               ?.copyWith(color: Colors.white70),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: AttendifySpacing.lg),
 
         // ── Action area ────────────────────────────────────────────────────
         if (activeSession == null)
           const AttendifyStatusChip(
             label: 'Waiting for teacher session',
-            color: AttendifyPalette.surfaceStrong,
+            color: Colors.white,
           )
         else if (hasCheckedIn)
           const AttendifyStatusChip(
@@ -531,7 +528,7 @@ class _ModuleViewFromStudentState
             label: 'Code expired',
             color: AttendifyPalette.error,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AttendifySpacing.lg),
           Text(
             'Your attendance code has expired. Tap below to ask your teacher for a new one.',
             style: Theme.of(context)
@@ -539,7 +536,7 @@ class _ModuleViewFromStudentState
                 .bodyMedium
                 ?.copyWith(color: Colors.white70),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AttendifySpacing.lg),
           AttendifyPrimaryButton(
             label: 'Request New Code',
             icon: Icons.refresh_rounded,
@@ -555,9 +552,9 @@ class _ModuleViewFromStudentState
         children: [
           const AttendifyStatusChip(
             label: 'Waiting for teacher',
-            color: AttendifyPalette.surfaceStrong,
+            color: Colors.white,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AttendifySpacing.sm),
           Text(
             'Your teacher hasn\'t sent codes yet. Once they do, '
             'tap "Mark Present" to confirm your attendance.',
@@ -566,7 +563,7 @@ class _ModuleViewFromStudentState
                 .bodyMedium
                 ?.copyWith(color: Colors.white70),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AttendifySpacing.lg),
           const AttendifyPrimaryButton(
             label: 'Mark Present',
             icon: Icons.how_to_reg_rounded,
@@ -583,16 +580,16 @@ class _ModuleViewFromStudentState
           label: 'Code ready — ${sessionCode.secondsRemaining}s remaining',
           color: AttendifyPalette.secondary,
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: AttendifySpacing.lg),
         Text(
           'Tap "Mark Present". Your unique code will be shown for '
-          '${SessionCode.displaySeconds} seconds — memorise it, then type it in.',
+          '${SessionCode.displaySeconds} seconds — memorize it, then type it in.',
           style: Theme.of(context)
               .textTheme
               .bodyMedium
               ?.copyWith(color: Colors.white70),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: AttendifySpacing.lg),
         AttendifyPrimaryButton(
           label: 'Mark Present',
           icon: Icons.how_to_reg_rounded,
@@ -608,20 +605,20 @@ class _ModuleViewFromStudentState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Your code — memorise it now ($_displaySecondsLeft s)',
+          'Your code — memorize it now ($_displaySecondsLeft s)',
           style: Theme.of(context)
               .textTheme
               .bodyMedium
               ?.copyWith(color: Colors.white70),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AttendifySpacing.lg),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: (_displayCode ?? '------').split('').map((digit) {
             return Container(
               width: 42,
               height: 54,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
+              margin: const EdgeInsets.symmetric(horizontal: AttendifySpacing.xs),
               decoration: BoxDecoration(
                 color: Colors.white12,
                 borderRadius: BorderRadius.circular(10),
@@ -640,7 +637,7 @@ class _ModuleViewFromStudentState
             );
           }).toList(),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AttendifySpacing.lg),
         Text(
           'The input field will appear automatically.',
           style: Theme.of(context)
@@ -679,7 +676,7 @@ class _ModuleViewFromStudentState
               .bodyMedium
               ?.copyWith(color: Colors.white70),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: AttendifySpacing.lg),
         TextField(
           controller: _codeController,
           autofocus: true,
@@ -713,7 +710,7 @@ class _ModuleViewFromStudentState
           ),
           onSubmitted: (_) => _submitCode(session.id),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: AttendifySpacing.lg),
         AttendifyPrimaryButton(
           label: 'Confirm Attendance',
           icon: Icons.check_rounded,

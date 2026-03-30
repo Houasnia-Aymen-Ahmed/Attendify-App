@@ -336,7 +336,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                             .headlineSmall
                             ?.copyWith(color: Colors.white),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AttendifySpacing.sm),
                       Text(
                         activeSession == null
                             ? 'Start a live session when class begins. '
@@ -348,7 +348,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                             .bodyMedium
                             ?.copyWith(color: Colors.white70),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: AttendifySpacing.lg),
                       AttendifyPrimaryButton(
                         label: activeSession == null
                             ? 'Start live session'
@@ -367,22 +367,22 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
 
                 // ── Attendance codes (only when session is active) ───────────
                 if (activeSession != null) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AttendifySpacing.lg),
                   _buildCodesCard(activeSession, pendingRequests),
                 ],
 
-                const SizedBox(height: 16),
+                const SizedBox(height: AttendifySpacing.lg),
 
                 // ── Metric cards ─────────────────────────────────────────────
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final wide = constraints.maxWidth > 700;
                     final itemWidth = wide
-                        ? (constraints.maxWidth - 24) / 3
+                        ? (constraints.maxWidth - AttendifySpacing.xxl) / 3
                         : constraints.maxWidth;
                     return Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
+                      spacing: AttendifySpacing.md,
+                      runSpacing: AttendifySpacing.md,
                       children: [
                         SizedBox(
                           width: itemWidth,
@@ -424,7 +424,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                   },
                 ),
 
-                const SizedBox(height: 18),
+                const SizedBox(height: AttendifySpacing.lg),
 
                 // ── Recent check-ins / records heading ───────────────────────
                 Row(
@@ -440,7 +440,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                             style:
                                 Theme.of(context).textTheme.titleLarge,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AttendifySpacing.xs),
                           Text(
                             activeSession == null
                                 ? 'Export the table or review historical presence by date.'
@@ -454,7 +454,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AttendifySpacing.md),
                     OutlinedButton.icon(
                       onPressed: () => _exportData(columns, rows),
                       icon: const Icon(Icons.file_download_rounded),
@@ -476,7 +476,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                     ...latestCheckIns.map((checkIn) {
                       final student = studentsById[checkIn.studentId];
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(bottom: AttendifySpacing.md),
                         child: AttendifySurface(
                           child: Row(
                             children: [
@@ -492,7 +492,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                                           .textTheme
                                           .titleMedium,
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: AttendifySpacing.xs),
                                     Text(
                                       'Checked in at ${_timeLabel(checkIn.checkedInAt)}',
                                       style: Theme.of(context)
@@ -519,9 +519,10 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                 ],
 
                 // ── Attendance table ─────────────────────────────────────────
-                Expanded(
-                  child: AttendifySurface(
-                    padding: const EdgeInsets.all(14),
+                AttendifySurface(
+                  padding: const EdgeInsets.all(14),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 200),
                     child: Scrollbar(
                       thumbVisibility: true,
                       child: SingleChildScrollView(
@@ -624,7 +625,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AttendifySpacing.md),
                 OutlinedButton.icon(
                   onPressed: _isMutatingSession
                       ? null
@@ -638,9 +639,9 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
 
           // Pending resend requests
           if (pendingRequests.isNotEmpty) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AttendifySpacing.lg),
             const Divider(),
-            const SizedBox(height: 8),
+            const SizedBox(height: AttendifySpacing.sm),
             Text(
               '${pendingRequests.length} '
               '${pendingRequests.length == 1 ? 'student needs' : 'students need'} '
@@ -661,7 +662,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                       size: 16,
                       color: AttendifyPalette.mutedText,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AttendifySpacing.sm),
                     Expanded(
                       child: Text(
                         req.studentName,
@@ -679,7 +680,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                 ),
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AttendifySpacing.xs),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(

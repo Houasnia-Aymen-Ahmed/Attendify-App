@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'package:attendify/services/databases.dart';
 import 'package:attendify/shared/loading.dart';
+import 'package:attendify/theme/attendify_ui.dart';
 import 'package:attendify/views/statistics/charts/bar_chart.dart';
 import 'package:attendify/views/statistics/charts/line_chart.dart';
 
@@ -29,6 +30,10 @@ class _ModuleStatsState extends State<ModuleStats> {
   final DatabaseService databaseService = DatabaseService();
 
   LineData getAttendanceChart(Map<String, int> attendanceData) {
+    if (attendanceData.isEmpty) {
+      return LineData(sortedEntries: [], maxVal: 0);
+    }
+
     List<MapEntry<String, int>> sortedEntries = attendanceData.entries.toList()
       ..sort((a, b) => DateFormat('dd-MM-yyyy')
           .parse(a.key)
@@ -64,6 +69,7 @@ class _ModuleStatsState extends State<ModuleStats> {
               if (widget.students.containsKey(entry.key))
                 widget.students[entry.key]!: entry.value
           };
+          final bool hasAttendanceRecords = attendanceData.isNotEmpty;
 
           return Scaffold(
             appBar: AppBar(
@@ -75,21 +81,33 @@ class _ModuleStatsState extends State<ModuleStats> {
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    CustomLineChart(charts: getAttendanceChart(attendanceData)),
-                    CustomCircleChart(
-                      attendanceData: attendanceData,
-                      numberOfStudents: widget.numberOfStudents,
-                    ),
-                    CustomBarChart(
-                      data: studentPresenceCount,
-                      itemType: 'students',
-                      numberOfStudents: widget.numberOfStudents,
-                    ),
-                  ],
-                ),
+                child: hasAttendanceRecords
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          CustomLineChart(
+                            charts: getAttendanceChart(attendanceData),
+                          ),
+                          CustomCircleChart(
+                            attendanceData: attendanceData,
+                            numberOfStudents: widget.numberOfStudents,
+                          ),
+                          CustomBarChart(
+                            data: studentPresenceCount,
+                            itemType: 'students',
+                            numberOfStudents: widget.numberOfStudents,
+                          ),
+                        ],
+                      )
+                    : const Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: AttendifyEmptyState(
+                          title: 'No attendance records yet',
+                          message:
+                              'Statistics will appear here after the first '
+                              'session is recorded for this module.',
+                        ),
+                      ),
               ),
             ),
           );

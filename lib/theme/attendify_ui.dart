@@ -1,9 +1,19 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:attendify/index.dart';
 import 'package:attendify/theme/attendify_theme.dart';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// All sizing, color, and style decisions in this file reference the centralized
+// tokens in attendify_theme.dart:
+//   • Colors  → AttendifyPalette
+//   • Spacing → AttendifySpacing
+//   • Radii   → AttendifyRadius
+//   • Text    → AttendifyTextStyle / Theme.of(context).textTheme
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Page scaffold ─────────────────────────────────────────────────────────────
 
 class AttendifyScreen extends StatelessWidget {
   final Widget child;
@@ -24,25 +34,32 @@ class AttendifyScreen extends StatelessWidget {
     this.actions,
     this.scrollable = true,
     this.expandChild = false,
-    this.padding = const EdgeInsets.fromLTRB(20, 18, 20, 24),
+    this.padding = const EdgeInsets.fromLTRB(
+      AttendifySpacing.xl,
+      AttendifySpacing.md + AttendifySpacing.sm, // 20
+      AttendifySpacing.xl,
+      AttendifySpacing.xxl,
+    ),
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasHeader =
+        title != null || leading != null || (actions?.isNotEmpty ?? false);
+
     final body = Padding(
       padding: padding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (title != null ||
-              leading != null ||
-              (actions?.isNotEmpty ?? false))
+          if (hasHeader)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (leading != null) ...[
                   leading!,
-                  const SizedBox(width: 14),
+                  const SizedBox(
+                      width: AttendifySpacing.md + AttendifySpacing.xs),
                 ],
                 Expanded(
                   child: Column(
@@ -54,7 +71,7 @@ class AttendifyScreen extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                       if (subtitle != null) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AttendifySpacing.xs),
                         Text(
                           subtitle!,
                           style: Theme.of(context).textTheme.bodySmall,
@@ -66,14 +83,8 @@ class AttendifyScreen extends StatelessWidget {
                 if (actions != null) ...actions!,
               ],
             ),
-          if (title != null ||
-              leading != null ||
-              (actions?.isNotEmpty ?? false))
-            const SizedBox(height: 20),
-          if (expandChild && !scrollable)
-            Expanded(child: child)
-          else
-            child,
+          if (hasHeader) const SizedBox(height: AttendifySpacing.xl),
+          if (expandChild && !scrollable) Expanded(child: child) else child,
         ],
       ),
     );
@@ -90,16 +101,16 @@ class AttendifyScreen extends StatelessWidget {
         ),
       ),
       child: SafeArea(
-        top: false,
         child: Stack(
           children: [
+            // Decorative blobs — purely visual
             Positioned(
               top: -80,
               right: -60,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: AttendifyPalette.tertiary.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(140),
+                  borderRadius: AttendifyRadius.lgAll * (140 / 24),
                 ),
                 child: const SizedBox(width: 220, height: 220),
               ),
@@ -110,7 +121,7 @@ class AttendifyScreen extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: AttendifyPalette.secondary.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(120),
+                  borderRadius: AttendifyRadius.lgAll * (120 / 24),
                 ),
                 child: const SizedBox(width: 180, height: 180),
               ),
@@ -122,6 +133,8 @@ class AttendifyScreen extends StatelessWidget {
     );
   }
 }
+
+// ── Surface card ──────────────────────────────────────────────────────────────
 
 class AttendifySurface extends StatelessWidget {
   final Widget child;
@@ -138,10 +151,10 @@ class AttendifySurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: padding ?? const EdgeInsets.all(20),
+      padding: padding ?? const EdgeInsets.all(AttendifySpacing.xl),
       decoration: BoxDecoration(
         color: color ?? AttendifyPalette.surface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: AttendifyRadius.lgAll,
         border: Border.all(color: AttendifyPalette.outline),
         boxShadow: [
           BoxShadow(
@@ -155,6 +168,8 @@ class AttendifySurface extends StatelessWidget {
     );
   }
 }
+
+// ── Primary button ────────────────────────────────────────────────────────────
 
 class AttendifyPrimaryButton extends StatelessWidget {
   final String label;
@@ -176,11 +191,8 @@ class AttendifyPrimaryButton extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (isLoading)
-              const SizedBox(
+        child: isLoading
+            ? const SizedBox(
                 width: 18,
                 height: 18,
                 child: CircularProgressIndicator(
@@ -188,19 +200,22 @@ class AttendifyPrimaryButton extends StatelessWidget {
                   color: Colors.white,
                 ),
               )
-            else ...[
-              Text(label),
-              if (icon != null) ...[
-                const SizedBox(width: 8),
-                Icon(icon, size: 18),
-              ],
-            ],
-          ],
-        ),
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(label),
+                  if (icon != null) ...[
+                    const SizedBox(width: AttendifySpacing.sm),
+                    Icon(icon, size: 18),
+                  ],
+                ],
+              ),
       ),
     );
   }
 }
+
+// ── Section header ────────────────────────────────────────────────────────────
 
 class AttendifySectionHeader extends StatelessWidget {
   final String eyebrow;
@@ -225,13 +240,10 @@ class AttendifySectionHeader extends StatelessWidget {
                 color: AttendifyPalette.secondary,
               ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
+        const SizedBox(height: AttendifySpacing.sm),
+        Text(title, style: Theme.of(context).textTheme.headlineSmall),
         if (subtitle != null) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: AttendifySpacing.sm),
           Text(
             subtitle!,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -243,6 +255,8 @@ class AttendifySectionHeader extends StatelessWidget {
     );
   }
 }
+
+// ── Metric card ───────────────────────────────────────────────────────────────
 
 class AttendifyMetricCard extends StatelessWidget {
   final String label;
@@ -265,15 +279,14 @@ class AttendifyMetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final highlightColor = accentColor ?? AttendifyPalette.secondary;
-    final backgroundColor =
-        emphasized ? AttendifyPalette.primary : AttendifyPalette.surface;
-    final foregroundColor = emphasized ? Colors.white : AttendifyPalette.text;
-    final mutedColor = emphasized
+    final bg = emphasized ? AttendifyPalette.primary : AttendifyPalette.surface;
+    final fg = emphasized ? Colors.white : AttendifyPalette.text;
+    final muted = emphasized
         ? Colors.white.withValues(alpha: 0.78)
         : AttendifyPalette.mutedText;
 
     return AttendifySurface(
-      color: backgroundColor,
+      color: bg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -283,7 +296,7 @@ class AttendifyMetricCard extends StatelessWidget {
                 child: Text(
                   label.toUpperCase(),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: mutedColor,
+                        color: muted,
                       ),
                 ),
               ),
@@ -294,19 +307,18 @@ class AttendifyMetricCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AttendifySpacing.lg),
           Text(
             value,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: foregroundColor,
-                ),
+            style:
+                Theme.of(context).textTheme.headlineMedium?.copyWith(color: fg),
           ),
           if (helper != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: AttendifySpacing.sm),
             Text(
               helper!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: mutedColor,
+                    color: muted,
                   ),
             ),
           ],
@@ -315,6 +327,8 @@ class AttendifyMetricCard extends StatelessWidget {
     );
   }
 }
+
+// ── Status chip ───────────────────────────────────────────────────────────────
 
 class AttendifyStatusChip extends StatelessWidget {
   final String label;
@@ -329,10 +343,13 @@ class AttendifyStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AttendifySpacing.md,
+        vertical: AttendifySpacing.sm,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: AttendifyRadius.smAll,
       ),
       child: Text(
         label,
@@ -343,6 +360,8 @@ class AttendifyStatusChip extends StatelessWidget {
     );
   }
 }
+
+// ── User avatar ───────────────────────────────────────────────────────────────
 
 class AttendifyUserAvatar extends StatelessWidget {
   final String imageUrl;
@@ -379,6 +398,8 @@ class AttendifyUserAvatar extends StatelessWidget {
   }
 }
 
+// ── Empty state ───────────────────────────────────────────────────────────────
+
 class AttendifyEmptyState extends StatelessWidget {
   final String title;
   final String message;
@@ -402,13 +423,13 @@ class AttendifyEmptyState extends StatelessWidget {
             size: 42,
             color: AttendifyPalette.secondary,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AttendifySpacing.md + AttendifySpacing.xs),
           Text(
             title,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleLarge,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AttendifySpacing.sm),
           Text(
             message,
             textAlign: TextAlign.center,
@@ -417,7 +438,7 @@ class AttendifyEmptyState extends StatelessWidget {
                 ),
           ),
           if (action != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AttendifySpacing.lg),
             action!,
           ],
         ],
@@ -425,6 +446,10 @@ class AttendifyEmptyState extends StatelessWidget {
     );
   }
 }
+
+// ── Input decoration helper ───────────────────────────────────────────────────
+// Prefer using the global inputDecorationTheme from AttendifyTheme.
+// Use this only when you need a custom override on a specific field.
 
 InputDecoration attendifyInputDecoration({
   required String hintText,
@@ -435,10 +460,7 @@ InputDecoration attendifyInputDecoration({
     hintText: hintText,
     labelText: labelText,
     suffixIcon: suffixIcon,
-    labelStyle: GoogleFonts.inter(
-      fontSize: 13,
-      fontWeight: FontWeight.w700,
-      color: AttendifyPalette.mutedText,
-    ),
+    labelStyle: AttendifyTextStyle.caption(color: AttendifyPalette.mutedText)
+        .copyWith(fontWeight: FontWeight.w700, fontSize: 13),
   );
 }

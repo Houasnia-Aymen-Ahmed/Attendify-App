@@ -49,8 +49,6 @@ class BuildBody extends StatelessWidget {
 
         return Scaffold(
           body: AttendifyScreen(
-            scrollable: false,
-            expandChild: true,
             leading: AttendifyUserAvatar(imageUrl: student.photoURL),
             title: 'Attendance overview',
             subtitle:
@@ -71,8 +69,8 @@ class BuildBody extends StatelessWidget {
                     final itemWidth =
                         wide ? (constraints.maxWidth - 12) / 2 : constraints.maxWidth;
                     return Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
+                      spacing: AttendifySpacing.md,
+                      runSpacing: AttendifySpacing.md,
                       children: [
                         SizedBox(
                           width: itemWidth,
@@ -98,7 +96,7 @@ class BuildBody extends StatelessWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AttendifySpacing.xl),
                 AttendifySurface(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,23 +115,20 @@ class BuildBody extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: modules.isEmpty
-                      ? const Center(
-                          child: AttendifyEmptyState(
-                            title: 'No modules available',
-                            message:
-                                'Your academic track has no published modules yet. Please check again later.',
-                          ),
-                        )
-                      : ModuleListView(
-                          modules: modules,
-                          userType: 'student',
-                          student: student,
-                          databaseService: databaseService,
-                        ),
-                ),
+                const SizedBox(height: AttendifySpacing.lg),
+                modules.isEmpty
+                    ? const AttendifyEmptyState(
+                        title: 'No modules available',
+                        message:
+                            'Your academic track has no published modules yet. Please check again later.',
+                      )
+                    : ModuleListView(
+                        modules: modules,
+                        userType: 'student',
+                        student: student,
+                        databaseService: databaseService,
+                        shrinkWrap: true,
+                      ),
               ],
             ),
           ),

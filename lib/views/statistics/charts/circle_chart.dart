@@ -16,8 +16,13 @@ class CustomCircleChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int totalPresent = attendanceData.values.reduce((a, b) => a + b);
-    double percentage = totalPresent / (27 * attendanceData.length) * 100;
+    final int totalPresent =
+        attendanceData.values.fold(0, (sum, value) => sum + value);
+    final int totalSlots = numberOfStudents * attendanceData.length;
+    final double percentage =
+        totalSlots > 0 ? (totalPresent / totalSlots) * 100 : 0;
+    final double normalizedPercentage =
+        (percentage / 100).clamp(0.0, 1.0).toDouble();
     return AspectRatio(
       aspectRatio: 1.6,
       child: Card(
@@ -48,7 +53,7 @@ class CustomCircleChart extends StatelessWidget {
               animationDuration: 1000,
               backgroundColor: Colors.white.withValues(alpha: 0.3),
               curve: Curves.easeInOutCubic,
-              percent: percentage / 100,
+              percent: normalizedPercentage,
               backgroundWidth: 12.5,
               center: Text(
                 '${percentage.toStringAsFixed(2)}%',
@@ -58,14 +63,14 @@ class CustomCircleChart extends StatelessWidget {
                   color: Color.lerp(
                     AttendifyPalette.chartBar,
                     AttendifyPalette.chartBarTouched,
-                    percentage / 100,
+                    normalizedPercentage,
                   ),
                 ),
               ),
               progressColor: Color.lerp(
                 AttendifyPalette.chartLine,
                 AttendifyPalette.chartBarTouched,
-                percentage / 100,
+                normalizedPercentage,
               ),
               circularStrokeCap: CircularStrokeCap.round,
             ),

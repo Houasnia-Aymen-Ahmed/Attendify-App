@@ -58,8 +58,6 @@ class ModuleViewFromTeacher extends StatelessWidget {
 
             return Scaffold(
               body: AttendifyScreen(
-                scrollable: false,
-                expandChild: true,
                 leading: const Icon(
                   Icons.menu_book_rounded,
                   color: AttendifyPalette.primary,
@@ -71,7 +69,7 @@ class ModuleViewFromTeacher extends StatelessWidget {
                   IconButton(
                     tooltip: 'Back',
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
                   ),
                 ],
                 child: PresenceTable(

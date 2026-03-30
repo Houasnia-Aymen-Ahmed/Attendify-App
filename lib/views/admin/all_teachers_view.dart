@@ -40,34 +40,31 @@ class _AllTeachersViewState extends State<AllTeachersView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AttendifySurface(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.symmetric(horizontal: AttendifySpacing.lg, vertical: AttendifySpacing.md),
+          child: Row(
             children: [
-              Text(
-                'Faculty management',
-                style: Theme.of(context).textTheme.titleMedium,
+              Expanded(
+                child: Text(
+                  'Faculty management',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  ChoiceChip(
-                    label: const Text('Teachers'),
-                    selected: !showEmails,
-                    onSelected: (_) => setState(() => showEmails = false),
-                  ),
-                  ChoiceChip(
-                    label: const Text('Whitelisted emails'),
-                    selected: showEmails,
-                    onSelected: (_) => setState(() => showEmails = true),
-                  ),
-                ],
+              const SizedBox(width: AttendifySpacing.md),
+              ChoiceChip(
+                label: const Text('Teachers'),
+                selected: !showEmails,
+                onSelected: (_) => setState(() => showEmails = false),
+              ),
+              const SizedBox(width: AttendifySpacing.sm),
+              ChoiceChip(
+                label: const Text('Emails'),
+                selected: showEmails,
+                onSelected: (_) => setState(() => showEmails = true),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AttendifySpacing.lg),
         Expanded(
           child: showEmails
               ? emails.isEmpty
@@ -80,7 +77,7 @@ class _AllTeachersViewState extends State<AllTeachersView> {
                     )
                   : ListView.separated(
                       itemCount: emails.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, __) => const SizedBox(height: AttendifySpacing.md),
                       itemBuilder: (context, index) {
                         final email = emails[index];
                         return AttendifySurface(
@@ -90,7 +87,7 @@ class _AllTeachersViewState extends State<AllTeachersView> {
                                 Icons.verified_user_rounded,
                                 color: AttendifyPalette.secondary,
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: AttendifySpacing.md),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,7 +96,7 @@ class _AllTeachersViewState extends State<AllTeachersView> {
                                       email,
                                       style: Theme.of(context).textTheme.titleMedium,
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: AttendifySpacing.xs),
                                     Text(
                                       'Whitelisted for teacher registration',
                                       style: Theme.of(context)
@@ -141,7 +138,7 @@ class _AllTeachersViewState extends State<AllTeachersView> {
                     )
                   : ListView.separated(
                       itemCount: teachers.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, __) => const SizedBox(height: AttendifySpacing.md),
                       itemBuilder: (context, index) {
                         final teacher = teachers[index];
                         final assignedModules = teacher.modules?.length ?? 0;
@@ -149,7 +146,7 @@ class _AllTeachersViewState extends State<AllTeachersView> {
                           child: Row(
                             children: [
                               AttendifyUserAvatar(imageUrl: teacher.photoURL),
-                              const SizedBox(width: 14),
+                              const SizedBox(width: AttendifySpacing.md),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,7 +155,7 @@ class _AllTeachersViewState extends State<AllTeachersView> {
                                       teacher.userName,
                                       style: Theme.of(context).textTheme.titleMedium,
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: AttendifySpacing.xs),
                                     Text(
                                       teacher.email,
                                       style: Theme.of(context)
@@ -168,7 +165,7 @@ class _AllTeachersViewState extends State<AllTeachersView> {
                                             color: AttendifyPalette.mutedText,
                                           ),
                                     ),
-                                    const SizedBox(height: 10),
+                                    const SizedBox(height: AttendifySpacing.sm),
                                     AttendifyStatusChip(
                                       label: '$assignedModules assigned modules',
                                       color: AttendifyPalette.secondary,

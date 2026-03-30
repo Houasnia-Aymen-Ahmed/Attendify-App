@@ -14,6 +14,7 @@ class ModuleListView extends StatelessWidget {
   final String userType;
   final Student? student;
   final Teacher? teacher;
+  final bool shrinkWrap;
 
   const ModuleListView({
     super.key,
@@ -22,6 +23,7 @@ class ModuleListView extends StatelessWidget {
     required this.userType,
     this.student,
     this.teacher,
+    this.shrinkWrap = false,
   });
 
   VoidCallback? _gotoModule(BuildContext context, Module module) {
@@ -60,6 +62,8 @@ class ModuleListView extends StatelessWidget {
       ..sort((left, right) => left.name.toLowerCase().compareTo(right.name.toLowerCase()));
 
     return ListView.separated(
+      shrinkWrap: shrinkWrap,
+      physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
       itemCount: orderedModules.length,
       separatorBuilder: (_, __) => const SizedBox(height: 14),
       itemBuilder: (context, index) {

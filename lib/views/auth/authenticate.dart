@@ -86,9 +86,11 @@ class _AuthenticateState extends State<Authenticate> {
                         ),
                       ),
                       Expanded(
-                        child: showSignIn
-                            ? SignIn(toggleView: toggleView)
-                            : Register(toggleView: toggleView),
+                        child: SingleChildScrollView(
+                          child: showSignIn
+                              ? SignIn(toggleView: toggleView)
+                              : Register(toggleView: toggleView),
+                        ),
                       ),
                     ],
                   ),

@@ -28,7 +28,9 @@ class _AllModulesViewState extends State<AllModulesView> {
   List<String> get _specialities {
     final source = gradeVal == null
         ? widget.dataModules
-        : widget.dataModules.where((module) => module.grade == gradeVal).toList();
+        : widget.dataModules
+            .where((module) => module.grade == gradeVal)
+            .toList();
     return source.map((module) => module.speciality).toSet().toList()..sort();
   }
 
@@ -39,7 +41,8 @@ class _AllModulesViewState extends State<AllModulesView> {
           specialityVal == null || module.speciality == specialityVal;
       return gradeMatches && specialityMatches;
     }).toList()
-      ..sort((left, right) => left.name.toLowerCase().compareTo(right.name.toLowerCase()));
+      ..sort((left, right) =>
+          left.name.toLowerCase().compareTo(right.name.toLowerCase()));
   }
 
   @override
@@ -49,9 +52,10 @@ class _AllModulesViewState extends State<AllModulesView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── Compact filter bar ────────────────────────────────────────────
         AttendifySurface(
-          child: SingleChildScrollView(
-            child: Column(
+          padding: const EdgeInsets.symmetric(horizontal: AttendifySpacing.lg, vertical: AttendifySpacing.md),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -70,66 +74,78 @@ class _AllModulesViewState extends State<AllModulesView> {
                           specialityVal = null;
                         });
                       },
-                      child: const Text('Clear filters'),
+                      child: const Text('Clear'),
                     ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  ChoiceChip(
-                    label: const Text('All grades'),
-                    selected: gradeVal == null,
-                    onSelected: (_) {
-                      setState(() {
-                        gradeVal = null;
-                        specialityVal = null;
-                      });
-                    },
-                  ),
-                  ..._grades.map(
-                    (grade) => ChoiceChip(
-                      label: Text('$grade year'),
-                      selected: gradeVal == grade,
+              const SizedBox(height: 10),
+              // Grade chips — horizontal scroll, single row
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    ChoiceChip(
+                      label: const Text('All grades'),
+                      selected: gradeVal == null,
                       onSelected: (_) {
                         setState(() {
-                          gradeVal = grade;
+                          gradeVal = null;
                           specialityVal = null;
                         });
                       },
                     ),
-                  ),
-                ],
-              ),
-              if (_specialities.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    ChoiceChip(
-                      label: const Text('All specialities'),
-                      selected: specialityVal == null,
-                      onSelected: (_) => setState(() => specialityVal = null),
-                    ),
-                    ..._specialities.map(
-                      (speciality) => ChoiceChip(
-                        label: Text(speciality),
-                        selected: specialityVal == speciality,
-                        onSelected: (_) =>
-                            setState(() => specialityVal = speciality),
+                    ..._grades.map(
+                      (grade) => Padding(
+                        padding: const EdgeInsets.only(left: AttendifySpacing.sm),
+                        child: ChoiceChip(
+                          label: Text('$grade year'),
+                          selected: gradeVal == grade,
+                          onSelected: (_) {
+                            setState(() {
+                              gradeVal = grade;
+                              specialityVal = null;
+                            });
+                          },
+                        ),
                       ),
                     ),
                   ],
                 ),
+              ),
+              if (_specialities.isNotEmpty) ...[
+                const SizedBox(height: AttendifySpacing.sm),
+                // Speciality chips — horizontal scroll, single row
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      ChoiceChip(
+                        label: const Text('All specialities'),
+                        selected: specialityVal == null,
+                        onSelected: (_) =>
+                            setState(() => specialityVal = null),
+                      ),
+                      ..._specialities.map(
+                        (speciality) => Padding(
+                          padding: const EdgeInsets.only(left: AttendifySpacing.sm),
+                          child: ChoiceChip(
+                            label: Text(speciality),
+                            selected: specialityVal == speciality,
+                            onSelected: (_) =>
+                                setState(() => specialityVal = speciality),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ],
           ),
-          ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AttendifySpacing.md),
+
+        // ── Module list ───────────────────────────────────────────────────
         Expanded(
           child: modules.isEmpty
               ? const Center(
@@ -141,13 +157,13 @@ class _AllModulesViewState extends State<AllModulesView> {
                 )
               : ListView.separated(
                   itemCount: modules.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, __) => const SizedBox(height: AttendifySpacing.md),
                   itemBuilder: (context, index) {
                     final module = modules[index];
                     return Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: AttendifyRadius.lgAll,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -170,7 +186,8 @@ class _AllModulesViewState extends State<AllModulesView> {
                                 children: [
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           module.name,
@@ -178,38 +195,42 @@ class _AllModulesViewState extends State<AllModulesView> {
                                               .textTheme
                                               .titleLarge,
                                         ),
-                                        const SizedBox(height: 8),
+                                        const SizedBox(height: AttendifySpacing.sm),
                                         Text(
                                           '${module.grade} year • ${module.speciality}',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyMedium
                                               ?.copyWith(
-                                                color: AttendifyPalette.mutedText,
+                                                color:
+                                                    AttendifyPalette.mutedText,
                                               ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: AttendifySpacing.md),
                                   AttendifyStatusChip(
-                                    label: module.isActive ? 'Active' : 'Inactive',
+                                    label: module.isActive
+                                        ? 'Active'
+                                        : 'Inactive',
                                     color: module.isActive
                                         ? AttendifyPalette.secondary
                                         : AttendifyPalette.error,
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 18),
+                              const SizedBox(height: AttendifySpacing.lg),
                               Row(
                                 children: [
                                   Expanded(
                                     child: _ModuleInfoTile(
                                       label: 'Students',
-                                      value: '${moduleStudentCount(module)}',
+                                      value:
+                                          '${moduleStudentCount(module)}',
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: AttendifySpacing.md),
                                   Expanded(
                                     child: _ModuleInfoTile(
                                       label: 'Attendance',
@@ -244,10 +265,10 @@ class _ModuleInfoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.symmetric(horizontal: AttendifySpacing.md, vertical: AttendifySpacing.md),
+      decoration: const BoxDecoration(
         color: AttendifyPalette.surfaceMuted,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: AttendifyRadius.mdAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

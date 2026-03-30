@@ -16,13 +16,15 @@ class SignIn extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final signInState = ref.watch<SignInState>(signInControllerProvider);
-    final signInController = ref.read<SignInController>(signInControllerProvider.notifier);
+    final signInController =
+        ref.read<SignInController>(signInControllerProvider.notifier);
     final errorText =
         signInState == SignInState.error ? signInController.error ?? '' : '';
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+        padding: const EdgeInsets.fromLTRB(AttendifySpacing.xxl,
+            AttendifySpacing.md, AttendifySpacing.xxl, AttendifySpacing.xxl),
         child: AttendifySurface(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -34,7 +36,7 @@ class SignIn extends ConsumerWidget {
                 subtitle:
                     'Continue with your HNS Google account to reach your student, teacher, or admin space.',
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AttendifySpacing.xl),
               const Wrap(
                 spacing: 10,
                 runSpacing: 10,
@@ -44,7 +46,7 @@ class SignIn extends ConsumerWidget {
                   _AuthFactChip(label: 'Role-aware dashboard'),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AttendifySpacing.xxl),
               AttendifyPrimaryButton(
                 label: 'Continue with Google',
                 icon: Icons.arrow_forward_rounded,
@@ -52,13 +54,13 @@ class SignIn extends ConsumerWidget {
                 onPressed: signInController.signIn,
               ),
               if (errorText.isNotEmpty) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: AttendifySpacing.lg),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AttendifyPalette.error.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: AttendifyRadius.mdAll,
                   ),
                   child: Text(
                     errorText,
@@ -69,13 +71,13 @@ class SignIn extends ConsumerWidget {
                   ),
                 ),
               ],
-              const SizedBox(height: 24),
+              const SizedBox(height: AttendifySpacing.xxl),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AttendifyPalette.surfaceMuted,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: AttendifyRadius.lgAll,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,7 +94,7 @@ class SignIn extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: AttendifySpacing.lg),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -125,10 +127,11 @@ class _AuthFactChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AttendifySpacing.lg, vertical: 10),
+      decoration: const BoxDecoration(
         color: AttendifyPalette.surfaceMuted,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AttendifyRadius.mdAll,
       ),
       child: Text(
         label,

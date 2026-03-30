@@ -28,14 +28,14 @@ class AllStudentsView extends StatelessWidget {
 
     return ListView.separated(
       itemCount: students.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: AttendifySpacing.md),
       itemBuilder: (context, index) {
         final student = students[index];
         return AttendifySurface(
           child: Row(
             children: [
               AttendifyUserAvatar(imageUrl: student.photoURL),
-              const SizedBox(width: 14),
+              const SizedBox(width: AttendifySpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,7 +44,7 @@ class AllStudentsView extends StatelessWidget {
                       student.userName,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AttendifySpacing.xs),
                     Text(
                       student.email,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -53,8 +53,8 @@ class AllStudentsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                      spacing: AttendifySpacing.sm,
+                      runSpacing: AttendifySpacing.sm,
                       children: [
                         AttendifyStatusChip(
                           label: '${student.grade ?? '-'} year',

@@ -7,6 +7,7 @@ import 'package:attendify/services/databases.dart';
 import 'package:attendify/shared/error_pages.dart';
 import 'package:attendify/shared/loading.dart';
 import 'package:attendify/shared/module_list_view.dart';
+import 'package:attendify/theme/attendify_theme.dart';
 import 'package:attendify/theme/attendify_ui.dart';
 import 'package:attendify/utils/module_metrics.dart';
 
@@ -129,8 +130,6 @@ class _TeacherViewState extends State<TeacherView> {
 
             return Scaffold(
               body: AttendifyScreen(
-                scrollable: false,
-                expandChild: true,
                 leading: AttendifyUserAvatar(imageUrl: teacher.photoURL),
                 title: 'Managed courses',
                 subtitle:
@@ -152,8 +151,8 @@ class _TeacherViewState extends State<TeacherView> {
                             ? (constraints.maxWidth - 24) / 3
                             : constraints.maxWidth;
                         return Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
+                          spacing: AttendifySpacing.md,
+                          runSpacing: AttendifySpacing.md,
                           children: [
                             SizedBox(
                               width: itemWidth,
@@ -188,7 +187,7 @@ class _TeacherViewState extends State<TeacherView> {
                         );
                       },
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: AttendifySpacing.lg),
                     AttendifySurface(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,10 +212,10 @@ class _TeacherViewState extends State<TeacherView> {
                                 ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AttendifySpacing.md),
                           Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
+                            spacing: AttendifySpacing.sm,
+                            runSpacing: AttendifySpacing.sm,
                             children: [
                               ChoiceChip(
                                 label: const Text('All grades'),
@@ -243,10 +242,10 @@ class _TeacherViewState extends State<TeacherView> {
                             ],
                           ),
                           if (specialities.isNotEmpty) ...[
-                            const SizedBox(height: 12),
+                            const SizedBox(height: AttendifySpacing.md),
                             Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
+                              spacing: AttendifySpacing.sm,
+                              runSpacing: AttendifySpacing.sm,
                               children: [
                                 ChoiceChip(
                                   label: const Text('All specialities'),
@@ -266,7 +265,7 @@ class _TeacherViewState extends State<TeacherView> {
                               ],
                             ),
                           ],
-                          const SizedBox(height: 16),
+                          const SizedBox(height: AttendifySpacing.lg),
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton.icon(
@@ -278,7 +277,7 @@ class _TeacherViewState extends State<TeacherView> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: AttendifySpacing.lg),
                     Row(
                       children: [
                         Expanded(
@@ -296,36 +295,31 @@ class _TeacherViewState extends State<TeacherView> {
                           ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    Expanded(
-                      child: modulesData.isEmpty
-                          ? Center(
-                              child: AttendifyEmptyState(
-                                title: 'No assigned modules yet',
+                    const SizedBox(height: AttendifySpacing.md),
+                    modulesData.isEmpty
+                        ? AttendifyEmptyState(
+                            title: 'No assigned modules yet',
+                            message:
+                                'Start by selecting the courses you manage. They will appear here with session and attendance summaries.',
+                            action: ElevatedButton.icon(
+                              onPressed: () => _openSelectModule(teacher, modulesData),
+                              icon: const Icon(Icons.add_rounded),
+                              label: const Text('Select modules'),
+                            ),
+                          )
+                        : filteredModules.isEmpty
+                            ? const AttendifyEmptyState(
+                                title: 'No matching courses',
                                 message:
-                                    'Start by selecting the courses you manage. They will appear here with session and attendance summaries.',
-                                action: ElevatedButton.icon(
-                                  onPressed: () => _openSelectModule(teacher, modulesData),
-                                  icon: const Icon(Icons.add_rounded),
-                                  label: const Text('Select modules'),
-                                ),
+                                    'Try another grade or speciality filter to bring matching courses back into view.',
+                              )
+                            : ModuleListView(
+                                modules: filteredModules,
+                                userType: 'teacher',
+                                teacher: teacher,
+                                databaseService: widget.databaseService,
+                                shrinkWrap: true,
                               ),
-                            )
-                          : filteredModules.isEmpty
-                              ? const Center(
-                                  child: AttendifyEmptyState(
-                                    title: 'No matching courses',
-                                    message:
-                                        'Try another grade or speciality filter to bring matching courses back into view.',
-                                  ),
-                                )
-                              : ModuleListView(
-                                  modules: filteredModules,
-                                  userType: 'teacher',
-                                  teacher: teacher,
-                                  databaseService: widget.databaseService,
-                                ),
-                    ),
                   ],
                 ),
               ),
