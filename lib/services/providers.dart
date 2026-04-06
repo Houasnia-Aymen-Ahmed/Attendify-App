@@ -7,6 +7,9 @@ import 'package:attendify/models/live_session.dart';
 import 'package:attendify/models/session_check_in.dart';
 import 'package:attendify/models/session_code.dart';
 import 'package:attendify/models/user.dart';
+import 'package:attendify/models/module_model.dart';
+import 'package:attendify/models/attendify_student.dart';
+import 'package:attendify/models/attendify_teacher.dart';
 import 'package:attendify/services/auth.dart';
 import 'package:attendify/services/databases.dart';
 import 'package:attendify/services/notification_service.dart';
@@ -41,47 +44,47 @@ final authStateProvider = StreamProvider<UserHandler?>((ref) {
   return ref.watch(authServiceProvider).user;
 });
 
-final allModulesProvider = FutureProvider((ref) {
+final allModulesProvider = StreamProvider<List<Module>>((ref) {
   final databaseService = ref.watch(databaseServiceProvider);
-  return databaseService.getAllModules();
+  return databaseService.getAllModulesStream();
 });
 
-final allStudentsProvider = FutureProvider((ref) {
+final allStudentsProvider = StreamProvider<List<Student>>((ref) {
   final databaseService = ref.watch(databaseServiceProvider);
-  return databaseService.getAllStudents();
+  return databaseService.getAllStudentsStream();
 });
 
-final allTeachersAndEmailsProvider = FutureProvider((ref) {
+final allTeachersAndEmailsProvider = StreamProvider<Map<String, dynamic>>((ref) {
   final databaseService = ref.watch(databaseServiceProvider);
-  return databaseService.getAllTeachersAndEmails();
+  return databaseService.getAllTeachersAndEmailsStream();
 });
 
-final teacherProvider = StreamProvider.family((ref, String teacherId) {
+final teacherProvider = StreamProvider.family<Teacher, String>((ref, String teacherId) {
   final databaseService = ref.watch(databaseServiceProvider);
   return databaseService.getTeacherDataStream(teacherId);
 });
 
-final teacherModulesProvider = StreamProvider.family((ref, List<String> moduleUIDs) {
+final teacherModulesProvider = StreamProvider.family<List<Module>, List<String>>((ref, List<String> moduleUIDs) {
   final databaseService = ref.watch(databaseServiceProvider);
   return databaseService.getModulesOfTeacher(moduleUIDs);
 });
 
-final studentProvider = StreamProvider.family((ref, String studentId) {
+final studentProvider = StreamProvider.family<Student, String>((ref, String studentId) {
   final databaseService = ref.watch(databaseServiceProvider);
   return databaseService.getStudentDataStream(studentId);
 });
 
-final moduleProvider = StreamProvider.family((ref, String moduleId) {
+final moduleProvider = StreamProvider.family<Module, String>((ref, String moduleId) {
   final databaseService = ref.watch(databaseServiceProvider);
   return databaseService.getModuleStream(moduleId);
 });
 
-final studentsProvider = StreamProvider.family((ref, List<String> studentUIDs) {
+final studentsProvider = StreamProvider.family<List<Student>, List<String>>((ref, List<String> studentUIDs) {
   final databaseService = ref.watch(databaseServiceProvider);
   return databaseService.getStudentsList(studentUIDs);
 });
 
-final moduleStatsProvider = FutureProvider.family((ref, String moduleId) {
+final moduleStatsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, String moduleId) {
   final databaseService = ref.watch(databaseServiceProvider);
   return databaseService.fetchModuleStats(moduleId);
 });

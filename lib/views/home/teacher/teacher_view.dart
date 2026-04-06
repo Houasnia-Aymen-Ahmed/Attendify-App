@@ -10,6 +10,7 @@ import 'package:attendify/shared/module_list_view.dart';
 import 'package:attendify/theme/attendify_theme.dart';
 import 'package:attendify/theme/attendify_ui.dart';
 import 'package:attendify/utils/module_metrics.dart';
+import 'package:attendify/views/home/drawer.dart';
 
 class TeacherView extends StatefulWidget {
   final Teacher teacher;
@@ -41,7 +42,8 @@ class _TeacherViewState extends State<TeacherView> {
   }
 
   List<String> _availableGrades(List<Module> modules) {
-    final values = modules.map((module) => module.grade).toSet().toList()..sort();
+    final values = modules.map((module) => module.grade).toSet().toList()
+      ..sort();
     return values;
   }
 
@@ -49,8 +51,11 @@ class _TeacherViewState extends State<TeacherView> {
     final filteredByGrade = gradeVal == null
         ? modules
         : modules.where((module) => module.grade == gradeVal).toList();
-    final values =
-        filteredByGrade.map((module) => module.speciality).toSet().toList()..sort();
+    final values = filteredByGrade
+        .map((module) => module.speciality)
+        .toSet()
+        .toList()
+      ..sort();
     return values;
   }
 
@@ -124,13 +129,26 @@ class _TeacherViewState extends State<TeacherView> {
 
             final modulesData = modulesSnapshot.data!;
             final filteredModules = _filterModules(modulesData);
-            final activeModules = modulesData.where((module) => module.isActive).length;
+            final activeModules =
+                modulesData.where((module) => module.isActive).length;
             final grades = _availableGrades(modulesData);
             final specialities = _availableSpecialities(modulesData);
 
             return Scaffold(
+              drawer: BuildDrawer(
+                authService: widget.authService,
+                databaseService: widget.databaseService,
+                userType: 'teacher',
+                teacher: teacher,
+                modules: modulesData,
+              ),
               body: AttendifyScreen(
-                leading: AttendifyUserAvatar(imageUrl: teacher.photoURL),
+                leading: Builder(
+                  builder: (ctx) => GestureDetector(
+                    onTap: () => Scaffold.of(ctx).openDrawer(),
+                    child: AttendifyUserAvatar(imageUrl: teacher.photoURL),
+                  ),
+                ),
                 title: 'Managed courses',
                 subtitle:
                     '${modulesData.length} assigned modules • $activeModules currently active',
@@ -178,8 +196,10 @@ class _TeacherViewState extends State<TeacherView> {
                               width: itemWidth,
                               child: AttendifyMetricCard(
                                 label: 'Average attendance',
-                                value: '${_averageAttendance(modulesData).toStringAsFixed(0)}%',
-                                helper: 'Calculated from historical session records',
+                                value:
+                                    '${_averageAttendance(modulesData).toStringAsFixed(0)}%',
+                                helper:
+                                    'Calculated from historical session records',
                                 icon: Icons.insights_rounded,
                               ),
                             ),
@@ -197,7 +217,8 @@ class _TeacherViewState extends State<TeacherView> {
                               Expanded(
                                 child: Text(
                                   'Filter your portfolio',
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
                                 ),
                               ),
                               if (gradeVal != null || specialityVal != null)
@@ -258,7 +279,8 @@ class _TeacherViewState extends State<TeacherView> {
                                     label: Text(speciality),
                                     selected: specialityVal == speciality,
                                     onSelected: (_) {
-                                      setState(() => specialityVal = speciality);
+                                      setState(
+                                          () => specialityVal = speciality);
                                     },
                                   ),
                                 ),
@@ -269,7 +291,8 @@ class _TeacherViewState extends State<TeacherView> {
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton.icon(
-                              onPressed: () => _openSelectModule(teacher, modulesData),
+                              onPressed: () =>
+                                  _openSelectModule(teacher, modulesData),
                               icon: const Icon(Icons.add_chart_rounded),
                               label: const Text('Select or add modules'),
                             ),
@@ -302,7 +325,8 @@ class _TeacherViewState extends State<TeacherView> {
                             message:
                                 'Start by selecting the courses you manage. They will appear here with session and attendance summaries.',
                             action: ElevatedButton.icon(
-                              onPressed: () => _openSelectModule(teacher, modulesData),
+                              onPressed: () =>
+                                  _openSelectModule(teacher, modulesData),
                               icon: const Icon(Icons.add_rounded),
                               label: const Text('Select modules'),
                             ),

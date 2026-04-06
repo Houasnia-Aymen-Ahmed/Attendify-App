@@ -29,6 +29,50 @@ class DatabaseService {
   CollectionReference modulesColl =
       FirebaseFirestore.instance.collection('Modules');
 
+  String _normalizeEmail(String email) => email.trim().toLowerCase();
+
+  Map<String, dynamic> _asMap(dynamic data) =>
+      Map<String, dynamic>.from(data as Map);
+
+  String _resolvedUserName(String? primary, String? fallback) {
+    final candidate = (primary ?? '').trim();
+    if (candidate.isNotEmpty && candidate.toLowerCase() != 'username') {
+      return candidate;
+    }
+
+    final backup = (fallback ?? '').trim();
+    return backup.isNotEmpty ? backup : 'Username';
+  }
+
+  String _resolvedPhotoUrl(String? primary, String? fallback) {
+    final candidate = (primary ?? '').trim();
+    if (candidate.isNotEmpty &&
+        candidate.toLowerCase() != 'photourl' &&
+        candidate.toLowerCase() != 'url') {
+      return candidate;
+    }
+
+    return (fallback ?? '').trim();
+  }
+
+  Future<Map<String, dynamic>?> _findFirstByEmail(
+    CollectionReference collection,
+    String email,
+  ) async {
+    final searchTerms = <String>{email.trim(), _normalizeEmail(email)}
+      ..removeWhere((value) => value.isEmpty);
+
+    for (final searchTerm in searchTerms) {
+      final querySnapshot =
+          await collection.where('email', isEqualTo: searchTerm).limit(1).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        return _asMap(querySnapshot.docs.first.data());
+      }
+    }
+
+    return null;
+  }
+
   Future<void> addTeacherEmail(String email) async {
     teacherEmailsColl.doc('TeacherEmails').update({
       'emails': FieldValue.arrayUnion([email])
@@ -48,12 +92,13 @@ class DatabaseService {
     required String email,
     required String photoURL,
   }) async {
+    final normalizedEmail = _normalizeEmail(email);
     DocumentReference userDoc = userColl.doc(uid);
     await userDoc.set({
       'username': userName,
       'userType': userType,
       'uid': uid,
-      'email': email,
+      'email': normalizedEmail,
       'photoURL': photoURL,
     });
 
@@ -63,7 +108,7 @@ class DatabaseService {
           'username': userName,
           'userType': userType,
           'uid': uid,
-          'email': email,
+          'email': normalizedEmail,
           'photoURL': photoURL,
         });
         break;
@@ -72,7 +117,7 @@ class DatabaseService {
           'username': userName,
           'userType': userType,
           'uid': uid,
-          'email': email,
+          'email': normalizedEmail,
           'photoURL': photoURL,
         });
         break;
@@ -81,18 +126,200 @@ class DatabaseService {
 
   Future<bool> isUserRegistered(String email) async {
     try {
-      QuerySnapshot querySnapshot = await userColl
-          .where(
-            'email',
-            isEqualTo: email,
-          )
-          .limit(1)
-          .get();
-      if (querySnapshot.docs.isEmpty) return false;
-      return true;
+      return await _findFirstByEmail(userColl, email) != null ||
+          await _findFirstByEmail(teacherColl, email) != null ||
+          await _findFirstByEmail(studentColl, email) != null;
     } on Exception catch (_) {
       return false;
     }
+  }
+
+  Future<AttendifyUser?> ensureRegisteredUserProfile({
+    required String uid,
+    required String email,
+    String? fallbackUserName,
+    String? fallbackPhotoURL,
+  }) async {
+    final normalizedEmail = _normalizeEmail(email);
+
+    final userSnapshot = await userColl.doc(uid).get();
+    if (userSnapshot.exists) {
+      final user = _currentUserFromSnapshots(userSnapshot);
+      final normalizedUser = AttendifyUser(
+        userName: _resolvedUserName(user.userName, fallbackUserName),
+        userType: user.userType,
+        uid: uid,
+        email: normalizedEmail,
+        photoURL: _resolvedPhotoUrl(user.photoURL, fallbackPhotoURL),
+      );
+
+      await userColl.doc(uid).set({
+        'username': normalizedUser.userName,
+        'userType': normalizedUser.userType,
+        'uid': uid,
+        'email': normalizedUser.email,
+        'photoURL': normalizedUser.photoURL,
+      }, SetOptions(merge: true));
+
+      return normalizedUser;
+    }
+
+    final teacherSnapshot = await teacherColl.doc(uid).get();
+    if (teacherSnapshot.exists) {
+      final teacher = _currentTeacherFromSnapshots(teacherSnapshot);
+      final normalizedTeacher = AttendifyUser(
+        userName: _resolvedUserName(teacher.userName, fallbackUserName),
+        userType: 'teacher',
+        uid: uid,
+        email: normalizedEmail,
+        photoURL: _resolvedPhotoUrl(teacher.photoURL, fallbackPhotoURL),
+      );
+
+      await teacherColl.doc(uid).set({
+        'username': normalizedTeacher.userName,
+        'userType': normalizedTeacher.userType,
+        'uid': uid,
+        'email': normalizedTeacher.email,
+        'photoURL': normalizedTeacher.photoURL,
+      }, SetOptions(merge: true));
+      await userColl.doc(uid).set({
+        'username': normalizedTeacher.userName,
+        'userType': normalizedTeacher.userType,
+        'uid': uid,
+        'email': normalizedTeacher.email,
+        'photoURL': normalizedTeacher.photoURL,
+      }, SetOptions(merge: true));
+
+      return normalizedTeacher;
+    }
+
+    final studentSnapshot = await studentColl.doc(uid).get();
+    if (studentSnapshot.exists) {
+      final student = _currentStudentFromSnapshots(studentSnapshot);
+      final normalizedStudent = AttendifyUser(
+        userName: _resolvedUserName(student.userName, fallbackUserName),
+        userType: 'student',
+        uid: uid,
+        email: normalizedEmail,
+        photoURL: _resolvedPhotoUrl(student.photoURL, fallbackPhotoURL),
+      );
+
+      await studentColl.doc(uid).set({
+        'username': normalizedStudent.userName,
+        'userType': normalizedStudent.userType,
+        'uid': uid,
+        'email': normalizedStudent.email,
+        'photoURL': normalizedStudent.photoURL,
+      }, SetOptions(merge: true));
+      await userColl.doc(uid).set({
+        'username': normalizedStudent.userName,
+        'userType': normalizedStudent.userType,
+        'uid': uid,
+        'email': normalizedStudent.email,
+        'photoURL': normalizedStudent.photoURL,
+      }, SetOptions(merge: true));
+
+      return normalizedStudent;
+    }
+
+    final teacherByEmail =
+        await _findFirstByEmail(teacherColl, normalizedEmail);
+    if (teacherByEmail != null) {
+      final userName = _resolvedUserName(
+          teacherByEmail['username'] as String?, fallbackUserName);
+      final photoURL = _resolvedPhotoUrl(
+        teacherByEmail['photoURL'] as String?,
+        fallbackPhotoURL,
+      );
+      final modules = (teacherByEmail['modules'] as List<dynamic>? ?? const [])
+          .map((value) => value.toString())
+          .toList();
+
+      await teacherColl.doc(uid).set({
+        'uid': uid,
+        'email': normalizedEmail,
+        'username': userName,
+        'userType': 'teacher',
+        'photoURL': photoURL,
+        'modules': modules,
+      }, SetOptions(merge: true));
+      await userColl.doc(uid).set({
+        'username': userName,
+        'userType': 'teacher',
+        'uid': uid,
+        'email': normalizedEmail,
+        'photoURL': photoURL,
+      }, SetOptions(merge: true));
+
+      return AttendifyUser(
+        userName: userName,
+        userType: 'teacher',
+        uid: uid,
+        email: normalizedEmail,
+        photoURL: photoURL,
+      );
+    }
+
+    final studentByEmail =
+        await _findFirstByEmail(studentColl, normalizedEmail);
+    if (studentByEmail != null) {
+      final userName = _resolvedUserName(
+          studentByEmail['username'] as String?, fallbackUserName);
+      final photoURL = _resolvedPhotoUrl(
+        studentByEmail['photoURL'] as String?,
+        fallbackPhotoURL,
+      );
+
+      await studentColl.doc(uid).set({
+        'uid': uid,
+        'email': normalizedEmail,
+        'username': userName,
+        'userType': 'student',
+        'photoURL': photoURL,
+        'grade': studentByEmail['grade'] as String?,
+        'speciality': studentByEmail['speciality'] as String?,
+      }, SetOptions(merge: true));
+      await userColl.doc(uid).set({
+        'username': userName,
+        'userType': 'student',
+        'uid': uid,
+        'email': normalizedEmail,
+        'photoURL': photoURL,
+      }, SetOptions(merge: true));
+
+      return AttendifyUser(
+        userName: userName,
+        userType: 'student',
+        uid: uid,
+        email: normalizedEmail,
+        photoURL: photoURL,
+      );
+    }
+
+    final userByEmail = await _findFirstByEmail(userColl, normalizedEmail);
+    if (userByEmail != null) {
+      final normalizedUser = AttendifyUser(
+        userName: _resolvedUserName(
+            userByEmail['username'] as String?, fallbackUserName),
+        userType: userByEmail['userType'] as String? ?? 'admin',
+        uid: uid,
+        email: normalizedEmail,
+        photoURL: _resolvedPhotoUrl(
+            userByEmail['photoURL'] as String?, fallbackPhotoURL),
+      );
+
+      await userColl.doc(uid).set({
+        'username': normalizedUser.userName,
+        'userType': normalizedUser.userType,
+        'uid': uid,
+        'email': normalizedUser.email,
+        'photoURL': normalizedUser.photoURL,
+      }, SetOptions(merge: true));
+
+      return normalizedUser;
+    }
+
+    return null;
   }
 
   Future<void> updateUserSpecificData({
@@ -113,7 +340,9 @@ class DatabaseService {
     for (var entry in map.entries) {
       if (entry.value != null) {
         await userColl.doc(usrUid).update({
-          entry.key: entry.value,
+          entry.key: entry.key == 'email'
+              ? _normalizeEmail(entry.value!)
+              : entry.value,
         });
       }
     }
@@ -127,10 +356,11 @@ class DatabaseService {
     required String photoURL,
     List<String>? modules,
   }) async {
+    final normalizedEmail = _normalizeEmail(email);
     await teacherColl.doc(uid).set(
       {
         'uid': uid,
-        'email': email,
+        'email': normalizedEmail,
         'username': userName,
         'userType': userType,
         'photoURL': photoURL,
@@ -158,7 +388,9 @@ class DatabaseService {
     for (var entry in map.entries) {
       if (entry.value != null) {
         await teacherColl.doc(usrUid).update({
-          entry.key: entry.value,
+          entry.key: entry.key == 'email'
+              ? _normalizeEmail(entry.value!)
+              : entry.value,
         });
       }
     }
@@ -179,10 +411,11 @@ class DatabaseService {
     String? grade,
     String? speciality,
   }) async {
+    final normalizedEmail = _normalizeEmail(email);
     await studentColl.doc(uid).set(
       {
         'uid': uid,
-        'email': email,
+        'email': normalizedEmail,
         'username': userName,
         'userType': userType,
         'photoURL': photoURL,
@@ -214,7 +447,9 @@ class DatabaseService {
     for (var entry in map.entries) {
       if (entry.value != null) {
         await studentColl.doc(usrUid).update({
-          entry.key: entry.value,
+          entry.key: entry.key == 'email'
+              ? _normalizeEmail(entry.value!)
+              : entry.value,
         });
       }
     }
@@ -763,8 +998,9 @@ class DatabaseService {
   Future<List<String>> getAllTeachersEmails() async {
     try {
       List<String> emails = [];
-      await teacherEmailsColl.doc('TeacherEmails').get().then((DocumentSnapshot value) =>
-          emails = (value.get('emails') as List<dynamic>).cast<String>());
+      await teacherEmailsColl.doc('TeacherEmails').get().then(
+          (DocumentSnapshot value) =>
+              emails = (value.get('emails') as List<dynamic>).cast<String>());
       return emails;
     } on Exception catch (_) {
       throw Exception('not-authenticated-teacher');
@@ -774,11 +1010,52 @@ class DatabaseService {
   Future<List<String>> getAllAdminsEmails() async {
     try {
       List<String> emails = [];
-      await adminEmailsColl.doc('AdminEmails').get().then((DocumentSnapshot value) =>
-          emails = (value.get('emails') as List<dynamic>).cast<String>());
+      await adminEmailsColl.doc('AdminEmails').get().then(
+          (DocumentSnapshot value) =>
+              emails = (value.get('emails') as List<dynamic>).cast<String>());
       return emails;
     } on Exception catch (_) {
       throw Exception('not-authenticated-admin');
+    }
+  }
+
+  Stream<List<Module>> getAllModulesStream() {
+    return modulesColl.snapshots().map(
+      (snapshot) => snapshot.docs
+          .map((doc) => _currentModuleFromSnapshots(doc))
+          .toList(),
+    );
+  }
+
+  Stream<List<Student>> getAllStudentsStream() {
+    return studentColl.snapshots().map(
+      (snapshot) => snapshot.docs
+          .map((doc) => _currentStudentFromSnapshots(doc))
+          .toList(),
+    );
+  }
+
+  Stream<Map<String, dynamic>> getAllTeachersAndEmailsStream() async* {
+    final teacherStream = teacherColl.snapshots().map(
+      (snapshot) => snapshot.docs
+          .map((doc) => _currentTeacherFromSnapshots(doc))
+          .toList(),
+    );
+
+    // We combine mathe two streams. Whenever either updates, we emit a new map.
+    await for (final teachers in teacherStream) {
+      // This is a simplified combine. In a real app, we'd use RxDart combineLatest.
+      // Since we want to avoid adding dependencies, we'll fetch the latest email
+      // value when teachers update, or use a separate listener.
+      final emailsSnapshot = await teacherEmailsColl.doc('TeacherEmails').get();
+      final emails = emailsSnapshot.exists
+          ? (emailsSnapshot.get('emails') as List<dynamic>).cast<String>()
+          : <String>[];
+
+      yield {
+        'teachers': teachers,
+        'emails': emails,
+      };
     }
   }
 

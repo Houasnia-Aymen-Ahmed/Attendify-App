@@ -34,6 +34,13 @@ class SessionService {
   String _generateCode() =>
       (100000 + Random.secure().nextInt(900000)).toString();
 
+  Future<void> _setModuleLiveState(String moduleId, bool isActive) {
+    return _firestore.collection('Modules').doc(moduleId).set(
+      {'isActive': isActive},
+      SetOptions(merge: true),
+    );
+  }
+
   // ── Session lifecycle ──────────────────────────────────────────────────────
 
   Future<LiveSession> startSession(
@@ -44,6 +51,15 @@ class SessionService {
     final teacherId = _authService.currentUsr?.uid;
     if (teacherId == null) {
       throw StateError('A signed-in teacher is required to start a session.');
+    }
+
+    final existingActiveSession = await _sessions
+        .where('moduleId', isEqualTo: moduleId)
+        .where('status', isEqualTo: LiveSessionStatus.active.name)
+        .limit(1)
+        .get();
+    if (existingActiveSession.docs.isNotEmpty) {
+      throw StateError('A live session is already active for this module.');
     }
 
     final now = DateTime.now();
@@ -60,6 +76,7 @@ class SessionService {
     );
 
     await docRef.set(session.toJson());
+    await _setModuleLiveState(moduleId, true);
     return session;
   }
 
@@ -76,7 +93,8 @@ class SessionService {
     });
 
     // Sync successful check-ins to module's legacy attendanceTable
-    final snapshot = await _checkIns.where('sessionId', isEqualTo: sessionId).get();
+    final snapshot =
+        await _checkIns.where('sessionId', isEqualTo: sessionId).get();
 
     final presentIds = snapshot.docs
         .map((doc) => SessionCheckIn.fromJson(doc.data(), id: doc.id))
@@ -90,9 +108,12 @@ class SessionService {
     };
 
     await _firestore.collection('Modules').doc(session.moduleId).set(
-      {'attendanceTable': {dateKey: attendanceEntry}},
+      {
+        'attendanceTable': {dateKey: attendanceEntry}
+      },
       SetOptions(merge: true),
     );
+    await _setModuleLiveState(session.moduleId, false);
 
     return session.copyWith(status: LiveSessionStatus.closed, endsAt: now);
   }
@@ -176,8 +197,9 @@ class SessionService {
         .where('status', isEqualTo: CodeRequestStatus.pending.name)
         .orderBy('requestedAt', descending: false)
         .snapshots()
-        .map((s) =>
-            s.docs.map((d) => CodeRequest.fromJson(d.data(), id: d.id)).toList());
+        .map((s) => s.docs
+            .map((d) => CodeRequest.fromJson(d.data(), id: d.id))
+            .toList());
   }
 
   // ── Check-in ───────────────────────────────────────────────────────────────
@@ -230,8 +252,9 @@ class SessionService {
         .where('teacherId', isEqualTo: teacherId)
         .orderBy('startedAt', descending: true)
         .snapshots()
-        .map((s) =>
-            s.docs.map((d) => LiveSession.fromJson(d.data(), id: d.id)).toList());
+        .map((s) => s.docs
+            .map((d) => LiveSession.fromJson(d.data(), id: d.id))
+            .toList());
   }
 
   Stream<List<LiveSession>> streamStudentEligibleSessions(String studentId) {
@@ -239,10 +262,9 @@ class SessionService {
         .where('eligibleStudentIds', arrayContains: studentId)
         .where('status', isEqualTo: LiveSessionStatus.active.name)
         .snapshots()
-        .map((s) => s.docs
-            .map((d) => LiveSession.fromJson(d.data(), id: d.id))
-            .toList()
-          ..sort((a, b) => b.startedAt.compareTo(a.startedAt)));
+        .map((s) =>
+            s.docs.map((d) => LiveSession.fromJson(d.data(), id: d.id)).toList()
+              ..sort((a, b) => b.startedAt.compareTo(a.startedAt)));
   }
 
   Stream<List<SessionCheckIn>> streamSessionCheckIns(String sessionId) {
@@ -250,8 +272,9 @@ class SessionService {
         .where('sessionId', isEqualTo: sessionId)
         .orderBy('checkedInAt', descending: true)
         .snapshots()
-        .map((s) =>
-            s.docs.map((d) => SessionCheckIn.fromJson(d.data(), id: d.id)).toList());
+        .map((s) => s.docs
+            .map((d) => SessionCheckIn.fromJson(d.data(), id: d.id))
+            .toList());
   }
 
   Stream<SessionCheckIn?> streamStudentSessionCheckIn(
@@ -265,6 +288,7 @@ class SessionService {
         .snapshots()
         .map((s) => s.docs.isEmpty
             ? null
-            : SessionCheckIn.fromJson(s.docs.first.data(), id: s.docs.first.id));
+            : SessionCheckIn.fromJson(s.docs.first.data(),
+                id: s.docs.first.id));
   }
 }

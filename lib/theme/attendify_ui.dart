@@ -151,7 +151,7 @@ class AttendifySurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: padding ?? const EdgeInsets.all(AttendifySpacing.xl),
+      padding: padding ?? const EdgeInsets.all(AttendifySpacing.xxl),
       decoration: BoxDecoration(
         color: color ?? AttendifyPalette.surface,
         borderRadius: AttendifyRadius.lgAll,

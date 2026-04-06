@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -39,15 +40,16 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
   // Ticks every second so countdowns refresh automatically
   Timer? _ticker;
 
-  List<String> get _studentIds =>
-      widget.students.map((s) => s.uid).toList();
+  List<String> get _studentIds => widget.students.map((s) => s.uid).toList();
 
   @override
   void initState() {
     super.initState();
     _ticker = Timer.periodic(
       const Duration(seconds: 1),
-      (_) { if (mounted) setState(() {}); },
+      (_) {
+        if (mounted) setState(() {});
+      },
     );
   }
 
@@ -57,75 +59,116 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
     super.dispose();
   }
 
+  void _setMutatingSession(bool value) {
+    if (!mounted) return;
+    setState(() => _isMutatingSession = value);
+  }
+
+  void _showFeedback(
+    String message, {
+    bool isError = false,
+  }) {
+    if (!mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: isError ? AttendifyPalette.error : null,
+        content: Text(message),
+      ),
+    );
+  }
+
+  String _formatActionError(Object error, String action) {
+    if (error is FirebaseException) {
+      switch (error.code) {
+        case 'permission-denied':
+          return 'Unable to $action. Verify that this account is registered with teacher access.';
+        case 'failed-precondition':
+          return 'Unable to $action until Firestore finishes preparing the required query or rule.';
+      }
+
+      final message = error.message?.trim();
+      if (message != null && message.isNotEmpty) {
+        return message;
+      }
+    }
+
+    if (error is StateError) {
+      return error.message;
+    }
+
+    final message = error
+        .toString()
+        .replaceFirst('Exception: ', '')
+        .replaceFirst('Bad state: ', '')
+        .trim();
+    if (message.isNotEmpty) {
+      return message;
+    }
+
+    return 'Unable to $action right now. Please try again.';
+  }
+
   // ── Session lifecycle ──────────────────────────────────────────────────────
 
   Future<void> _startLiveSession() async {
     final config = await _showStartSessionDialog();
-    if (config == null) return;
+    if (!mounted || config == null) return;
 
-    setState(() => _isMutatingSession = true);
+    _setMutatingSession(true);
     try {
-      await ref.read(sessionServiceProvider).startSession(
+      final session = await ref.read(sessionServiceProvider).startSession(
             widget.module.uid,
             config.roomLabel,
             _studentIds,
           );
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Live session started.')),
-      );
+      _showFeedback('Live session started in ${session.roomLabel}.');
     } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error.toString())));
+      _showFeedback(
+        _formatActionError(error, 'start the live session'),
+        isError: true,
+      );
     } finally {
-      if (mounted) setState(() => _isMutatingSession = false);
+      _setMutatingSession(false);
     }
   }
 
   Future<void> _stopLiveSession(String sessionId) async {
-    setState(() => _isMutatingSession = true);
+    _setMutatingSession(true);
     try {
       await ref.read(sessionServiceProvider).stopSession(sessionId);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Session closed and attendance synced.'),
-        ),
-      );
+      _showFeedback('Session closed and attendance synced.');
     } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error.toString())));
+      _showFeedback(
+        _formatActionError(error, 'close the live session'),
+        isError: true,
+      );
     } finally {
-      if (mounted) setState(() => _isMutatingSession = false);
+      _setMutatingSession(false);
     }
   }
 
   // ── Attendance codes ───────────────────────────────────────────────────────
 
   Future<void> _sendCodes(LiveSession session) async {
-    setState(() => _isMutatingSession = true);
+    _setMutatingSession(true);
     try {
       await ref
           .read(sessionServiceProvider)
           .sendAttendanceCodes(session.id, session.eligibleStudentIds);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Codes sent to ${session.eligibleStudentIds.length} students. '
-            'Tell them to mark presence now.',
-          ),
-        ),
+      _showFeedback(
+        'Codes sent to ${session.eligibleStudentIds.length} students. '
+        'Tell them to mark presence now.',
       );
     } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error.toString())));
+      _showFeedback(
+        _formatActionError(error, 'send attendance codes'),
+        isError: true,
+      );
     } finally {
-      if (mounted) setState(() => _isMutatingSession = false);
+      _setMutatingSession(false);
     }
   }
 
@@ -133,21 +176,19 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
     LiveSession session,
     List<String> studentIds,
   ) async {
-    setState(() => _isMutatingSession = true);
+    _setMutatingSession(true);
     try {
       await ref
           .read(sessionServiceProvider)
           .resendCodes(session.id, studentIds);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('New codes sent to ${studentIds.length} student(s).')),
-      );
+      _showFeedback('New codes sent to ${studentIds.length} student(s).');
     } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error.toString())));
+      _showFeedback(
+        _formatActionError(error, 'resend attendance codes'),
+        isError: true,
+      );
     } finally {
-      if (mounted) setState(() => _isMutatingSession = false);
+      _setMutatingSession(false);
     }
   }
 
@@ -170,8 +211,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
       for (var j = 0; j < rows[i].cells.length; j++) {
         sheet
             .cell(CellIndex.indexByColumnRow(columnIndex: j, rowIndex: i + 1))
-            .value =
-            TextCellValue((rows[i].cells[j].child as Text).data ?? '');
+            .value = TextCellValue((rows[i].cells[j].child as Text).data ?? '');
       }
     }
 
@@ -181,16 +221,11 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
     final path = '$result/${widget.module.name.replaceAll(' ', '_')}.xlsx';
     try {
       await File(path).writeAsBytes(excelData.encode()!);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Attendance table exported successfully.')),
-      );
+      _showFeedback('Attendance table exported successfully.');
     } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('An error occurred while exporting attendance data.'),
-        ),
+      _showFeedback(
+        'An error occurred while exporting attendance data.',
+        isError: true,
       );
     }
   }
@@ -271,7 +306,9 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
         DataCell(Text(widget.students[index].userName)),
         ...dates.map(
           (date) => DataCell(
-            Text((widget.module.attendanceTable[date] as Map?)?[studentId] as bool? ?? false
+            Text((widget.module.attendanceTable[date] as Map?)?[studentId]
+                        as bool? ??
+                    false
                 ? 'Present'
                 : 'Absent'),
           ),
@@ -282,37 +319,53 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
     final activeSessionAsync =
         ref.watch(activeSessionProvider(widget.module.uid));
 
-    return activeSessionAsync.when(
-      data: (activeSession) {
-        final checkInsAsync = activeSession == null
-            ? const AsyncData<List<SessionCheckIn>>(<SessionCheckIn>[])
-            : ref.watch(sessionCheckInsProvider(activeSession.id));
+    final activeSession = activeSessionAsync.asData?.value;
+    if (activeSessionAsync.hasError) {
+      return AttendifySurface(
+        child: Text(
+          _formatActionError(activeSessionAsync.error!, 'load the live session'),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AttendifyPalette.error,
+              ),
+        ),
+      );
+    }
 
-        final codeRequestsAsync = activeSession == null
-            ? const AsyncData<List<CodeRequest>>(<CodeRequest>[])
-            : ref.watch(codeRequestsProvider(activeSession.id));
+    final checkInsAsync = activeSession == null
+        ? const AsyncData<List<SessionCheckIn>>(<SessionCheckIn>[])
+        : ref.watch(sessionCheckInsProvider(activeSession.id));
 
-        return checkInsAsync.when(
-          data: (checkIns) {
-            final pendingRequests =
-                codeRequestsAsync.asData?.value ?? <CodeRequest>[];
+    final codeRequestsAsync = activeSession == null
+        ? const AsyncData<List<CodeRequest>>(<CodeRequest>[])
+        : ref.watch(codeRequestsProvider(activeSession.id));
 
-            final successfulCheckIns = checkIns
-                .where((c) => c.status == SessionCheckInStatus.present)
-                .toList();
-            final latestCheckIns = successfulCheckIns.take(4).toList();
-            final todayPresent = activeSession == null
-                ? presentCountForDate(widget.module, todayDate)
-                : successfulCheckIns.length;
-            final attendanceRate =
-                moduleAttendancePercentage(widget.module);
-            final studentsById = {
-              for (final s in widget.students) s.uid: s,
-            };
+    final checkIns = checkInsAsync.asData?.value ?? <SessionCheckIn>[];
+    final pendingRequests =
+        codeRequestsAsync.asData?.value ?? <CodeRequest>[];
+    final liveSessionActivityError = checkInsAsync.hasError
+        ? _formatActionError(checkInsAsync.error!, 'load live session activity')
+        : codeRequestsAsync.hasError
+            ? _formatActionError(
+                codeRequestsAsync.error!,
+                'load attendance code requests',
+              )
+            : null;
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+    final successfulCheckIns = checkIns
+        .where((c) => c.status == SessionCheckInStatus.present)
+        .toList();
+    final latestCheckIns = successfulCheckIns.take(4).toList();
+    final todayPresent = activeSession == null
+        ? presentCountForDate(widget.module, todayDate)
+        : successfulCheckIns.length;
+    final attendanceRate = moduleAttendancePercentage(widget.module);
+    final studentsById = {
+      for (final s in widget.students) s.uid: s,
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
                 // ── Session control ──────────────────────────────────────────
                 AttendifySurface(
                   color: AttendifyPalette.primary,
@@ -326,7 +379,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                             .labelSmall
                             ?.copyWith(color: Colors.white70),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: AttendifySpacing.md),
                       Text(
                         activeSession == null
                             ? 'Attendance is closed'
@@ -364,6 +417,18 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                     ],
                   ),
                 ),
+
+                if (liveSessionActivityError != null) ...[
+                  const SizedBox(height: AttendifySpacing.lg),
+                  AttendifySurface(
+                    child: Text(
+                      liveSessionActivityError,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AttendifyPalette.error,
+                          ),
+                    ),
+                  ),
+                ],
 
                 // ── Attendance codes (only when session is active) ───────────
                 if (activeSession != null) ...[
@@ -411,10 +476,8 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                           width: itemWidth,
                           child: AttendifyMetricCard(
                             label: 'Attendance rate',
-                            value:
-                                '${attendanceRate.toStringAsFixed(0)}%',
-                            helper:
-                                '${widget.module.attendanceTable.length} '
+                            value: '${attendanceRate.toStringAsFixed(0)}%',
+                            helper: '${widget.module.attendanceTable.length} '
                                 'historical session entries',
                             icon: Icons.bar_chart_rounded,
                           ),
@@ -437,8 +500,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                             activeSession == null
                                 ? 'Attendance records'
                                 : 'Recent live check-ins',
-                            style:
-                                Theme.of(context).textTheme.titleLarge,
+                            style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: AttendifySpacing.xs),
                           Text(
@@ -448,8 +510,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
-                                ?.copyWith(
-                                    color: AttendifyPalette.mutedText),
+                                ?.copyWith(color: AttendifyPalette.mutedText),
                           ),
                         ],
                       ),
@@ -463,7 +524,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                   ],
                 ),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: AttendifySpacing.md),
 
                 if (activeSession != null) ...[
                   if (latestCheckIns.isEmpty)
@@ -476,18 +537,17 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                     ...latestCheckIns.map((checkIn) {
                       final student = studentsById[checkIn.studentId];
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: AttendifySpacing.md),
+                        padding:
+                            const EdgeInsets.only(bottom: AttendifySpacing.md),
                         child: AttendifySurface(
                           child: Row(
                             children: [
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      student?.userName ??
-                                          checkIn.studentId,
+                                      student?.userName ?? checkIn.studentId,
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleMedium,
@@ -499,8 +559,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                                           .textTheme
                                           .bodySmall
                                           ?.copyWith(
-                                            color: AttendifyPalette
-                                                .mutedText,
+                                            color: AttendifyPalette.mutedText,
                                           ),
                                     ),
                                   ],
@@ -515,16 +574,18 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                         ),
                       );
                     }),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AttendifySpacing.md),
                 ],
 
                 // ── Attendance table ─────────────────────────────────────────
                 AttendifySurface(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(AttendifySpacing.md),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(minHeight: 200),
+                    // Keep the table scroll-based here; unconstrained zooming
+                    // breaks layout when this screen sits inside the page scroll
+                    // view provided by AttendifyScreen.
                     child: Scrollbar(
-                      thumbVisibility: true,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: SingleChildScrollView(
@@ -543,15 +604,6 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                   ),
                 ),
               ],
-            );
-          },
-          loading: () =>
-              const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text(e.toString())),
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text(e.toString())),
     );
   }
 
@@ -567,8 +619,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
     if (codesIssuedAt == null) {
       secondsLeft = 0;
     } else {
-      final elapsed =
-          DateTime.now().difference(codesIssuedAt).inSeconds;
+      final elapsed = DateTime.now().difference(codesIssuedAt).inSeconds;
       secondsLeft = (60 - elapsed).clamp(0, 60);
     }
 
@@ -627,9 +678,8 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                 ),
                 const SizedBox(width: AttendifySpacing.md),
                 OutlinedButton.icon(
-                  onPressed: _isMutatingSession
-                      ? null
-                      : () => _sendCodes(session),
+                  onPressed:
+                      _isMutatingSession ? null : () => _sendCodes(session),
                   icon: const Icon(Icons.refresh_rounded, size: 18),
                   label: const Text('Resend All'),
                 ),
@@ -672,8 +722,7 @@ class _PresenceTableState extends ConsumerState<PresenceTable> {
                     TextButton(
                       onPressed: _isMutatingSession
                           ? null
-                          : () => _resendToStudents(
-                              session, [req.studentId]),
+                          : () => _resendToStudents(session, [req.studentId]),
                       child: const Text('Resend'),
                     ),
                   ],

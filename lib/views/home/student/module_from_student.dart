@@ -615,22 +615,24 @@ class _ModuleViewFromStudentState
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: (_displayCode ?? '------').split('').map((digit) {
-            return Container(
-              width: 42,
-              height: 54,
-              margin: const EdgeInsets.symmetric(horizontal: AttendifySpacing.xs),
-              decoration: BoxDecoration(
-                color: Colors.white12,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.white30),
-              ),
-              child: Center(
-                child: Text(
-                  digit,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
+            return Flexible(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 48),
+                height: 54,
+                margin: const EdgeInsets.symmetric(horizontal: AttendifySpacing.xs),
+                decoration: BoxDecoration(
+                  color: Colors.white12,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white30),
+                ),
+                child: Center(
+                  child: Text(
+                    digit,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

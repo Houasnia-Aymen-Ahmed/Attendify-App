@@ -1,6 +1,14 @@
 {
   "indexes": [
     {
+      "collectionGroup": "SessionCheckIns",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "sessionId", "order": "ASCENDING" },
+        { "fieldPath": "checkedInAt", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "CodeRequests",
       "queryScope": "COLLECTION",
       "fields": [

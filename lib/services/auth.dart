@@ -33,7 +33,8 @@ class AuthService {
   // * It attempts to sign in the user using the provided email and password.
   // * If successful, it returns the user as a UserHandler object; otherwise, it returns null.
   // * This function is used in the sign in screen.
-  Future<UserHandler?> signInWithEmailAndPassword(String email, String password) async {
+  Future<UserHandler?> signInWithEmailAndPassword(
+      String email, String password) async {
     try {
       UserCredential result = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
@@ -52,21 +53,39 @@ class AuthService {
   Future<UserHandler?> signInWithGoogleProvider() async {
     await googleSignIn.signOut();
     final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
-    if (!googleUser.email.endsWith('@hns-re2sd.dz')) {
+    final normalizedEmail = googleUser.email.trim().toLowerCase();
+
+    if (!normalizedEmail.endsWith('@hns-re2sd.dz')) {
       throw Exception('not-hns-email');
     }
 
-    if (!await DatabaseService().isUserRegistered(googleUser.email)) {
-      throw Exception('not-registered');
-    }
-
-    final clientAuth = await googleUser.authorizationClient.authorizeScopes(['email', 'profile']);
+    final clientAuth = await googleUser.authorizationClient
+        .authorizeScopes(['email', 'profile']);
     final credential = GoogleAuthProvider.credential(
       accessToken: clientAuth.accessToken,
       idToken: googleUser.authentication.idToken,
     );
     UserCredential result = await _auth.signInWithCredential(credential);
     User? user = result.user;
+
+    if (user == null) {
+      throw Exception('no-user');
+    }
+
+    final registeredProfile =
+        await DatabaseService(uid: user.uid).ensureRegisteredUserProfile(
+      uid: user.uid,
+      email: normalizedEmail,
+      fallbackUserName: capitalizeWords(user.displayName) ?? 'Username',
+      fallbackPhotoURL: user.photoURL ?? '',
+    );
+
+    if (registeredProfile == null) {
+      await _auth.signOut();
+      await googleSignIn.signOut();
+      throw Exception('not-registered');
+    }
+
     return _userFromFirebaseUser(user);
   }
 
@@ -85,22 +104,25 @@ class AuthService {
   ) async {
     await googleSignIn.signOut();
     final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
-    if (!googleUser.email.endsWith('@hns-re2sd.dz')) {
+    final normalizedEmail = googleUser.email.trim().toLowerCase();
+
+    if (!normalizedEmail.endsWith('@hns-re2sd.dz')) {
       throw Exception('not-hns-email');
     }
 
     if (userType.toLowerCase() == 'teacher' &&
         !await DatabaseService().isTeacherEmailRegistered(
-          googleUser.email,
+          normalizedEmail,
         )) {
       throw Exception('not-hns-teacher');
     } else if (userType.toLowerCase() == 'admin' &&
         !await DatabaseService().isAdminEmailRegistered(
-          googleUser.email,
+          normalizedEmail,
         )) {
       throw Exception('not-hns-admin');
     }
-    final clientAuth = await googleUser.authorizationClient.authorizeScopes(['email', 'profile']);
+    final clientAuth = await googleUser.authorizationClient
+        .authorizeScopes(['email', 'profile']);
     final credential = GoogleAuthProvider.credential(
       accessToken: clientAuth.accessToken,
       idToken: googleUser.authentication.idToken,
